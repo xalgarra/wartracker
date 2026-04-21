@@ -17,63 +17,81 @@
     th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     th { font-weight: 600; }
     .empty { color: #999; padding: 1rem 0; }
+    #login-screen { max-width: 360px; margin: 4rem auto; }
+    #login-screen h2 { margin-bottom: 1.5rem; }
+    #login-screen input { width: 100%; margin-bottom: 0.75rem; }
+    #error-msg { color: #c00; font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+    #app-screen { display: none; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .top-bar h1 { margin: 0; }
+    .btn-link { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 0; }
+    .btn-link:hover { color: #333; }
   </style>
 </head>
 <body>
-  <h1>WarTracker</h1>
 
-  <form id="form">
-    <input id="name" placeholder="Nombre (ej. Intercessors)" required>
-
-    <select id="game" onchange="actualizarFacciones()">
-      <option value="">Cargando juegos...</option>
-    </select>
-
-    <select id="faction">
-      <option value="">Selecciona primero un juego</option>
-    </select>
-
-    <input id="qty" type="number" min="1" value="1" placeholder="Cantidad">
-
-    <select id="status">
-      <option value="comprada">Comprada</option>
-      <option value="montada">Montada</option>
-      <option value="imprimada">Imprimada</option>
-      <option value="pintada">Pintada</option>
-    </select>
-
-    <textarea id="notes" placeholder="Notas (opcional)" rows="2"></textarea>
-    <button type="submit">Añadir mini</button>
-  </form>
-
-  <div class="filtros">
-    <select id="filtro-game" onchange="actualizarFiltroFacciones()">
-      <option value="">Todos los juegos</option>
-    </select>
-    <select id="filtro-faction" onchange="cargarMinis()">
-      <option value="">Todas las facciones</option>
-    </select>
-    <select id="filtro-status" onchange="cargarMinis()">
-      <option value="">Todos los estados</option>
-      <option value="comprada">Comprada</option>
-      <option value="montada">Montada</option>
-      <option value="imprimada">Imprimada</option>
-      <option value="pintada">Pintada</option>
-    </select>
+  <div id="login-screen">
+    <h2>WarTracker</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Contraseña">
+    <button onclick="login()">Entrar</button>
+    <p id="error-msg">Email o contraseña incorrectos</p>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Facción</th>
-        <th>Juego</th>
-        <th>Cant.</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
+  <div id="app-screen">
+    <div class="top-bar">
+      <h1>WarTracker</h1>
+      <button class="btn-link" onclick="logout()">Cerrar sesión</button>
+    </div>
+
+    <form id="form">
+      <input id="name" placeholder="Nombre (ej. Intercessors)" required>
+      <select id="game" onchange="actualizarFacciones()">
+        <option value="">Cargando juegos...</option>
+      </select>
+      <select id="faction">
+        <option value="">Selecciona primero un juego</option>
+      </select>
+      <input id="qty" type="number" min="1" value="1" placeholder="Cantidad">
+      <select id="status">
+        <option value="comprada">Comprada</option>
+        <option value="montada">Montada</option>
+        <option value="imprimada">Imprimada</option>
+        <option value="pintada">Pintada</option>
+      </select>
+      <textarea id="notes" placeholder="Notas (opcional)" rows="2"></textarea>
+      <button type="submit">Añadir mini</button>
+    </form>
+
+    <div class="filtros">
+      <select id="filtro-game" onchange="actualizarFiltroFacciones()">
+        <option value="">Todos los juegos</option>
+      </select>
+      <select id="filtro-faction" onchange="cargarMinis()">
+        <option value="">Todas las facciones</option>
+      </select>
+      <select id="filtro-status" onchange="cargarMinis()">
+        <option value="">Todos los estados</option>
+        <option value="comprada">Comprada</option>
+        <option value="montada">Montada</option>
+        <option value="imprimada">Imprimada</option>
+        <option value="pintada">Pintada</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Facción</th>
+          <th>Juego</th>
+          <th>Cant.</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="lista"></tbody>
+    </table>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -86,6 +104,29 @@
     let games = []
     let factions = []
 
+    async function login() {
+      const email = document.getElementById('email').value
+      const password = document.getElementById('password').value
+      const { error } = await db.auth.signInWithPassword({ email, password })
+      if (error) {
+        document.getElementById('error-msg').style.display = 'block'
+      } else {
+        mostrarApp()
+      }
+    }
+
+    async function logout() {
+      await db.auth.signOut()
+      document.getElementById('app-screen').style.display = 'none'
+      document.getElementById('login-screen').style.display = 'block'
+    }
+
+    async function mostrarApp() {
+      document.getElementById('login-screen').style.display = 'none'
+      document.getElementById('app-screen').style.display = 'block'
+      await inicializar()
+    }
+
     async function inicializar() {
       const { data: gamesData } = await db.from('games').select('*').order('name')
       const { data: factionsData } = await db.from('factions').select('*').order('name')
@@ -93,13 +134,11 @@
       games = gamesData || []
       factions = factionsData || []
 
-      // Rellenar selector de juego en formulario
       const selectGame = document.getElementById('game')
       selectGame.innerHTML = games.map(g =>
         `<option value="${g.slug}">${g.name}</option>`
       ).join('')
 
-      // Rellenar selector de juego en filtros
       const filtroGame = document.getElementById('filtro-game')
       filtroGame.innerHTML = '<option value="">Todos los juegos</option>' +
         games.map(g => `<option value="${g.slug}">${g.name}</option>`).join('')
@@ -174,7 +213,12 @@
       cargarMinis()
     })
 
-    inicializar()
+    // Comprobar si ya hay sesión activa al cargar
+    db.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        mostrarApp()
+      }
+    })
   </script>
 </body>
 </html>
