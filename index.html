@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WarTracker</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: 1.5rem; }
     form { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
     input, select, textarea { padding: 0.5rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
@@ -13,6 +13,8 @@
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     th { font-weight: 600; }
+    .filtros { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filtros select { flex: 1; min-width: 120px; }
   </style>
 </head>
 <body>
@@ -20,23 +22,45 @@
 
   <form id="form">
     <input id="name" placeholder="Nombre (ej. Intercessors)" required>
-    <input id="faction" placeholder="Facción (ej. Space Marines)">
-    <select id="game">
+    
+    <select id="game" onchange="actualizarFacciones()">
       <option value="40k">Warhammer 40K</option>
       <option value="aos">Age of Sigmar</option>
-      <option value="horus">Horus Heresy</option>
-      <option value="otro">Otro</option>
     </select>
+
+    <input id="faction" placeholder="Facción" list="facciones-list" required>
+    <datalist id="facciones-list"></datalist>
+
     <input id="qty" type="number" min="1" value="1" placeholder="Cantidad">
+    
     <select id="status">
       <option value="comprada">Comprada</option>
       <option value="montada">Montada</option>
       <option value="imprimada">Imprimada</option>
       <option value="pintada">Pintada</option>
     </select>
+    
     <textarea id="notes" placeholder="Notas (opcional)" rows="2"></textarea>
     <button type="submit">Añadir mini</button>
   </form>
+
+  <div class="filtros">
+    <select id="filtro-game" onchange="cargarMinis()">
+      <option value="">Todos los juegos</option>
+      <option value="40k">Warhammer 40K</option>
+      <option value="aos">Age of Sigmar</option>
+    </select>
+    <select id="filtro-faction" onchange="cargarMinis()">
+      <option value="">Todas las facciones</option>
+    </select>
+    <select id="filtro-status" onchange="cargarMinis()">
+      <option value="">Todos los estados</option>
+      <option value="comprada">Comprada</option>
+      <option value="montada">Montada</option>
+      <option value="imprimada">Imprimada</option>
+      <option value="pintada">Pintada</option>
+    </select>
+  </div>
 
   <table>
     <thead>
@@ -59,19 +83,65 @@
       'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
     )
 
+    let todasLasMinis = []
+
+    async function cargarFacciones() {
+      const { data } = await db.from('minis').select('faction, game')
+      const facciones = [...new Set(data.map(m => m.faction).filter(Boolean))]
+      
+      // Para el datalist del formulario
+      const datalist = document.getElementById('facciones-list')
+      datalist.innerHTML = facciones.map(f => `<option value="${f}">`).join('')
+
+      // Para el filtro
+      const filtroFaction = document.getElementById('filtro-faction')
+      const gameSeleccionado = document.getElementById('filtro-game').value
+      const faccionesFiltradas = gameSeleccionado
+        ? [...new Set(data.filter(m => m.game === gameSeleccionado).map(m => m.faction).filter(Boolean))]
+        : facciones
+      filtroFaction.innerHTML = '<option value="">Todas las facciones</option>' +
+        faccionesFiltradas.map(f => `<option value="${f}">${f}</option>`).join('')
+    }
+
+    function actualizarFacciones() {
+      const game = document.getElementById('game').value
+      const datalist = document.getElementById('facciones-list')
+      const facciones = [...new Set(todasLasMinis
+        .filter(m => m.game === game)
+        .map(m => m.faction)
+        .filter(Boolean))]
+      datalist.innerHTML = facciones.map(f => `<option value="${f}">`).join('')
+    }
+
     async function cargarMinis() {
-      const { data, error } = await db.from('minis').select('*').order('created_at', { ascending: false })
+      const filtroGame = document.getElementById('filtro-game').value
+      const filtroFaction = document.getElementById('filtro-faction').value
+      const filtroStatus = document.getElementById('filtro-status').value
+
+      let query = db.from('minis').select('*').order('created_at', { ascending: false })
+      if (filtroGame) query = query.eq('game', filtroGame)
+      if (filtroFaction) query = query.eq('faction', filtroFaction)
+      if (filtroStatus) query = query.eq('status', filtroStatus)
+
+      const { data, error } = await query
       if (error) { console.error(error); return; }
+
+      todasLasMinis = data
+      actualizarFacciones()
+      await cargarFacciones()
+
       const lista = document.getElementById('lista')
-      lista.innerHTML = data.map(m => `
-        <tr>
-          <td>${m.name}</td>
-          <td>${m.faction || '-'}</td>
-          <td>${m.game}</td>
-          <td>${m.qty}</td>
-          <td>${m.status}</td>
-        </tr>
-      `).join('')
+      lista.innerHTML = data.length === 0
+        ? '<tr><td colspan="5" style="color:#999;padding:1rem 0">No hay minis con estos filtros</td></tr>'
+        : data.map(m => `
+          <tr>
+            <td>${m.name}</td>
+            <td>${m.faction || '-'}</td>
+            <td>${m.game}</td>
+            <td>${m.qty}</td>
+            <td>${m.status}</td>
+          </tr>
+        `).join('')
     }
 
     document.getElementById('form').addEventListener('submit', async (e) => {
