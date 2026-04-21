@@ -4,30 +4,93 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WarTracker</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: 1.5rem; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+    input, select, textarea { padding: 0.5rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 0.6rem; font-size: 1rem; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    th { font-weight: 600; }
+  </style>
 </head>
 <body>
   <h1>WarTracker</h1>
-  <p id="status">Conectando a la base de datos...</p>
+
+  <form id="form">
+    <input id="name" placeholder="Nombre (ej. Intercessors)" required>
+    <input id="faction" placeholder="Facción (ej. Space Marines)">
+    <select id="game">
+      <option value="40k">Warhammer 40K</option>
+      <option value="aos">Age of Sigmar</option>
+      <option value="horus">Horus Heresy</option>
+      <option value="otro">Otro</option>
+    </select>
+    <input id="qty" type="number" min="1" value="1" placeholder="Cantidad">
+    <select id="status">
+      <option value="comprada">Comprada</option>
+      <option value="montada">Montada</option>
+      <option value="imprimada">Imprimada</option>
+      <option value="pintada">Pintada</option>
+    </select>
+    <textarea id="notes" placeholder="Notas (opcional)" rows="2"></textarea>
+    <button type="submit">Añadir mini</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Facción</th>
+        <th>Juego</th>
+        <th>Cant.</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { createClient } = supabase
+    const db = createClient(
+      'https://yxmviaviyglyemoyqfws.supabase.co',
+      'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
+    )
 
-    const SUPABASE_URL = 'https://yxmviaviyglyemoyqfws.supabase.co'
-    const SUPABASE_KEY = 'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
-
-    const db = createClient(SUPABASE_URL, SUPABASE_KEY)
-
-    async function testConnection() {
-      const { data, error } = await db.from('minis').select('*')
-      if (error) {
-        document.getElementById('status').textContent = 'Error: ' + error.message
-      } else {
-        document.getElementById('status').textContent = 'Conexión OK. Minis en la base de datos: ' + data.length
-      }
+    async function cargarMinis() {
+      const { data, error } = await db.from('minis').select('*').order('created_at', { ascending: false })
+      if (error) { console.error(error); return; }
+      const lista = document.getElementById('lista')
+      lista.innerHTML = data.map(m => `
+        <tr>
+          <td>${m.name}</td>
+          <td>${m.faction || '-'}</td>
+          <td>${m.game}</td>
+          <td>${m.qty}</td>
+          <td>${m.status}</td>
+        </tr>
+      `).join('')
     }
 
-    testConnection()
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const { error } = await db.from('minis').insert({
+        name: document.getElementById('name').value,
+        faction: document.getElementById('faction').value,
+        game: document.getElementById('game').value,
+        qty: parseInt(document.getElementById('qty').value),
+        status: document.getElementById('status').value,
+        notes: document.getElementById('notes').value
+      })
+      if (error) { alert('Error: ' + error.message); return; }
+      e.target.reset()
+      document.getElementById('qty').value = 1
+      cargarMinis()
+    })
+
+    cargarMinis()
   </script>
 </body>
 </html>
