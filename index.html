@@ -34,7 +34,8 @@
     .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
     .card-name { font-size: 1rem; font-weight: 600; }
-    .card-faction { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; }
+    .card-name-alt { font-size: 0.9rem; font-weight: 600; color: #555; padding-left: 0.75rem; border-left: 2px solid #ddd; margin-top: 0.2rem; }
+    .card-faction { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; margin-top: 0.4rem; }
     .card-footer { display: flex; gap: 0.5rem; align-items: center; }
     .badge { font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
     .badge-game { background: #e8f0fe; color: #1a56db; }
@@ -105,9 +106,10 @@
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
     <div class="modal">
       <h2>Añadir miniatura</h2>
-      <input id="name" placeholder="Nombre (ej. Intercessors)" required>
       <select id="game" onchange="actualizarFacciones()"></select>
-      <select id="faction"></select>
+      <select id="faction" onchange="actualizarUnidades()"></select>
+      <select id="unit-select" onchange="toggleNombreCustom()"></select>
+      <input id="name-custom" placeholder="Nombre personalizado" style="display:none">
       <input id="qty" type="number" min="1" value="1">
       <select id="status">
         <option value="comprada">Comprada</option>
@@ -172,7 +174,7 @@
         games.map(g => `<option value="${g.slug}">${g.name}</option>`).join('')
 
       actualizarFacciones()
-      cargarMinis()
+      await actualizarFiltroFacciones()
     }
 
     function actualizarFacciones() {
@@ -181,14 +183,44 @@
       document.getElementById('faction').innerHTML = filtradas.map(f =>
         `<option value="${f.name}">${f.name}</option>`
       ).join('')
+      actualizarUnidades()
     }
 
-    function actualizarFiltroFacciones() {
+    async function actualizarUnidades() {
+      const faction = document.getElementById('faction').value
+      const game = document.getElementById('game').value
+
+      const { data } = await db.from('units').select('name')
+        .eq('faction', faction).eq('game_slug', game).order('name')
+
+      const select = document.getElementById('unit-select')
+      select.innerHTML =
+        '<option value="">— Selecciona unidad —</option>' +
+        (data || []).map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
+        '<option value="__custom__">Otro (personalizado)...</option>'
+
+      toggleNombreCustom()
+    }
+
+    function toggleNombreCustom() {
+      const esCustom = document.getElementById('unit-select').value === '__custom__'
+      document.getElementById('name-custom').style.display = esCustom ? 'block' : 'none'
+      if (esCustom) document.getElementById('name-custom').focus()
+    }
+
+    async function actualizarFiltroFacciones() {
       const gameSlug = document.getElementById('filtro-game').value
-      const filtradas = gameSlug ? factions.filter(f => f.game_slug === gameSlug) : factions
+
+      let query = db.from('minis').select('faction')
+      if (gameSlug) query = query.eq('game', gameSlug)
+      const { data } = await query
+
+      const faccionesConMinis = [...new Set((data || []).map(m => m.faction).filter(Boolean))].sort()
+
       document.getElementById('filtro-faction').innerHTML =
         '<option value="">Todas las facciones</option>' +
-        filtradas.map(f => `<option value="${f.name}">${f.name}</option>`).join('')
+        faccionesConMinis.map(f => `<option value="${f}">${f}</option>`).join('')
+
       cargarMinis()
     }
 
@@ -213,10 +245,15 @@
 
       lista.innerHTML = data.map(m => {
         const gameName = games.find(g => g.slug === m.game)?.name || m.game
+        const opciones = (m.name || '').split('/').map(o => o.trim()).filter(Boolean)
+        const nombreHTML = opciones.length > 1
+          ? `<div class="card-name">${opciones[0]}</div>` +
+            opciones.slice(1).map(o => `<div class="card-name-alt">${o}</div>`).join('')
+          : `<div class="card-name">${m.name}</div>`
         return `
           <div class="card">
             <div class="card-header">
-              <div class="card-name">${m.name}</div>
+              <div>${nombreHTML}</div>
             </div>
             <div class="card-faction">${m.faction || '-'}</div>
             <div class="card-footer">
@@ -242,8 +279,11 @@
     }
 
     async function guardarMini() {
-      const name = document.getElementById('name').value.trim()
-      if (!name) { alert('El nombre es obligatorio'); return }
+      const unitSelect = document.getElementById('unit-select').value
+      const name = unitSelect === '__custom__'
+        ? document.getElementById('name-custom').value.trim()
+        : unitSelect
+      if (!name || name === '') { alert('Selecciona una unidad'); return }
 
       const { error } = await db.from('minis').insert({
         name,
@@ -257,10 +297,13 @@
       if (error) { alert('Error: ' + error.message); return }
 
       cerrarModal()
-      document.getElementById('name').value = ''
+      document.getElementById('unit-select').selectedIndex = 0
+      document.getElementById('name-custom').value = ''
+      document.getElementById('name-custom').style.display = 'none'
       document.getElementById('notes').value = ''
       document.getElementById('qty').value = 1
       cargarMinis()
+      actualizarFiltroFacciones()
     }
 
     db.auth.getSession().then(({ data: { session } }) => {
