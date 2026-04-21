@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WarTracker</title>
+</head>
+<body>
+  <h1>WarTracker</h1>
+  <p id="status">Conectando a la base de datos...</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const { createClient } = supabase
+
+    const SUPABASE_URL = 'https://yxmviaviyglyemoyqfws.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
+
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    async function testConnection() {
+      const { data, error } = await db.from('minis').select('*')
+      if (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message
+      } else {
+        document.getElementById('status').textContent = 'Conexión OK. Minis en la base de datos: ' + data.length
+      }
+    }
+
+    testConnection()
+  </script>
+</body>
+</html>
