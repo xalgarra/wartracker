@@ -31,7 +31,9 @@
     .lista { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 
     /* TARJETA */
-    .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer; transition: box-shadow 0.15s; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .card:active { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
     .card-name { font-size: 1rem; font-weight: 600; }
     .card-name-alt { font-size: 0.9rem; font-weight: 600; color: #555; padding-left: 0.75rem; border-left: 2px solid #ddd; margin-top: 0.2rem; }
@@ -60,6 +62,7 @@
     .modal-btns { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
     .btn-primary { flex: 1; padding: 0.75rem; font-size: 1rem; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; }
     .btn-cancel { padding: 0.75rem 1.25rem; font-size: 1rem; background: #f5f5f5; color: #333; border: none; border-radius: 8px; cursor: pointer; }
+    .btn-danger { padding: 0.75rem 1.25rem; font-size: 1rem; background: #fee2e2; color: #991b1b; border: none; border-radius: 8px; cursor: pointer; }
 
     /* EXTRA FACCIONES EN MODAL */
     .extra-factions { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
@@ -112,7 +115,7 @@
 
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
     <div class="modal">
-      <h2>Añadir miniatura</h2>
+      <h2 id="modal-title">Añadir miniatura</h2>
       <select id="game" onchange="actualizarFacciones()"></select>
       <select id="faction" onchange="actualizarUnidades()"></select>
       <select id="unit-select" onchange="onUnitChange()"></select>
@@ -127,6 +130,7 @@
       </select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
       <div class="modal-btns">
+        <button id="btn-eliminar" class="btn-danger" onclick="eliminarMini()" style="display:none">Eliminar</button>
         <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
         <button class="btn-primary" onclick="guardarMini()">Guardar</button>
       </div>
@@ -143,6 +147,8 @@
 
     let games = []
     let factions = []
+    let minisActuales = []
+    let miniEnEdicion = null
 
     async function login() {
       const email = document.getElementById('email').value
@@ -221,7 +227,7 @@
       await actualizarFaccionesExtra(val)
     }
 
-    async function actualizarFaccionesExtra(unitName) {
+    async function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = []) {
       const container = document.getElementById('extra-factions-container')
       const primaryFaction = document.getElementById('faction').value
 
@@ -247,7 +253,8 @@
           <div class="extra-factions-label">Esta unidad también está disponible en:</div>
           ${data.map(u => `
             <label class="extra-faction-check">
-              <input type="checkbox" value="${u.faction}" data-game="${u.game_slug}">
+              <input type="checkbox" value="${u.faction}" data-game="${u.game_slug}"
+                ${faccionesYaMarcadas.includes(u.faction) ? 'checked' : ''}>
               ${u.faction} · ${gameName(u.game_slug)}
             </label>
           `).join('')}
@@ -260,11 +267,15 @@
     async function actualizarFiltroFacciones() {
       const gameSlug = document.getElementById('filtro-game').value
 
-      let query = db.from('minis').select('factions, game')
-      if (gameSlug) query = query.eq('game', gameSlug)
-      const { data } = await query
+      const { data } = await db.from('minis').select('factions')
 
-      const todas = (data || []).flatMap(m => m.factions || [])
+      let todas = (data || []).flatMap(m => m.factions || [])
+
+      if (gameSlug) {
+        const faccionesDelJuego = new Set(factions.filter(f => f.game_slug === gameSlug).map(f => f.name))
+        todas = todas.filter(f => faccionesDelJuego.has(f))
+      }
+
       const unicas = [...new Set(todas)].sort()
 
       document.getElementById('filtro-faction').innerHTML =
@@ -282,10 +293,10 @@
       let query = db.from('minis').select('*').order('created_at', { ascending: false })
 
       if (filtroFaction) {
-        // Si hay facción activa, filtra por el array. El juego queda implícito en la facción.
         query = query.contains('factions', [filtroFaction])
       } else if (filtroGame) {
-        query = query.eq('game', filtroGame)
+        const faccionesDelJuego = factions.filter(f => f.game_slug === filtroGame).map(f => f.name)
+        query = query.overlaps('factions', faccionesDelJuego)
       }
 
       if (filtroStatus) query = query.eq('status', filtroStatus)
@@ -293,14 +304,15 @@
       const { data, error } = await query
       if (error) { console.error(error); return }
 
+      minisActuales = data || []
+
       const lista = document.getElementById('lista')
-      if (!data.length) {
+      if (!minisActuales.length) {
         lista.innerHTML = '<div class="empty">No hay minis con estos filtros</div>'
         return
       }
 
-      lista.innerHTML = data.map(m => {
-        const gameName = games.find(g => g.slug === m.game)?.name || m.game
+      lista.innerHTML = minisActuales.map(m => {
         const opciones = (m.name || '').split('/').map(o => o.trim()).filter(Boolean)
         const nombreHTML = opciones.length > 1
           ? `<div class="card-name">${opciones[0]}</div>` +
@@ -309,14 +321,20 @@
         const faccionesHTML = (m.factions || []).length > 1
           ? (m.factions || []).map(f => `<span class="badge badge-faction">${f}</span>`).join(' ')
           : (m.factions || [])[0] || '-'
+        const juegosUnicos = [...new Set(
+          (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
+        )]
+        const gameBadges = juegosUnicos
+          .map(slug => `<span class="badge badge-game">${games.find(g => g.slug === slug)?.name || slug}</span>`)
+          .join(' ')
         return `
-          <div class="card">
+          <div class="card" onclick="abrirEdicion(${m.id})">
             <div class="card-header">
               <div>${nombreHTML}</div>
             </div>
             <div class="card-factions">${faccionesHTML}</div>
             <div class="card-footer">
-              <span class="badge badge-game">${gameName}</span>
+              ${gameBadges}
               <span class="badge badge-status ${m.status}">${m.status}</span>
               <span class="card-qty">${m.qty} ud.</span>
             </div>
@@ -328,11 +346,63 @@
     // --- MODAL: abrir / cerrar ---
 
     function abrirModal() {
+      miniEnEdicion = null
+      document.getElementById('modal-title').textContent = 'Añadir miniatura'
+      document.getElementById('btn-eliminar').style.display = 'none'
+      document.getElementById('modal-bg').classList.add('open')
+    }
+
+    async function abrirEdicion(id) {
+      const mini = minisActuales.find(m => m.id === id)
+      if (!mini) return
+      miniEnEdicion = mini
+
+      // Rellenar game y facciones del modal
+      document.getElementById('game').value = mini.game
+      const filtradas = factions.filter(f => f.game_slug === mini.game)
+      document.getElementById('faction').innerHTML = filtradas.map(f =>
+        `<option value="${f.name}">${f.name}</option>`
+      ).join('')
+      document.getElementById('faction').value = mini.factions[0] || ''
+
+      // Cargar unidades para esta facción
+      const { data: unitsData } = await db.from('units').select('name')
+        .eq('faction', mini.factions[0]).eq('game_slug', mini.game).order('name')
+
+      document.getElementById('unit-select').innerHTML =
+        '<option value="">— Selecciona unidad —</option>' +
+        (unitsData || []).map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
+        '<option value="__custom__">Otro (personalizado)...</option>'
+
+      // Seleccionar la unidad (o custom si no está en catálogo)
+      const enCatalogo = (unitsData || []).some(u => u.name === mini.name)
+      if (enCatalogo) {
+        document.getElementById('unit-select').value = mini.name
+        document.getElementById('name-custom').style.display = 'none'
+      } else {
+        document.getElementById('unit-select').value = '__custom__'
+        document.getElementById('name-custom').value = mini.name
+        document.getElementById('name-custom').style.display = 'block'
+      }
+
+      // Cargar checkboxes de facciones extra y marcar las que ya tiene
+      await actualizarFaccionesExtra(enCatalogo ? mini.name : '__custom__', mini.factions.slice(1))
+
+      // Resto de campos
+      document.getElementById('qty').value = mini.qty
+      document.getElementById('status').value = mini.status
+      document.getElementById('notes').value = mini.notes || ''
+
+      document.getElementById('modal-title').textContent = 'Editar miniatura'
+      document.getElementById('btn-eliminar').style.display = 'block'
       document.getElementById('modal-bg').classList.add('open')
     }
 
     function cerrarModal() {
+      miniEnEdicion = null
       document.getElementById('modal-bg').classList.remove('open')
+      document.getElementById('modal-title').textContent = 'Añadir miniatura'
+      document.getElementById('btn-eliminar').style.display = 'none'
       document.getElementById('unit-select').selectedIndex = 0
       document.getElementById('name-custom').value = ''
       document.getElementById('name-custom').style.display = 'none'
@@ -345,7 +415,7 @@
       if (e.target.id === 'modal-bg') cerrarModal()
     }
 
-    // --- GUARDAR ---
+    // --- GUARDAR / ELIMINAR ---
 
     async function guardarMini() {
       const unitVal = document.getElementById('unit-select').value
@@ -356,19 +426,36 @@
 
       const primaryFaction = document.getElementById('faction').value
       const game = document.getElementById('game').value
-
       const extrasChecked = [...document.querySelectorAll('#extra-factions-container input[type="checkbox"]:checked')]
-      const factions = [primaryFaction, ...extrasChecked.map(cb => cb.value)]
+      const minisFactions = [primaryFaction, ...extrasChecked.map(cb => cb.value)]
 
-      const { error } = await db.from('minis').insert({
+      const payload = {
         name,
-        factions,
+        factions: minisFactions,
         game,
         qty: parseInt(document.getElementById('qty').value) || 1,
         status: document.getElementById('status').value,
         notes: document.getElementById('notes').value
-      })
+      }
 
+      let error
+      if (miniEnEdicion) {
+        ;({ error } = await db.from('minis').update(payload).eq('id', miniEnEdicion.id))
+      } else {
+        ;({ error } = await db.from('minis').insert(payload))
+      }
+
+      if (error) { alert('Error: ' + error.message); return }
+
+      cerrarModal()
+      await actualizarFiltroFacciones()
+    }
+
+    async function eliminarMini() {
+      if (!miniEnEdicion) return
+      if (!confirm(`¿Eliminar "${miniEnEdicion.name}"?`)) return
+
+      const { error } = await db.from('minis').delete().eq('id', miniEnEdicion.id)
       if (error) { alert('Error: ' + error.message); return }
 
       cerrarModal()
