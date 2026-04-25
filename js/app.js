@@ -1033,11 +1033,9 @@ async function capturarPote() {
     )
     const json = await res.json()
     const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+    alert('DEBUG: ' + JSON.stringify(json).substring(0, 300))
 
     if (!rawName || rawName === '?') {
-      const errDetail = json.error?.message || json.promptFeedback?.blockReason
-        || (json.candidates?.[0]?.finishReason) || JSON.stringify(json).substring(0, 120)
-      alert(`Error Gemini: ${errDetail}`)
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
