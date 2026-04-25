@@ -1024,8 +1024,10 @@ async function capturarPote() {
     })
     if (error) throw error
     const rawName = (data.name || '').trim()
+    alert('DEBUG nombre: "' + rawName + '"')
 
     if (!rawName || rawName === '?') {
+      alert('Gemini no ha podido leer el nombre. Prueba con mejor iluminación y el pote más centrado.')
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
