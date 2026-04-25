@@ -440,6 +440,7 @@ function filtrarYRenderPinturas() {
       ? `<div class="paint-swatch" style="background:${p.color_hex}"></div>`
       : `<div class="paint-swatch paint-swatch-none"></div>`
     const stockBadge = p.in_stock ? '' : '<span class="badge badge-sin-stock">Sin stock</span>'
+    const qtyBadge = (p.quantity || 1) > 1 ? `<span class="badge-qty">×${p.quantity}</span>` : ''
     return `
       <div class="paint-item" onclick="abrirEdicionPintura(${p.id})">
         ${swatch}
@@ -449,6 +450,7 @@ function filtrarYRenderPinturas() {
         </div>
         <div class="paint-tags">
           <span class="badge-paint-type">${p.type}</span>
+          ${qtyBadge}
           ${stockBadge}
         </div>
       </div>
@@ -466,6 +468,7 @@ function abrirModalPintura() {
   document.getElementById('paint-has-color').checked = false
   document.getElementById('paint-color-hex').style.display = 'none'
   document.getElementById('paint-color-hex').value = '#aaaaaa'
+  document.getElementById('paint-qty').value = 1
   document.getElementById('paint-in-stock').checked = true
   document.getElementById('modal-paint-bg').classList.add('open')
 }
@@ -483,6 +486,7 @@ function abrirEdicionPintura(id) {
   document.getElementById('paint-has-color').checked = hasColor
   document.getElementById('paint-color-hex').style.display = hasColor ? 'inline-block' : 'none'
   if (hasColor) document.getElementById('paint-color-hex').value = paint.color_hex
+  document.getElementById('paint-qty').value = paint.quantity || 1
   document.getElementById('paint-in-stock').checked = paint.in_stock
   document.getElementById('modal-paint-bg').classList.add('open')
 }
@@ -585,10 +589,16 @@ function onCatalogSearch(query) {
 }
 
 async function quickAddPintura(name, type, hex) {
-  const payload = { brand: 'Citadel', name, type, in_stock: true }
-  if (hex) payload.color_hex = hex
-  const { error } = await db.from('paints').insert(payload)
-  if (error) { console.error(error); return }
+  const existente = pinturas.find(p => p.brand === 'Citadel' && p.name.toLowerCase() === name.toLowerCase())
+  if (existente) {
+    const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
+    if (error) { console.error(error); return }
+  } else {
+    const payload = { brand: 'Citadel', name, type, in_stock: true, quantity: 1 }
+    if (hex) payload.color_hex = hex
+    const { error } = await db.from('paints').insert(payload)
+    if (error) { console.error(error); return }
+  }
   document.getElementById('catalog-search').value = ''
   document.getElementById('catalog-results').style.display = 'none'
   await cargarPinturas()
@@ -607,18 +617,14 @@ async function guardarPintura() {
   const type = document.getElementById('paint-type').value
   if (!brand || !name) { alert('Introduce marca y nombre'); return }
 
-  if (!paintEnEdicion) {
-    const duplicado = pinturas.find(p => p.brand === brand && p.name.toLowerCase() === name.toLowerCase())
-    if (duplicado) { alert(`Ya tienes "${name}" en tu colección.`); return }
-  }
-
   const hasColor = document.getElementById('paint-has-color').checked
   const payload = {
     brand,
     name,
     type,
     color_hex: hasColor ? document.getElementById('paint-color-hex').value : null,
-    in_stock: document.getElementById('paint-in-stock').checked
+    in_stock: document.getElementById('paint-in-stock').checked,
+    quantity: parseInt(document.getElementById('paint-qty').value) || 1
   }
 
   let error
@@ -1085,14 +1091,17 @@ async function confirmarPoteCamara() {
     return
   }
 
-  // Contexto 'catalog': guardar directamente
-  const duplicado = pinturas.find(q => q.brand === 'Citadel' && q.name.toLowerCase() === p.name.toLowerCase())
-  if (duplicado) { alert(`Ya tienes "${p.name}" en tu colección.`); cerrarCamara(); return }
-
-  const payload = { brand: 'Citadel', name: p.name, type: p.type, in_stock: true }
-  if (p.hex) payload.color_hex = p.hex
-  const { error } = await db.from('paints').insert(payload)
-  if (error) { alert('Error: ' + error.message); return }
+  // Contexto 'catalog': guardar directamente (incrementa cantidad si ya existe)
+  const existente = pinturas.find(q => q.brand === 'Citadel' && q.name.toLowerCase() === p.name.toLowerCase())
+  if (existente) {
+    const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
+    if (error) { alert('Error: ' + error.message); return }
+  } else {
+    const payload = { brand: 'Citadel', name: p.name, type: p.type, in_stock: true, quantity: 1 }
+    if (p.hex) payload.color_hex = p.hex
+    const { error } = await db.from('paints').insert(payload)
+    if (error) { alert('Error: ' + error.message); return }
+  }
   cerrarCamara()
   await cargarPinturas()
 }

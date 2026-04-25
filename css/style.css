@@ -1362,6 +1362,15 @@ body.dark .paint-name { font-weight: 400; }
   white-space: nowrap;
 }
 
+.badge-qty {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 .badge-sin-stock {
   background: var(--sin-stock-bg);
   color: var(--sin-stock-text);

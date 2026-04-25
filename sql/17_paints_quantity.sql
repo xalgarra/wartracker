@@ -1,0 +1,1 @@
+ALTER TABLE paints ADD COLUMN IF NOT EXISTS quantity integer NOT NULL DEFAULT 1;
