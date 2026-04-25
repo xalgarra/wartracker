@@ -274,21 +274,14 @@ async function cargarStats() {
   const { data: minis, error } = await db.from('minis').select('name, factions, status, qty, models')
   if (error || !minis) { container.innerHTML = '<div class="stats-empty">Error al cargar datos</div>'; return }
 
-  // Resumen global: pts separados por juego (cross-game suma en ambos)
-  let gTotalEntradas = minis.length, gPintadas = 0
-  let gPtsAoS = 0, gPts40k = 0
+  // Global summary: total models + painted (models field || qty as fallback)
+  let gTotalModelos = 0, gModelosPintados = 0
   for (const mini of minis) {
-    for (const faction of (mini.factions || [])) {
-      const fc = factions.find(f => f.name === faction)
-      if (!fc) continue
-      const pts = unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
-      if (!pts) continue
-      if (fc.game_slug === 'aos') gPtsAoS += pts * mini.qty
-      else if (fc.game_slug === '40k') gPts40k += pts * mini.qty
-    }
-    if (mini.status === 'pintada') gPintadas++
+    const modelos = (mini.models != null ? mini.models : 1) * mini.qty
+    gTotalModelos += modelos
+    if (mini.status === 'pintada') gModelosPintados += modelos
   }
-  const pctPintada = gTotalEntradas ? Math.round(gPintadas / gTotalEntradas * 100) : 0
+  const pctPintada = gTotalModelos ? Math.round(gModelosPintados / gTotalModelos * 100) : 0
 
   const factionStats = {}
 
@@ -298,13 +291,27 @@ async function cargarStats() {
       if (!fc) continue
 
       if (!factionStats[faction]) {
-        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, models: 0, points: 0, pointsPainted: 0, minis: [] }
+        factionStats[faction] = {
+          game_slug: fc.game_slug,
+          counts: {},
+          modelCounts: {},
+          qty: 0,
+          modelos: 0,
+          modelosPintados: 0,
+          points: 0,
+          pointsPainted: 0,
+          minis: []
+        }
       }
 
       const s = factionStats[faction]
+      const modelos = (mini.models != null ? mini.models : 1) * mini.qty
+
       s.counts[mini.status] = (s.counts[mini.status] || 0) + 1
+      s.modelCounts[mini.status] = (s.modelCounts[mini.status] || 0) + modelos
       s.qty += mini.qty
-      if (mini.models) s.models += mini.models * mini.qty
+      s.modelos += modelos
+      if (mini.status === 'pintada') s.modelosPintados += modelos
 
       const pts = unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
       if (pts) {
@@ -335,16 +342,12 @@ async function cargarStats() {
   const summaryHTML = `
     <div class="stats-summary">
       <div class="stats-summary-item">
-        <span class="stats-summary-value">${gTotalEntradas}</span>
-        <span class="stats-summary-label">entradas</span>
+        <span class="stats-summary-value">${gTotalModelos.toLocaleString()}</span>
+        <span class="stats-summary-label">modelos</span>
       </div>
       <div class="stats-summary-item">
-        <span class="stats-summary-value">${gPtsAoS.toLocaleString()}</span>
-        <span class="stats-summary-label">pts AoS</span>
-      </div>
-      <div class="stats-summary-item">
-        <span class="stats-summary-value">${gPts40k.toLocaleString()}</span>
-        <span class="stats-summary-label">pts 40K</span>
+        <span class="stats-summary-value">${gModelosPintados.toLocaleString()}</span>
+        <span class="stats-summary-label">pintados</span>
       </div>
       <div class="stats-summary-item">
         <span class="stats-summary-value stats-summary-pct">${pctPintada}%</span>
@@ -358,19 +361,19 @@ async function cargarStats() {
     const armies = byGame[gameSlug].sort((a, b) => a.faction.localeCompare(b.faction))
 
     const totalPts = armies.reduce((sum, a) => sum + a.points, 0)
-    const totalPinted = armies.reduce((sum, a) => sum + a.pointsPainted, 0)
+    const totalPainted = armies.reduce((sum, a) => sum + a.pointsPainted, 0)
 
     return `
       <div class="stats-game-section">
         <div class="stats-game-title">
           <span class="badge badge-game-${gameSlug}">${gameName}</span>
-          ${totalPts ? `<span class="stats-total">${totalPts.toLocaleString()} pts totales · ${totalPinted.toLocaleString()} pts pintados</span>` : ''}
+          ${totalPts ? `<span class="stats-total">${totalPts.toLocaleString()} pts totales · ${totalPainted.toLocaleString()} pts pintados</span>` : ''}
         </div>
         ${armies.map(a => {
-          const total = Object.values(a.counts).reduce((s, v) => s + v, 0)
+          const totalEntradas = Object.values(a.counts).reduce((s, v) => s + v, 0)
           const segs = statuses
-            .filter(st => a.counts[st])
-            .map(st => `<div class="progress-seg ${st}" style="width:${(a.counts[st] / total * 100).toFixed(1)}%"></div>`)
+            .filter(st => a.modelCounts[st])
+            .map(st => `<div class="progress-seg ${st}" style="width:${(a.modelCounts[st] / a.modelos * 100).toFixed(1)}%"></div>`)
             .join('')
 
           const legend = statuses
@@ -392,7 +395,6 @@ async function cargarStats() {
             </div>
           `).join('')
 
-          const modelInfo = a.models ? ` · ${a.models} modelos` : ''
           return `
             <div class="stats-army">
               <div class="stats-army-header" onclick="toggleArmy(this)">
@@ -400,7 +402,7 @@ async function cargarStats() {
                 <span class="stats-chevron">›</span>
               </div>
               <div class="stats-row">
-                <span>${total} entrada${total !== 1 ? 's' : ''}${modelInfo}</span>
+                <span>${totalEntradas} entrada${totalEntradas !== 1 ? 's' : ''} · ${a.modelos} modelo${a.modelos !== 1 ? 's' : ''} · ${a.modelosPintados} pintado${a.modelosPintados !== 1 ? 's' : ''}</span>
                 ${a.points ? `<span><span class="stats-pts">${a.points.toLocaleString()} pts</span>${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pintados</span>` : ''}</span>` : ''}
               </div>
               <div class="progress-bar">${segs}</div>
