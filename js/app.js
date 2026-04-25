@@ -1,3 +1,11 @@
+;(function initTheme() {
+  const saved = localStorage.getItem('wt_theme')
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.body.classList.add('dark')
+  }
+})()
+
 const { createClient } = supabase
 const db = createClient(
   'https://yxmviaviyglyemoyqfws.supabase.co',
@@ -31,9 +39,18 @@ async function logout() {
   document.getElementById('login-screen').style.display = 'block'
 }
 
+function toggleDarkMode() {
+  const dark = document.body.classList.toggle('dark')
+  localStorage.setItem('wt_theme', dark ? 'dark' : 'light')
+  const btn = document.getElementById('btn-theme')
+  if (btn) btn.textContent = dark ? '☀️' : '🌙'
+}
+
 async function mostrarApp() {
   document.getElementById('login-screen').style.display = 'none'
   document.getElementById('app-screen').style.display = 'block'
+  const btn = document.getElementById('btn-theme')
+  if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'
   await inicializar()
 }
 

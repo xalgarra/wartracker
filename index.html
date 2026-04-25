@@ -19,7 +19,10 @@
   <div id="app-screen">
     <div class="header">
       <h1>WarTracker</h1>
-      <button class="btn-link" onclick="logout()">Cerrar sesión</button>
+      <div class="header-actions">
+        <button class="btn-link btn-theme" id="btn-theme" onclick="toggleDarkMode()">🌙</button>
+        <button class="btn-link" onclick="logout()">Cerrar sesión</button>
+      </div>
     </div>
 
     <div class="tabs">
