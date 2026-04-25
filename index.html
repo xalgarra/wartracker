@@ -46,6 +46,18 @@
           <option value="pintando">Pintando</option>
           <option value="pintada">Pintada</option>
         </select>
+        <select id="filtro-type" onchange="onFiltroType()">
+          <option value="">Todos los tipos</option>
+          <option value="único">Único</option>
+          <option value="personaje">Personaje</option>
+          <option value="infantería">Infantería</option>
+          <option value="élite">Élite</option>
+          <option value="caballería">Caballería</option>
+          <option value="vehículo">Vehículo</option>
+          <option value="monstruo">Monstruo</option>
+          <option value="aeronave">Aeronave</option>
+          <option value="artillería">Artillería</option>
+        </select>
         <input id="busqueda" type="search" placeholder="Buscar por nombre…" oninput="onBusqueda(this.value)">
       </div>
       <div class="lista" id="lista"></div>

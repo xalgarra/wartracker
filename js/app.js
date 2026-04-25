@@ -16,9 +16,11 @@ let games = []
 let factions = []
 let units = []
 let unitMap = {}
+let typeMap = {}
 let minisActuales = []
 let miniEnEdicion = null
 let filtroNombre = ''
+let filtroType = ''
 
 // --- AUTH ---
 
@@ -58,13 +60,18 @@ async function inicializar() {
   const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
     db.from('games').select('*').order('name'),
     db.from('factions').select('*').order('name'),
-    db.from('units').select('name, faction, game_slug, points')
+    db.from('units').select('name, faction, game_slug, points, type')
   ])
   games = gamesData || []
   factions = factionsData || []
   units = unitsData || []
   unitMap = {}
-  for (const u of units) unitMap[`${u.name}|${u.faction}|${u.game_slug}`] = u.points
+  typeMap = {}
+  for (const u of units) {
+    const key = `${u.name}|${u.faction}|${u.game_slug}`
+    unitMap[key] = u.points
+    if (u.type) typeMap[key] = u.type
+  }
 
   document.getElementById('game').innerHTML = games.map(g =>
     `<option value="${g.slug}">${g.name}</option>`
@@ -200,11 +207,27 @@ function onBusqueda(val) {
   renderLista()
 }
 
+function onFiltroType() {
+  filtroType = document.getElementById('filtro-type').value
+  renderLista()
+}
+
+function getTypeForMini(m) {
+  for (const faction of (m.factions || [])) {
+    const fc = factions.find(f => f.name === faction)
+    if (!fc) continue
+    const t = typeMap[`${m.name}|${faction}|${fc.game_slug}`]
+    if (t) return t
+  }
+  return null
+}
+
 function renderLista() {
   const busqueda = filtroNombre.trim().toLowerCase()
-  const minis = busqueda
+  let minis = busqueda
     ? minisActuales.filter(m => (m.name || '').toLowerCase().includes(busqueda))
     : minisActuales
+  if (filtroType) minis = minis.filter(m => getTypeForMini(m) === filtroType)
 
   const lista = document.getElementById('lista')
   if (!minis.length) {
@@ -234,6 +257,8 @@ function renderLista() {
     const ptsHTML = gamePtsList.length
       ? `<span class="card-pts">${gamePtsList.join(' · ')}</span>` : ''
     const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
+    const unitType = getTypeForMini(m)
+    const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
     return `
       <div class="card" onclick="abrirEdicion(${m.id})">
         <div class="card-header">
@@ -243,6 +268,7 @@ function renderLista() {
         <div class="card-footer">
           <div class="card-footer-left">
             ${gameBadges}
+            ${typeBadge}
             <span class="badge badge-status ${m.status}">${m.status}</span>
           </div>
           <div class="card-footer-right">

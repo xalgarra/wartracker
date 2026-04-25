@@ -4,7 +4,8 @@
       "WebSearch",
       "WebFetch(domain:www.games-workshop.com)",
       "WebFetch(domain:www.warhammer.com)",
-      "WebFetch(domain:wahapedia.ru)"
+      "WebFetch(domain:wahapedia.ru)",
+      "Bash(git push *)"
     ]
   }
 }
