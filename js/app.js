@@ -179,9 +179,7 @@ async function cargarMinis() {
       ? `<div class="card-name">${opciones[0]}</div>` +
         opciones.slice(1).map(o => `<div class="card-name-alt">${o}</div>`).join('')
       : `<div class="card-name">${m.name}</div>`
-    const faccionesHTML = (m.factions || []).length > 1
-      ? (m.factions || []).map(f => `<span class="badge badge-faction">${f}</span>`).join(' ')
-      : (m.factions || [])[0] || '-'
+    const faccionesText = (m.factions || []).join(' · ') || '-'
     const juegosUnicos = [...new Set(
       (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
     )]
@@ -193,7 +191,7 @@ async function cargarMinis() {
         <div class="card-header">
           <div>${nombreHTML}</div>
         </div>
-        <div class="card-factions">${faccionesHTML}</div>
+        <div class="card-factions">${faccionesText}</div>
         <div class="card-footer">
           ${gameBadges}
           <span class="badge badge-status ${m.status}">${m.status}</span>
