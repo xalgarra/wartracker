@@ -1002,6 +1002,12 @@ function cerrarCamara() {
 
 async function capturarPote() {
   const video = document.getElementById('camera-video')
+
+  if (!video.videoWidth || !video.videoHeight) {
+    alert('La cámara aún no está lista. Espera un momento e intenta de nuevo.')
+    return
+  }
+
   const canvas = document.createElement('canvas')
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
@@ -1011,7 +1017,7 @@ async function capturarPote() {
   document.getElementById('camera-result').style.display = 'none'
 
   try {
-    const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+    const base64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1]
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -1026,12 +1032,12 @@ async function capturarPote() {
       }
     )
     const json = await res.json()
-    console.log('Gemini response:', JSON.stringify(json))
     const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
 
     if (!rawName || rawName === '?') {
-      const errDetail = json.error?.message || json.promptFeedback?.blockReason || 'respuesta vacía'
-      alert(`No he podido leer el nombre (${errDetail}). Intenta con mejor iluminación y encuadra bien el pote.`)
+      const errDetail = json.error?.message || json.promptFeedback?.blockReason
+        || (json.candidates?.[0]?.finishReason) || JSON.stringify(json).substring(0, 120)
+      alert(`Error Gemini: ${errDetail}`)
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
