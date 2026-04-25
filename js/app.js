@@ -1008,16 +1008,18 @@ async function capturarPote() {
     return
   }
 
+  const MAX_W = 640
+  const scale = Math.min(1, MAX_W / video.videoWidth)
   const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
-  canvas.getContext('2d').drawImage(video, 0, 0)
+  canvas.width = Math.round(video.videoWidth * scale)
+  canvas.height = Math.round(video.videoHeight * scale)
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height)
 
   document.getElementById('camera-scanning').style.display = 'flex'
   document.getElementById('camera-result').style.display = 'none'
 
   try {
-    const base64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1]
+    const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
