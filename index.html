@@ -43,6 +43,7 @@
           <option value="pintando">Pintando</option>
           <option value="pintada">Pintada</option>
         </select>
+        <input id="busqueda" type="search" placeholder="Buscar por nombre…" oninput="onBusqueda(this.value)">
       </div>
       <div class="lista" id="lista"></div>
       <button class="fab" onclick="abrirModal()">+</button>
@@ -61,8 +62,10 @@
       <select id="unit-select" onchange="onUnitChange()"></select>
       <input id="name-custom" placeholder="Nombre personalizado" style="display:none">
       <div id="extra-factions-container" style="display:none"></div>
-      <label class="field-label" for="qty">Cantidad — nº de cajas o lotes (no el nº de miniaturas dentro)</label>
+      <label class="field-label" for="qty">Cantidad — nº de cajas o lotes</label>
       <input id="qty" type="number" min="1" value="1">
+      <label class="field-label" for="models">Modelos en la unidad (opcional — ej: 10 para una caja de 10 marines)</label>
+      <input id="models" type="number" min="1" placeholder="">
       <select id="status">
         <option value="comprada">Comprada</option>
         <option value="montada">Montada</option>

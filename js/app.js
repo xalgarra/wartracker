@@ -6,8 +6,11 @@ const db = createClient(
 
 let games = []
 let factions = []
+let units = []
+let unitMap = {}
 let minisActuales = []
 let miniEnEdicion = null
+let filtroNombre = ''
 
 // --- AUTH ---
 
@@ -35,10 +38,16 @@ async function mostrarApp() {
 }
 
 async function inicializar() {
-  const { data: gamesData } = await db.from('games').select('*').order('name')
-  const { data: factionsData } = await db.from('factions').select('*').order('name')
+  const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
+    db.from('games').select('*').order('name'),
+    db.from('factions').select('*').order('name'),
+    db.from('units').select('name, faction, game_slug, points')
+  ])
   games = gamesData || []
   factions = factionsData || []
+  units = unitsData || []
+  unitMap = {}
+  for (const u of units) unitMap[`${u.name}|${u.faction}|${u.game_slug}`] = u.points
 
   document.getElementById('game').innerHTML = games.map(g =>
     `<option value="${g.slug}">${g.name}</option>`
@@ -166,14 +175,27 @@ async function cargarMinis() {
   if (error) { console.error(error); return }
 
   minisActuales = data || []
+  renderLista()
+}
+
+function onBusqueda(val) {
+  filtroNombre = val
+  renderLista()
+}
+
+function renderLista() {
+  const busqueda = filtroNombre.trim().toLowerCase()
+  const minis = busqueda
+    ? minisActuales.filter(m => (m.name || '').toLowerCase().includes(busqueda))
+    : minisActuales
 
   const lista = document.getElementById('lista')
-  if (!minisActuales.length) {
-    lista.innerHTML = '<div class="empty">No hay minis con estos filtros</div>'
+  if (!minis.length) {
+    lista.innerHTML = `<div class="empty">${minisActuales.length ? 'Sin resultados para esa búsqueda' : 'No hay minis con estos filtros'}</div>`
     return
   }
 
-  lista.innerHTML = minisActuales.map(m => {
+  lista.innerHTML = minis.map(m => {
     const opciones = (m.name || '').split('/').map(o => o.trim()).filter(Boolean)
     const nombreHTML = opciones.length > 1
       ? `<div class="card-name">${opciones[0]}</div>` +
@@ -183,9 +205,18 @@ async function cargarMinis() {
     const juegosUnicos = [...new Set(
       (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
     )]
+    const gameAcronym = { aos: 'AoS', '40k': '40K' }
     const gameBadges = juegosUnicos
-      .map(slug => `<span class="badge badge-game-${slug}">${games.find(g => g.slug === slug)?.name || slug}</span>`)
+      .map(slug => `<span class="badge badge-game-${slug}">${gameAcronym[slug] || slug}</span>`)
       .join(' ')
+    const gamePtsList = juegosUnicos.map(slug => {
+      const fac = (m.factions || []).find(f => factions.find(x => x.name === f && x.game_slug === slug))
+      const pts = fac ? unitMap[`${m.name}|${fac}|${slug}`] : null
+      return pts ? `${(pts * m.qty).toLocaleString()} ${gameAcronym[slug] || slug}` : null
+    }).filter(Boolean)
+    const ptsHTML = gamePtsList.length
+      ? `<span class="card-pts">${gamePtsList.join(' · ')}</span>` : ''
+    const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
     return `
       <div class="card" onclick="abrirEdicion(${m.id})">
         <div class="card-header">
@@ -193,9 +224,14 @@ async function cargarMinis() {
         </div>
         <div class="card-factions">${faccionesText}</div>
         <div class="card-footer">
-          ${gameBadges}
-          <span class="badge badge-status ${m.status}">${m.status}</span>
-          <span class="card-qty">${m.qty} ud.</span>
+          <div class="card-footer-left">
+            ${gameBadges}
+            <span class="badge badge-status ${m.status}">${m.status}</span>
+          </div>
+          <div class="card-footer-right">
+            ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
+            <span class="card-qty">${m.qty} ud.${modelsStr}</span>
+          </div>
         </div>
       </div>
     `
@@ -218,14 +254,24 @@ async function cargarStats() {
   const container = document.getElementById('stats-content')
   container.innerHTML = '<div class="stats-empty">Cargando...</div>'
 
-  const { data: minis, error } = await db.from('minis').select('name, factions, status, qty')
+  const { data: minis, error } = await db.from('minis').select('name, factions, status, qty, models')
   if (error || !minis) { container.innerHTML = '<div class="stats-empty">Error al cargar datos</div>'; return }
 
-  const { data: unitsData } = await db.from('units').select('name, faction, game_slug, points')
-  const unitMap = {}
-  for (const u of (unitsData || [])) {
-    unitMap[`${u.name}|${u.faction}|${u.game_slug}`] = u.points
+  // Resumen global: pts separados por juego (cross-game suma en ambos)
+  let gTotalEntradas = minis.length, gPintadas = 0
+  let gPtsAoS = 0, gPts40k = 0
+  for (const mini of minis) {
+    for (const faction of (mini.factions || [])) {
+      const fc = factions.find(f => f.name === faction)
+      if (!fc) continue
+      const pts = unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
+      if (!pts) continue
+      if (fc.game_slug === 'aos') gPtsAoS += pts * mini.qty
+      else if (fc.game_slug === '40k') gPts40k += pts * mini.qty
+    }
+    if (mini.status === 'pintada') gPintadas++
   }
+  const pctPintada = gTotalEntradas ? Math.round(gPintadas / gTotalEntradas * 100) : 0
 
   const factionStats = {}
 
@@ -235,19 +281,20 @@ async function cargarStats() {
       if (!fc) continue
 
       if (!factionStats[faction]) {
-        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, points: 0, pointsPainted: 0, minis: [] }
+        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, models: 0, points: 0, pointsPainted: 0, minis: [] }
       }
 
       const s = factionStats[faction]
       s.counts[mini.status] = (s.counts[mini.status] || 0) + 1
       s.qty += mini.qty
+      if (mini.models) s.models += mini.models * mini.qty
 
       const pts = unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
       if (pts) {
         s.points += pts * mini.qty
         if (mini.status === 'pintada') s.pointsPainted += pts * mini.qty
       }
-      s.minis.push({ name: mini.name, status: mini.status, qty: mini.qty, pts: pts || null })
+      s.minis.push({ name: mini.name, status: mini.status, qty: mini.qty, models: mini.models || null, pts: pts || null })
     }
   }
 
@@ -268,7 +315,28 @@ async function cargarStats() {
   const gameOrder = games.map(g => g.slug)
   const sortedGames = Object.keys(byGame).sort((a, b) => gameOrder.indexOf(a) - gameOrder.indexOf(b))
 
-  container.innerHTML = sortedGames.map(gameSlug => {
+  const summaryHTML = `
+    <div class="stats-summary">
+      <div class="stats-summary-item">
+        <span class="stats-summary-value">${gTotalEntradas}</span>
+        <span class="stats-summary-label">entradas</span>
+      </div>
+      <div class="stats-summary-item">
+        <span class="stats-summary-value">${gPtsAoS.toLocaleString()}</span>
+        <span class="stats-summary-label">pts AoS</span>
+      </div>
+      <div class="stats-summary-item">
+        <span class="stats-summary-value">${gPts40k.toLocaleString()}</span>
+        <span class="stats-summary-label">pts 40K</span>
+      </div>
+      <div class="stats-summary-item">
+        <span class="stats-summary-value stats-summary-pct">${pctPintada}%</span>
+        <span class="stats-summary-label">pintado</span>
+      </div>
+    </div>
+  `
+
+  container.innerHTML = summaryHTML + sortedGames.map(gameSlug => {
     const gameName = games.find(g => g.slug === gameSlug)?.name || gameSlug
     const armies = byGame[gameSlug].sort((a, b) => a.faction.localeCompare(b.faction))
 
@@ -299,7 +367,7 @@ async function cargarStats() {
           })
           const miniRows = sortedMinis.map(m => `
             <div class="stats-mini-row">
-              <span class="stats-mini-name">${m.name}${m.qty > 1 ? ` <span class="stats-mini-qty">×${m.qty}</span>` : ''}</span>
+              <span class="stats-mini-name">${m.name}${m.qty > 1 ? ` <span class="stats-mini-qty">×${m.qty}</span>` : ''}${m.models ? ` <span class="stats-mini-qty">(${m.models * m.qty} mod.)</span>` : ''}</span>
               <span class="stats-mini-right">
                 ${m.pts ? `<span class="stats-mini-pts">${(m.pts * m.qty).toLocaleString()} pts</span>` : ''}
                 <span class="badge badge-status ${m.status}">${statusLabel[m.status]}</span>
@@ -307,6 +375,7 @@ async function cargarStats() {
             </div>
           `).join('')
 
+          const modelInfo = a.models ? ` · ${a.models} modelos` : ''
           return `
             <div class="stats-army">
               <div class="stats-army-header" onclick="toggleArmy(this)">
@@ -314,7 +383,7 @@ async function cargarStats() {
                 <span class="stats-chevron">›</span>
               </div>
               <div class="stats-row">
-                <span>${total} entrada${total !== 1 ? 's' : ''} · ${a.qty} miniatura${a.qty !== 1 ? 's' : ''}</span>
+                <span>${total} entrada${total !== 1 ? 's' : ''}${modelInfo}</span>
                 ${a.points ? `<span><span class="stats-pts">${a.points.toLocaleString()} pts</span>${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pintados</span>` : ''}</span>` : ''}
               </div>
               <div class="progress-bar">${segs}</div>
@@ -339,10 +408,25 @@ function toggleArmy(header) {
 
 // --- MODAL: abrir / cerrar ---
 
-function abrirModal() {
+async function abrirModal() {
   miniEnEdicion = null
   document.getElementById('modal-title').textContent = 'Añadir miniatura'
   document.getElementById('btn-eliminar').style.display = 'none'
+
+  const lastGame = localStorage.getItem('wt_lastGame')
+  const lastFaction = localStorage.getItem('wt_lastFaction')
+  if (lastGame && games.find(g => g.slug === lastGame)) {
+    document.getElementById('game').value = lastGame
+    const filtradas = factions.filter(f => f.game_slug === lastGame)
+    document.getElementById('faction').innerHTML = filtradas.map(f =>
+      `<option value="${f.name}">${f.name}</option>`
+    ).join('')
+    if (lastFaction && filtradas.find(f => f.name === lastFaction)) {
+      document.getElementById('faction').value = lastFaction
+    }
+    await actualizarUnidades()
+  }
+
   document.getElementById('modal-bg').classList.add('open')
 }
 
@@ -379,6 +463,7 @@ async function abrirEdicion(id) {
   await actualizarFaccionesExtra(enCatalogo ? mini.name : '__custom__', mini.factions.slice(1))
 
   document.getElementById('qty').value = mini.qty
+  document.getElementById('models').value = mini.models || ''
   document.getElementById('status').value = mini.status
   document.getElementById('notes').value = mini.notes || ''
 
@@ -398,6 +483,7 @@ function cerrarModal() {
   document.getElementById('extra-factions-container').style.display = 'none'
   document.getElementById('notes').value = ''
   document.getElementById('qty').value = 1
+  document.getElementById('models').value = ''
 }
 
 function cerrarModalFondo(e) {
@@ -418,11 +504,13 @@ async function guardarMini() {
   const extrasChecked = [...document.querySelectorAll('#extra-factions-container input[type="checkbox"]:checked')]
   const minisFactions = [primaryFaction, ...extrasChecked.map(cb => cb.value)]
 
+  const modelsVal = parseInt(document.getElementById('models').value) || null
   const payload = {
     name,
     factions: minisFactions,
     game,
     qty: parseInt(document.getElementById('qty').value) || 1,
+    models: modelsVal,
     status: document.getElementById('status').value,
     notes: document.getElementById('notes').value
   }
@@ -436,6 +524,8 @@ async function guardarMini() {
 
   if (error) { alert('Error: ' + error.message); return }
 
+  localStorage.setItem('wt_lastGame', document.getElementById('game').value)
+  localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
   cerrarModal()
   await actualizarFiltroFacciones()
 }
