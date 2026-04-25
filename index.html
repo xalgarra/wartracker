@@ -29,6 +29,7 @@
       <button class="tab active" id="tab-coleccion" onclick="cambiarTab('coleccion')">Colección</button>
       <button class="tab" id="tab-stats" onclick="cambiarTab('stats')">Estadísticas</button>
       <button class="tab" id="tab-wishlist" onclick="cambiarTab('wishlist')">Wishlist</button>
+      <button class="tab" id="tab-pinturas" onclick="cambiarTab('pinturas')">Pinturas</button>
     </div>
 
     <button class="fab" onclick="abrirModal()">+</button>
@@ -81,6 +82,31 @@
     <div id="vista-wishlist" style="display:none">
       <div class="lista" id="lista-wishlist"></div>
     </div>
+
+    <div id="vista-pinturas" style="display:none">
+      <div class="filtros filtros-pinturas">
+        <select id="filtro-paint-type" onchange="filtrarYRenderPinturas()">
+          <option value="">Todos los tipos</option>
+          <option value="base">Base</option>
+          <option value="layer">Layer</option>
+          <option value="shade">Shade</option>
+          <option value="dry">Dry</option>
+          <option value="contrast">Contrast</option>
+          <option value="technical">Technical</option>
+          <option value="air">Air</option>
+          <option value="spray">Spray</option>
+          <option value="texture">Texture</option>
+          <option value="primer">Primer</option>
+        </select>
+        <select id="filtro-paint-stock" onchange="filtrarYRenderPinturas()">
+          <option value="">Todas</option>
+          <option value="1">En stock</option>
+          <option value="0">Sin stock</option>
+        </select>
+        <input type="search" id="busqueda-paint" placeholder="Buscar nombre o marca…" oninput="filtrarYRenderPinturas()">
+      </div>
+      <div class="paint-list" id="lista-pinturas"></div>
+    </div>
   </div>
 
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
@@ -122,6 +148,53 @@
         <button id="btn-eliminar" class="btn-danger" onclick="eliminarMini()" style="display:none">Eliminar</button>
         <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
         <button class="btn-primary" onclick="guardarMini()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modal-paint-bg" onclick="cerrarModalPinturaFondo(event)">
+    <div class="modal">
+      <h2 id="modal-paint-title">Añadir pintura</h2>
+      <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off">
+      <datalist id="brands-list">
+        <option value="Citadel">
+        <option value="Vallejo">
+        <option value="Army Painter">
+        <option value="Scale75">
+        <option value="Reaper">
+        <option value="AK Interactive">
+        <option value="Warcolours">
+        <option value="Green Stuff World">
+      </datalist>
+      <input id="paint-name" placeholder="Nombre de la pintura">
+      <label class="field-label">Tipo</label>
+      <select id="paint-type">
+        <option value="base">Base</option>
+        <option value="layer">Layer</option>
+        <option value="shade">Shade</option>
+        <option value="dry">Dry</option>
+        <option value="contrast">Contrast</option>
+        <option value="technical">Technical</option>
+        <option value="air">Air</option>
+        <option value="spray">Spray</option>
+        <option value="texture">Texture</option>
+        <option value="primer">Primer</option>
+      </select>
+      <div class="paint-color-row">
+        <label class="paint-color-label">
+          <input type="checkbox" id="paint-has-color" onchange="toggleColorPicker(this)">
+          <span>Definir color</span>
+        </label>
+        <input type="color" id="paint-color-hex" value="#aaaaaa" style="display:none">
+      </div>
+      <label class="paint-stock-check">
+        <input type="checkbox" id="paint-in-stock" checked>
+        <span>En stock</span>
+      </label>
+      <div class="modal-btns">
+        <button id="btn-eliminar-paint" class="btn-danger" onclick="eliminarPintura()" style="display:none">Eliminar</button>
+        <button class="btn-cancel" onclick="cerrarModalPintura()">Cancelar</button>
+        <button class="btn-primary" onclick="guardarPintura()">Guardar</button>
       </div>
     </div>
   </div>

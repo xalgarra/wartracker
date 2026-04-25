@@ -241,6 +241,26 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 .stats-mini-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .stats-mini-pts { font-size: 0.78rem; color: var(--text-2); font-weight: 500; }
 
+/* INVENTARIO DE PINTURAS */
+.paint-list { padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.paint-item { background: var(--surface); border-radius: 10px; padding: 0.6rem 0.75rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: box-shadow 0.15s; box-shadow: 0 1px 3px var(--shadow); }
+.paint-item:hover { box-shadow: 0 3px 8px var(--shadow-hover); }
+.paint-swatch { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border-2); }
+.paint-swatch-none { background: var(--subtle); }
+.paint-info { flex: 1; min-width: 0; }
+.paint-name { font-size: 0.9rem; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paint-brand { font-size: 0.75rem; color: var(--text-3); display: block; }
+.paint-tags { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
+.badge-sin-stock { background: var(--badge-comprada-bg); color: var(--badge-comprada-color); }
+
+/* MODAL PINTURAS */
+.paint-color-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.paint-color-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; color: var(--text-2); cursor: pointer; }
+.paint-color-label input[type="checkbox"] { width: auto; margin: 0; padding: 0; }
+#paint-color-hex { width: 48px; height: 32px; padding: 2px; border: 1px solid var(--border-2); border-radius: 6px; cursor: pointer; margin-bottom: 0; }
+.paint-stock-check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-2); cursor: pointer; margin-bottom: 0.75rem; }
+.paint-stock-check input[type="checkbox"] { width: auto; margin: 0; padding: 0; }
+
 @media (max-width: 599px) {
   .modal-bg.open { align-items: flex-end; }
   .modal { border-radius: 20px 20px 0 0; margin: 0; }
@@ -257,9 +277,16 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
   .filtros select { flex: unset; min-width: unset; }
   .filtros input[type="search"] { grid-column: 1 / -1; }
 
+  /* Filtros pinturas: 2 selects */
+  .filtros-pinturas { grid-template-columns: repeat(2, 1fr); }
+
   /* Cards en 2 columnas */
   .lista { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
   .lista > .empty { grid-column: 1 / -1; }
+
+  /* Pinturas en 2 columnas */
+  .paint-list { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .paint-list > .empty { grid-column: 1 / -1; }
 
   /* Stats: AoS y 40K en columnas */
   .stats-container { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }

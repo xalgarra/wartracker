@@ -19,7 +19,9 @@ let unitMap = {}
 let typeMap = {}
 let minisActuales = []
 let wishlistActuales = []
+let pinturas = []
 let miniEnEdicion = null
+let paintEnEdicion = null
 let tabActual = 'coleccion'
 let pendingPhotoFile = null
 let pendingPhotoRemove = false
@@ -382,6 +384,134 @@ function renderWishlist() {
   lista.innerHTML = wishlistActuales.map(renderCard).join('')
 }
 
+// --- PINTURAS ---
+
+async function cargarPinturas() {
+  const { data, error } = await db.from('paints').select('*').order('brand').order('name')
+  if (error) { console.error(error); return }
+  pinturas = data || []
+  filtrarYRenderPinturas()
+}
+
+function filtrarYRenderPinturas() {
+  const busqueda = (document.getElementById('busqueda-paint')?.value || '').trim().toLowerCase()
+  const tipo = document.getElementById('filtro-paint-type')?.value || ''
+  const stock = document.getElementById('filtro-paint-stock')?.value || ''
+
+  let filtered = pinturas
+  if (busqueda) filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(busqueda) || p.brand.toLowerCase().includes(busqueda)
+  )
+  if (tipo) filtered = filtered.filter(p => p.type === tipo)
+  if (stock === '1') filtered = filtered.filter(p => p.in_stock)
+  if (stock === '0') filtered = filtered.filter(p => !p.in_stock)
+
+  const lista = document.getElementById('lista-pinturas')
+  if (!filtered.length) {
+    lista.innerHTML = `<div class="empty">${pinturas.length ? 'Sin resultados' : 'No hay pinturas registradas — pulsa + para añadir'}</div>`
+    return
+  }
+  lista.innerHTML = filtered.map(p => {
+    const swatch = p.color_hex
+      ? `<div class="paint-swatch" style="background:${p.color_hex}"></div>`
+      : `<div class="paint-swatch paint-swatch-none"></div>`
+    const stockBadge = p.in_stock ? '' : '<span class="badge badge-sin-stock">Sin stock</span>'
+    return `
+      <div class="paint-item" onclick="abrirEdicionPintura(${p.id})">
+        ${swatch}
+        <div class="paint-info">
+          <span class="paint-name">${p.name}</span>
+          <span class="paint-brand">${p.brand}</span>
+        </div>
+        <div class="paint-tags">
+          <span class="badge badge-type">${p.type}</span>
+          ${stockBadge}
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+function abrirModalPintura() {
+  paintEnEdicion = null
+  document.getElementById('modal-paint-title').textContent = 'Añadir pintura'
+  document.getElementById('btn-eliminar-paint').style.display = 'none'
+  document.getElementById('paint-brand').value = ''
+  document.getElementById('paint-name').value = ''
+  document.getElementById('paint-type').value = 'base'
+  document.getElementById('paint-has-color').checked = false
+  document.getElementById('paint-color-hex').style.display = 'none'
+  document.getElementById('paint-color-hex').value = '#aaaaaa'
+  document.getElementById('paint-in-stock').checked = true
+  document.getElementById('modal-paint-bg').classList.add('open')
+}
+
+function abrirEdicionPintura(id) {
+  const paint = pinturas.find(p => p.id === id)
+  if (!paint) return
+  paintEnEdicion = paint
+  document.getElementById('modal-paint-title').textContent = 'Editar pintura'
+  document.getElementById('btn-eliminar-paint').style.display = 'block'
+  document.getElementById('paint-brand').value = paint.brand
+  document.getElementById('paint-name').value = paint.name
+  document.getElementById('paint-type').value = paint.type
+  const hasColor = !!paint.color_hex
+  document.getElementById('paint-has-color').checked = hasColor
+  document.getElementById('paint-color-hex').style.display = hasColor ? 'inline-block' : 'none'
+  if (hasColor) document.getElementById('paint-color-hex').value = paint.color_hex
+  document.getElementById('paint-in-stock').checked = paint.in_stock
+  document.getElementById('modal-paint-bg').classList.add('open')
+}
+
+function cerrarModalPintura() {
+  paintEnEdicion = null
+  document.getElementById('modal-paint-bg').classList.remove('open')
+}
+
+function cerrarModalPinturaFondo(e) {
+  if (e.target.id === 'modal-paint-bg') cerrarModalPintura()
+}
+
+function toggleColorPicker(cb) {
+  document.getElementById('paint-color-hex').style.display = cb.checked ? 'inline-block' : 'none'
+}
+
+async function guardarPintura() {
+  const brand = document.getElementById('paint-brand').value.trim()
+  const name = document.getElementById('paint-name').value.trim()
+  const type = document.getElementById('paint-type').value
+  if (!brand || !name) { alert('Introduce marca y nombre'); return }
+
+  const hasColor = document.getElementById('paint-has-color').checked
+  const payload = {
+    brand,
+    name,
+    type,
+    color_hex: hasColor ? document.getElementById('paint-color-hex').value : null,
+    in_stock: document.getElementById('paint-in-stock').checked
+  }
+
+  let error
+  if (paintEnEdicion) {
+    ;({ error } = await db.from('paints').update(payload).eq('id', paintEnEdicion.id))
+  } else {
+    ;({ error } = await db.from('paints').insert(payload))
+  }
+  if (error) { alert('Error: ' + error.message); return }
+
+  cerrarModalPintura()
+  await cargarPinturas()
+}
+
+async function eliminarPintura() {
+  if (!paintEnEdicion) return
+  if (!confirm(`¿Eliminar "${paintEnEdicion.name}"?`)) return
+  const { error } = await db.from('paints').delete().eq('id', paintEnEdicion.id)
+  if (error) { alert('Error: ' + error.message); return }
+  cerrarModalPintura()
+  await cargarPinturas()
+}
+
 // --- TABS ---
 
 function cambiarTab(tab) {
@@ -389,11 +519,14 @@ function cambiarTab(tab) {
   document.getElementById('vista-coleccion').style.display = tab === 'coleccion' ? 'block' : 'none'
   document.getElementById('vista-stats').style.display    = tab === 'stats'      ? 'block' : 'none'
   document.getElementById('vista-wishlist').style.display = tab === 'wishlist'   ? 'block' : 'none'
+  document.getElementById('vista-pinturas').style.display = tab === 'pinturas'   ? 'block' : 'none'
   document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
   document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
   document.getElementById('tab-wishlist').classList.toggle('active', tab === 'wishlist')
+  document.getElementById('tab-pinturas').classList.toggle('active', tab === 'pinturas')
   if (tab === 'stats') cargarStats()
   if (tab === 'wishlist') cargarWishlist()
+  if (tab === 'pinturas') cargarPinturas()
 }
 
 // --- ESTADÍSTICAS ---
@@ -560,6 +693,7 @@ function toggleArmy(header) {
 // --- MODAL: abrir / cerrar ---
 
 async function abrirModal() {
+  if (tabActual === 'pinturas') { abrirModalPintura(); return }
   miniEnEdicion = null
   document.getElementById('modal-title').textContent = 'Añadir miniatura'
   document.getElementById('btn-eliminar').style.display = 'none'
