@@ -1007,7 +1007,7 @@ async function capturarPote() {
     return
   }
 
-  const MAX_W = 320
+  const MAX_W = 800
   const scale = Math.min(1, MAX_W / video.videoWidth)
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(video.videoWidth * scale)
