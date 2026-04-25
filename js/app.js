@@ -235,7 +235,7 @@ async function cargarStats() {
       if (!fc) continue
 
       if (!factionStats[faction]) {
-        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, points: 0, pointsPainted: 0 }
+        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, points: 0, pointsPainted: 0, minis: [] }
       }
 
       const s = factionStats[faction]
@@ -247,6 +247,7 @@ async function cargarStats() {
         s.points += pts * mini.qty
         if (mini.status === 'pintada') s.pointsPainted += pts * mini.qty
       }
+      s.minis.push({ name: mini.name, status: mini.status, qty: mini.qty, pts: pts || null })
     }
   }
 
@@ -292,21 +293,48 @@ async function cargarStats() {
             .map(st => `<span class="stats-legend-item"><span class="legend-dot ${st}"></span>${a.counts[st]} ${statusLabel[st].toLowerCase()}</span>`)
             .join('')
 
+          const sortedMinis = [...a.minis].sort((x, y) => {
+            const si = statuses.indexOf(x.status) - statuses.indexOf(y.status)
+            return si !== 0 ? si : x.name.localeCompare(y.name)
+          })
+          const miniRows = sortedMinis.map(m => `
+            <div class="stats-mini-row">
+              <span class="stats-mini-name">${m.name}${m.qty > 1 ? ` <span class="stats-mini-qty">×${m.qty}</span>` : ''}</span>
+              <span class="stats-mini-right">
+                ${m.pts ? `<span class="stats-mini-pts">${(m.pts * m.qty).toLocaleString()} pts</span>` : ''}
+                <span class="badge badge-status ${m.status}">${statusLabel[m.status]}</span>
+              </span>
+            </div>
+          `).join('')
+
           return `
             <div class="stats-army">
-              <div class="stats-army-name">${a.faction}</div>
+              <div class="stats-army-header" onclick="toggleArmy(this)">
+                <div class="stats-army-name">${a.faction}</div>
+                <span class="stats-chevron">›</span>
+              </div>
               <div class="stats-row">
                 <span>${total} entrada${total !== 1 ? 's' : ''} · ${a.qty} miniatura${a.qty !== 1 ? 's' : ''}</span>
                 ${a.points ? `<span><span class="stats-pts">${a.points.toLocaleString()} pts</span>${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pintados</span>` : ''}</span>` : ''}
               </div>
               <div class="progress-bar">${segs}</div>
               <div class="stats-legend">${legend}</div>
+              <div class="stats-army-minis">${miniRows}</div>
             </div>
           `
         }).join('')}
       </div>
     `
   }).join('')
+}
+
+function toggleArmy(header) {
+  const army = header.closest('.stats-army')
+  const minisDiv = army.querySelector('.stats-army-minis')
+  const chevron = header.querySelector('.stats-chevron')
+  const open = army.classList.toggle('expanded')
+  minisDiv.style.display = open ? 'block' : 'none'
+  chevron.style.transform = open ? 'rotate(90deg)' : ''
 }
 
 // --- MODAL: abrir / cerrar ---
