@@ -12,6 +12,8 @@ const db = createClient(
   'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
 )
 
+const GEMINI_API_KEY = 'AIzaSyC3rb38Aoac2eo_67h8zDFm2_QCpHBDMLg'
+
 let games = []
 let factions = []
 let units = []
@@ -502,21 +504,36 @@ function toggleColorPicker(cb) {
 function onPaintBrandInput() {
   const brand = document.getElementById('paint-brand').value.trim()
   const datalist = document.getElementById('paint-names-list')
-  const colors = PAINT_COLORS[brand]
-  datalist.innerHTML = colors
-    ? Object.keys(colors).map(n => `<option value="${n}">`).join('')
-    : ''
+  if (brand === 'Citadel' || !brand) {
+    datalist.innerHTML = CITADEL_CATALOG.map(p => `<option value="${p.name}">`).join('')
+  } else {
+    const colors = PAINT_COLORS[brand]
+    datalist.innerHTML = colors ? Object.keys(colors).map(n => `<option value="${n}">`).join('') : ''
+  }
   onPaintNameInput()
 }
 
 function onPaintNameInput() {
   const brand = document.getElementById('paint-brand').value.trim()
   const name  = document.getElementById('paint-name').value.trim()
-  const hex   = PAINT_COLORS[brand]?.[name]
-  if (hex) {
-    document.getElementById('paint-has-color').checked = true
-    document.getElementById('paint-color-hex').style.display = 'inline-block'
-    document.getElementById('paint-color-hex').value = hex
+  if (!name) return
+  const entry = brand === 'Citadel' || !brand
+    ? CITADEL_CATALOG.find(p => p.name.toLowerCase() === name.toLowerCase())
+    : null
+  if (entry) {
+    if (entry.hex) {
+      document.getElementById('paint-has-color').checked = true
+      document.getElementById('paint-color-hex').style.display = 'inline-block'
+      document.getElementById('paint-color-hex').value = entry.hex
+    }
+    if (entry.type) document.getElementById('paint-type').value = entry.type
+  } else {
+    const hex = PAINT_COLORS[brand]?.[name]
+    if (hex) {
+      document.getElementById('paint-has-color').checked = true
+      document.getElementById('paint-color-hex').style.display = 'inline-block'
+      document.getElementById('paint-color-hex').value = hex
+    }
   }
 }
 
@@ -526,6 +543,64 @@ function buscarColorExterno() {
   const q = encodeURIComponent(`${brand} ${name} paint hex color`)
   window.open(`https://www.google.com/search?q=${q}`, '_blank')
 }
+
+// --- CATALOG SEARCH (quick-add desde catálogo Citadel) ---
+
+function onCatalogSearch(query) {
+  const q = query.trim().toLowerCase()
+  const results = document.getElementById('catalog-results')
+  if (!q || q.length < 2) { results.style.display = 'none'; results.innerHTML = ''; return }
+
+  const owned = new Set(
+    pinturas.filter(p => p.brand === 'Citadel').map(p => p.name.toLowerCase())
+  )
+
+  const matches = CITADEL_CATALOG.filter(p => p.name.toLowerCase().includes(q)).slice(0, 12)
+
+  if (!matches.length) {
+    results.innerHTML = '<div class="catalog-empty">Sin resultados</div>'
+    results.style.display = 'block'
+    return
+  }
+
+  results.innerHTML = matches.map(p => {
+    const isOwned = owned.has(p.name.toLowerCase())
+    const swatchClass = p.hex ? '' : ' catalog-swatch-none'
+    const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
+    const safeName = p.name.replace(/'/g, "\\'")
+    const onclick = isOwned ? '' : `onclick="quickAddPintura('${safeName}','${p.type}','${p.hex || ''}')" `
+    return `
+      <div class="catalog-result${isOwned ? ' owned' : ''}" ${onclick}>
+        <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
+        <div class="catalog-result-info">
+          <span class="catalog-result-name">${p.name}</span>
+          <span class="catalog-result-type">${p.type}</span>
+        </div>
+        ${isOwned
+          ? '<span class="catalog-owned-mark">✓ tengo</span>'
+          : '<span class="catalog-add-btn">+</span>'}
+      </div>
+    `
+  }).join('')
+  results.style.display = 'block'
+}
+
+async function quickAddPintura(name, type, hex) {
+  const payload = { brand: 'Citadel', name, type, in_stock: true }
+  if (hex) payload.color_hex = hex
+  const { error } = await db.from('paints').insert(payload)
+  if (error) { console.error(error); return }
+  document.getElementById('catalog-search').value = ''
+  document.getElementById('catalog-results').style.display = 'none'
+  await cargarPinturas()
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.catalog-search-section')) {
+    const r = document.getElementById('catalog-results')
+    if (r) r.style.display = 'none'
+  }
+})
 
 async function guardarPintura() {
   const brand = document.getElementById('paint-brand').value.trim()
@@ -893,6 +968,128 @@ async function eliminarMini() {
 
   cerrarModal()
   if (tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
+}
+
+// --- CÁMARA: escanear pote ---
+
+let cameraStream = null
+let cameraPendingPaint = null
+let cameraContext = 'catalog'
+
+async function abrirCamara(context = 'catalog') {
+  cameraContext = context
+  const overlay = document.getElementById('camera-overlay')
+  overlay.classList.add('open')
+  document.getElementById('camera-result').style.display = 'none'
+  document.getElementById('camera-scanning').style.display = 'none'
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    })
+    document.getElementById('camera-video').srcObject = cameraStream
+  } catch (e) {
+    alert('No se puede acceder a la cámara: ' + e.message)
+    cerrarCamara()
+  }
+}
+
+function cerrarCamara() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null }
+  document.getElementById('camera-overlay').classList.remove('open')
+  cameraPendingPaint = null
+}
+
+async function capturarPote() {
+  const video = document.getElementById('camera-video')
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  canvas.getContext('2d').drawImage(video, 0, 0)
+
+  document.getElementById('camera-scanning').style.display = 'flex'
+  document.getElementById('camera-result').style.display = 'none'
+
+  try {
+    const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { inline_data: { mime_type: 'image/jpeg', data: base64 } },
+            { text: 'This is a Citadel miniature paint pot. Read the paint name exactly as printed on the label. Reply with ONLY the paint name, nothing else. If you cannot read it clearly, reply with "?".' }
+          ]}]
+        })
+      }
+    )
+    const json = await res.json()
+    const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+
+    if (!rawName || rawName === '?') {
+      alert('No he podido leer el nombre. Intenta con mejor iluminación y encuadra bien el pote.')
+      document.getElementById('camera-scanning').style.display = 'none'
+      return
+    }
+
+    // Buscar en catálogo: exacto → contiene texto → todas palabras presentes → alguna palabra
+    const q = rawName.toLowerCase()
+    const words = q.split(/\s+/).filter(w => w.length > 2)
+    const found = CITADEL_CATALOG.find(p => p.name.toLowerCase() === q)
+      || CITADEL_CATALOG.find(p => p.name.toLowerCase().includes(q))
+      || CITADEL_CATALOG.find(p => words.length > 0 && words.every(w => p.name.toLowerCase().includes(w)))
+      || CITADEL_CATALOG.find(p => words.some(w => p.name.toLowerCase().includes(w)))
+
+    cameraPendingPaint = found || { name: rawName.substring(0, 60), type: 'base', hex: null }
+
+    document.getElementById('camera-result-name').textContent = cameraPendingPaint.name
+    document.getElementById('camera-result-type').textContent = cameraPendingPaint.type
+    const swatch = document.getElementById('camera-result-swatch')
+    swatch.style.background = cameraPendingPaint.hex || 'var(--subtle)'
+    swatch.style.border = cameraPendingPaint.hex ? '2px solid rgba(0,0,0,0.1)' : '2px dashed var(--border)'
+
+    document.getElementById('camera-scanning').style.display = 'none'
+    document.getElementById('camera-result').style.display = 'block'
+  } catch (e) {
+    console.error(e)
+    alert('Error al identificar: ' + e.message)
+    document.getElementById('camera-scanning').style.display = 'none'
+  }
+}
+
+function reintentarCamara() {
+  document.getElementById('camera-result').style.display = 'none'
+  cameraPendingPaint = null
+}
+
+async function confirmarPoteCamara() {
+  if (!cameraPendingPaint) return
+  const p = cameraPendingPaint
+
+  if (cameraContext === 'modal') {
+    // Rellenar el modal de pintura y dejarlo abierto para que el usuario confirme
+    document.getElementById('paint-brand').value = 'Citadel'
+    document.getElementById('paint-name').value = p.name
+    document.getElementById('paint-type').value = p.type || 'base'
+    if (p.hex) {
+      const cb = document.getElementById('paint-has-color')
+      cb.checked = true
+      toggleColorPicker(cb)
+      document.getElementById('paint-color-hex').value = p.hex
+    }
+    cerrarCamara()
+    return
+  }
+
+  // Contexto 'catalog': guardar directamente
+  const payload = { brand: 'Citadel', name: p.name, type: p.type, in_stock: true }
+  if (p.hex) payload.color_hex = p.hex
+  const { error } = await db.from('paints').insert(payload)
+  if (error) { alert('Error: ' + error.message); return }
+  cerrarCamara()
+  await cargarPinturas()
 }
 
 // --- INIT ---

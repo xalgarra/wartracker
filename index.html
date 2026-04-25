@@ -94,6 +94,13 @@
     </div>
 
     <div id="vista-pinturas" style="display:none">
+      <div class="catalog-search-section">
+        <div class="catalog-search-row">
+          <input type="search" id="catalog-search" placeholder="Añadir del catálogo Citadel…" oninput="onCatalogSearch(this.value)" onfocus="onCatalogSearch(this.value)" autocomplete="off">
+          <button class="btn-camera" onclick="abrirCamara()" title="Escanear pote con cámara">📷</button>
+        </div>
+        <div class="catalog-results" id="catalog-results"></div>
+      </div>
       <div class="filtros filtros-pinturas">
         <select id="filtro-paint-type" onchange="filtrarYRenderPinturas()">
           <option value="">Todos los tipos</option>
@@ -178,7 +185,10 @@
         <option value="Warcolours">
         <option value="Green Stuff World">
       </datalist>
-      <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off" oninput="onPaintNameInput()">
+      <div class="catalog-search-row">
+        <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off" oninput="onPaintNameInput()">
+        <button class="btn-camera" type="button" onclick="abrirCamara('modal')" title="Escanear pote con cámara">📷</button>
+      </div>
       <datalist id="paint-names-list"></datalist>
       <label class="field-label">Tipo</label>
       <select id="paint-type">
@@ -210,6 +220,40 @@
         <button class="btn-cancel" onclick="cerrarModalPintura()">Cancelar</button>
         <button class="btn-primary" onclick="guardarPintura()">Guardar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Overlay cámara para escanear pote -->
+  <div class="camera-overlay" id="camera-overlay">
+    <div class="camera-header">
+      <span class="camera-title">Apunta al pote</span>
+      <button class="camera-close" onclick="cerrarCamara()">✕</button>
+    </div>
+    <div class="camera-viewport">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <div class="camera-guide"></div>
+    </div>
+    <div class="camera-footer">
+      <button class="camera-capture-btn" id="camera-capture-btn" onclick="capturarPote()">
+        <span class="camera-shutter"></span>
+      </button>
+    </div>
+    <div class="camera-result" id="camera-result" style="display:none">
+      <div class="camera-result-inner">
+        <div class="camera-result-swatch" id="camera-result-swatch"></div>
+        <div class="camera-result-info">
+          <div class="camera-result-name" id="camera-result-name"></div>
+          <div class="camera-result-type" id="camera-result-type"></div>
+        </div>
+      </div>
+      <div class="camera-result-actions">
+        <button class="btn-cancel" onclick="reintentarCamara()">Reintentar</button>
+        <button class="btn-primary" onclick="confirmarPoteCamara()">Añadir</button>
+      </div>
+    </div>
+    <div class="camera-scanning" id="camera-scanning" style="display:none">
+      <div class="camera-spinner"></div>
+      <span>Identificando…</span>
     </div>
   </div>
 
