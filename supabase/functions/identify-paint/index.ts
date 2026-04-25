@@ -16,14 +16,14 @@ serve(async (req) => {
     if (!apiKey) return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 500, headers: CORS })
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [
             { inline_data: { mime_type: mediaType, data: image } },
-            { text: 'This is a Citadel miniature paint pot. Read the paint name exactly as printed on the label. Reply with ONLY the paint name, nothing else. If you cannot read it clearly, reply with "?".' }
+            { text: 'This is a photo of a Citadel Colour miniature paint pot. The label shows the paint type (Base/Layer/Shade/etc) and below it the paint name. Read the paint name only (not the type). Reply with ONLY the paint name, nothing else. Even if blurry, make your best guess. Only reply with "?" if completely unreadable.' }
           ]}]
         })
       }

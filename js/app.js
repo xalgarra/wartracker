@@ -1023,7 +1023,6 @@ async function capturarPote() {
       body: { image: base64, mediaType: 'image/jpeg' }
     })
     if (error) throw error
-    if (data.error) { alert('Gemini: ' + data.error.substring(0, 200)); document.getElementById('camera-scanning').style.display = 'none'; return }
     const rawName = (data.name || '').trim()
 
     if (!rawName || rawName === '?') {
