@@ -1026,10 +1026,12 @@ async function capturarPote() {
       }
     )
     const json = await res.json()
+    console.log('Gemini response:', JSON.stringify(json))
     const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
 
     if (!rawName || rawName === '?') {
-      alert('No he podido leer el nombre. Intenta con mejor iluminación y encuadra bien el pote.')
+      const errDetail = json.error?.message || json.promptFeedback?.blockReason || 'respuesta vacía'
+      alert(`No he podido leer el nombre (${errDetail}). Intenta con mejor iluminación y encuadra bien el pote.`)
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
