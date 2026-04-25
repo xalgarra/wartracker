@@ -132,9 +132,11 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 .lista { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 
 /* TARJETA */
-.card { background: var(--surface); border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px var(--shadow); cursor: pointer; transition: box-shadow 0.15s; }
+.card { background: var(--surface); border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px var(--shadow); cursor: pointer; transition: box-shadow 0.15s; display: flex; gap: 0.75rem; align-items: flex-start; }
 .card:hover { box-shadow: 0 4px 12px var(--shadow-hover); }
 .card:active { box-shadow: 0 1px 3px var(--shadow); }
+.card-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.card-body { flex: 1; min-width: 0; }
 .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .card-name { font-size: 1rem; font-weight: 600; }
 .card-name-alt { font-size: 0.9rem; font-weight: 600; color: var(--text-2); padding-left: 0.75rem; border-left: 2px solid var(--border-2); margin-top: 0.2rem; }
@@ -173,6 +175,14 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 .btn-primary { flex: 1; padding: 0.75rem; font-size: 1rem; background: var(--btn-primary-bg); color: var(--btn-primary-color); border: none; border-radius: 8px; cursor: pointer; }
 .btn-cancel { padding: 0.75rem 1.25rem; font-size: 1rem; background: var(--btn-cancel-bg); color: var(--btn-cancel-color); border: none; border-radius: 8px; cursor: pointer; }
 .btn-danger { padding: 0.75rem 1.25rem; font-size: 1rem; background: var(--btn-danger-bg); color: var(--btn-danger-color); border: none; border-radius: 8px; cursor: pointer; }
+
+/* MODAL FOTO */
+.modal-photo-section { margin-bottom: 0.75rem; }
+.modal-photo-preview { width: 100%; max-height: 260px; object-fit: contain; border-radius: 10px; margin-bottom: 0.5rem; background: var(--subtle); }
+.modal-photo-actions { display: flex; gap: 0.5rem; align-items: center; }
+.btn-photo { display: inline-block; padding: 0.45rem 1rem; background: var(--subtle); border: 1px solid var(--border-2); border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: var(--text-2); }
+.btn-photo:hover { background: var(--border); }
+.btn-photo-remove { padding: 0.45rem 1rem; background: var(--btn-danger-bg); color: var(--btn-danger-color); border: none; border-radius: 8px; cursor: pointer; font-size: 0.88rem; }
 
 /* FIELD LABEL */
 .field-label { display: block; font-size: 0.78rem; color: var(--text-3); margin-bottom: 0.3rem; margin-top: -0.25rem; }

@@ -21,6 +21,8 @@ let minisActuales = []
 let wishlistActuales = []
 let miniEnEdicion = null
 let tabActual = 'coleccion'
+let pendingPhotoFile = null
+let pendingPhotoRemove = false
 let filtroNombre = ''
 let filtroType = ''
 let ordenar = 'reciente'
@@ -233,6 +235,46 @@ function onOrdenar(btn) {
   renderLista()
 }
 
+function onPhotoSelected(input) {
+  const file = input.files[0]
+  if (!file) return
+  pendingPhotoFile = file
+  pendingPhotoRemove = false
+  const preview = document.getElementById('photo-preview')
+  preview.src = URL.createObjectURL(file)
+  preview.style.display = 'block'
+  document.getElementById('btn-remove-photo').style.display = 'inline-block'
+  document.getElementById('photo-btn-text').textContent = 'Cambiar foto'
+}
+
+function removePhoto() {
+  pendingPhotoFile = null
+  pendingPhotoRemove = true
+  document.getElementById('photo-preview').style.display = 'none'
+  document.getElementById('photo-preview').src = ''
+  document.getElementById('photo-input').value = ''
+  document.getElementById('btn-remove-photo').style.display = 'none'
+  document.getElementById('photo-btn-text').textContent = 'Añadir foto'
+}
+
+function resetPhotoModal(photoUrl) {
+  pendingPhotoFile = null
+  pendingPhotoRemove = false
+  const preview = document.getElementById('photo-preview')
+  document.getElementById('photo-input').value = ''
+  if (photoUrl) {
+    preview.src = photoUrl
+    preview.style.display = 'block'
+    document.getElementById('btn-remove-photo').style.display = 'inline-block'
+    document.getElementById('photo-btn-text').textContent = 'Cambiar foto'
+  } else {
+    preview.style.display = 'none'
+    preview.src = ''
+    document.getElementById('btn-remove-photo').style.display = 'none'
+    document.getElementById('photo-btn-text').textContent = 'Añadir foto'
+  }
+}
+
 function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
     const fc = factions.find(f => f.name === faction)
@@ -298,22 +340,25 @@ function renderCard(m) {
   const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
   const unitType = getTypeForMini(m)
   const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
-  const statusLabel = m.status === 'wishlist' ? 'wishlist' : m.status
+  const thumbHTML = m.photo_url ? `<img class="card-thumb" src="${m.photo_url}" alt="">` : ''
   return `
     <div class="card" onclick="abrirEdicion(${m.id})">
-      <div class="card-header">
-        <div>${nombreHTML}</div>
-      </div>
-      <div class="card-factions">${faccionesText}</div>
-      <div class="card-footer">
-        <div class="card-footer-left">
-          ${gameBadges}
-          ${typeBadge}
-          <span class="badge badge-status ${m.status}">${statusLabel}</span>
+      ${thumbHTML}
+      <div class="card-body">
+        <div class="card-header">
+          <div>${nombreHTML}</div>
         </div>
-        <div class="card-footer-right">
-          ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
-          <span class="card-qty">${m.qty} ud.${modelsStr}</span>
+        <div class="card-factions">${faccionesText}</div>
+        <div class="card-footer">
+          <div class="card-footer-left">
+            ${gameBadges}
+            ${typeBadge}
+            <span class="badge badge-status ${m.status}">${m.status}</span>
+          </div>
+          <div class="card-footer-right">
+            ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
+            <span class="card-qty">${m.qty} ud.${modelsStr}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -534,6 +579,7 @@ async function abrirModal() {
   }
 
   document.getElementById('status').value = 'comprada'
+  resetPhotoModal(null)
   document.getElementById('modal-bg').classList.add('open')
 }
 
@@ -573,6 +619,7 @@ async function abrirEdicion(id) {
   document.getElementById('models').value = mini.models || ''
   document.getElementById('status').value = mini.status
   document.getElementById('notes').value = mini.notes || ''
+  resetPhotoModal(mini.photo_url || null)
 
   document.getElementById('modal-title').textContent = 'Editar miniatura'
   document.getElementById('btn-eliminar').style.display = 'block'
@@ -623,13 +670,31 @@ async function guardarMini() {
   }
 
   let error
+  let savedId = miniEnEdicion?.id
+
   if (miniEnEdicion) {
     ;({ error } = await db.from('minis').update(payload).eq('id', miniEnEdicion.id))
   } else {
-    ;({ error } = await db.from('minis').insert(payload))
+    const { data: inserted, error: err } = await db.from('minis').insert(payload).select('id').single()
+    error = err
+    if (inserted) savedId = inserted.id
   }
 
   if (error) { alert('Error: ' + error.message); return }
+
+  if (savedId) {
+    if (pendingPhotoFile) {
+      const ext = pendingPhotoFile.name.split('.').pop().toLowerCase()
+      const path = `${savedId}.${ext}`
+      await db.storage.from('mini-photos').upload(path, pendingPhotoFile, { upsert: true })
+      const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
+      await db.from('minis').update({ photo_url: publicUrl }).eq('id', savedId)
+    } else if (pendingPhotoRemove && miniEnEdicion?.photo_url) {
+      const path = miniEnEdicion.photo_url.split('/mini-photos/')[1]
+      if (path) await db.storage.from('mini-photos').remove([path])
+      await db.from('minis').update({ photo_url: null }).eq('id', savedId)
+    }
+  }
 
   localStorage.setItem('wt_lastGame', document.getElementById('game').value)
   localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
@@ -641,6 +706,10 @@ async function eliminarMini() {
   if (!miniEnEdicion) return
   if (!confirm(`¿Eliminar "${miniEnEdicion.name}"?`)) return
 
+  if (miniEnEdicion.photo_url) {
+    const path = miniEnEdicion.photo_url.split('/mini-photos/')[1]
+    if (path) await db.storage.from('mini-photos').remove([path])
+  }
   const { error } = await db.from('minis').delete().eq('id', miniEnEdicion.id)
   if (error) { alert('Error: ' + error.message); return }
 

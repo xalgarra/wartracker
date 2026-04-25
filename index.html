@@ -86,6 +86,18 @@
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
     <div class="modal">
       <h2 id="modal-title">Añadir miniatura</h2>
+
+      <div class="modal-photo-section">
+        <img id="photo-preview" class="modal-photo-preview" style="display:none" alt="">
+        <div class="modal-photo-actions">
+          <label class="btn-photo" for="photo-input">
+            <span id="photo-btn-text">Añadir foto</span>
+            <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="onPhotoSelected(this)">
+          </label>
+          <button type="button" id="btn-remove-photo" class="btn-photo-remove" onclick="removePhoto()" style="display:none">Eliminar foto</button>
+        </div>
+      </div>
+
       <select id="game" onchange="actualizarFacciones()"></select>
       <select id="faction" onchange="actualizarUnidades()"></select>
       <select id="unit-select" onchange="onUnitChange()"></select>
