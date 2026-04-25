@@ -476,6 +476,34 @@ function toggleColorPicker(cb) {
   document.getElementById('paint-color-hex').style.display = cb.checked ? 'inline-block' : 'none'
 }
 
+function onPaintBrandInput() {
+  const brand = document.getElementById('paint-brand').value.trim()
+  const datalist = document.getElementById('paint-names-list')
+  const colors = PAINT_COLORS[brand]
+  datalist.innerHTML = colors
+    ? Object.keys(colors).map(n => `<option value="${n}">`).join('')
+    : ''
+  onPaintNameInput()
+}
+
+function onPaintNameInput() {
+  const brand = document.getElementById('paint-brand').value.trim()
+  const name  = document.getElementById('paint-name').value.trim()
+  const hex   = PAINT_COLORS[brand]?.[name]
+  if (hex) {
+    document.getElementById('paint-has-color').checked = true
+    document.getElementById('paint-color-hex').style.display = 'inline-block'
+    document.getElementById('paint-color-hex').value = hex
+  }
+}
+
+function buscarColorExterno() {
+  const brand = document.getElementById('paint-brand').value.trim()
+  const name  = document.getElementById('paint-name').value.trim()
+  const q = encodeURIComponent(`${brand} ${name} paint hex color`)
+  window.open(`https://www.google.com/search?q=${q}`, '_blank')
+}
+
 async function guardarPintura() {
   const brand = document.getElementById('paint-brand').value.trim()
   const name = document.getElementById('paint-name').value.trim()
@@ -634,7 +662,7 @@ async function cargarStats() {
           <span class="badge badge-game-${gameSlug}">${gameName}</span>
           ${totalPts ? `<span class="stats-total">${totalPts.toLocaleString()} pts totales · ${totalPainted.toLocaleString()} pts pintados</span>` : ''}
         </div>
-        ${armies.map(a => {
+        ${armies.map((a, idx) => {
           const totalEntradas = Object.values(a.counts).reduce((s, v) => s + v, 0)
           const segs = statuses
             .filter(st => a.modelCounts[st])
@@ -661,33 +689,26 @@ async function cargarStats() {
           `).join('')
 
           return `
-            <div class="stats-army">
-              <div class="stats-army-header" onclick="toggleArmy(this)">
-                <div class="stats-army-name">${a.faction}</div>
-                <span class="stats-chevron">›</span>
-              </div>
-              <div class="stats-row">
-                <span>${totalEntradas} entrada${totalEntradas !== 1 ? 's' : ''} · ${a.modelos} modelo${a.modelos !== 1 ? 's' : ''} · ${a.modelosPintados} pintado${a.modelosPintados !== 1 ? 's' : ''}</span>
-                ${a.points ? `<span><span class="stats-pts">${a.points.toLocaleString()} pts</span>${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pintados</span>` : ''}</span>` : ''}
-              </div>
+            <details class="stats-army"${idx === 0 ? ' open' : ''}>
+              <summary>
+                <div>
+                  <span class="stats-army-name">${a.faction}</span>
+                  <span class="stats-army-meta">${totalEntradas} entrada${totalEntradas !== 1 ? 's' : ''} · ${a.modelos} modelo${a.modelos !== 1 ? 's' : ''} · ${a.modelosPintados} pintado${a.modelosPintados !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="stats-army-summary-right">
+                  ${a.points ? `<span class="stats-pts">${a.points.toLocaleString()} pts${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pint.</span>` : ''}</span>` : ''}
+                  <span class="stats-chevron">˅</span>
+                </div>
+              </summary>
               <div class="progress-bar">${segs}</div>
               <div class="stats-legend">${legend}</div>
               <div class="stats-army-minis">${miniRows}</div>
-            </div>
+            </details>
           `
         }).join('')}
       </div>
     `
   }).join('')
-}
-
-function toggleArmy(header) {
-  const army = header.closest('.stats-army')
-  const minisDiv = army.querySelector('.stats-army-minis')
-  const chevron = header.querySelector('.stats-chevron')
-  const open = army.classList.toggle('expanded')
-  minisDiv.style.display = open ? 'block' : 'none'
-  chevron.style.transform = open ? 'rotate(90deg)' : ''
 }
 
 // --- MODAL: abrir / cerrar ---

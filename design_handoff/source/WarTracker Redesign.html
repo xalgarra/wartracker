@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>WarTracker — Rediseño</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #efece5; font-family: 'Inter', system-ui, sans-serif; color: #2a2620; -webkit-font-smoothing: antialiased; }
+  /* Phone shell */
+  .phone { width: 360px; height: 720px; border-radius: 32px; overflow: hidden; background: #fff; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.25), 0 0 0 8px #1a1a1c, 0 0 0 9px #2a2a2c; position: relative; }
+  .phone-inner { position: absolute; inset: 0; overflow: hidden; }
+  /* Desktop shell */
+  .desktop { width: 1100px; height: 720px; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08); position: relative; }
+  .desktop-bar { height: 32px; background: #e8e5dd; border-bottom: 1px solid #d0ccc0; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .desktop-dot { width: 11px; height: 11px; border-radius: 50%; background: #c0bcb0; }
+  .desktop-dot:nth-child(1) { background: #ff5f57; }
+  .desktop-dot:nth-child(2) { background: #febc2e; }
+  .desktop-dot:nth-child(3) { background: #28c840; }
+  .desktop-url { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6a6a64; text-align: center; }
+  .desktop-frame { position: absolute; left: 0; right: 0; top: 32px; bottom: 0; overflow: hidden; }
+  .desktop-frame .va, .desktop-frame .vb, .desktop-frame .vc { max-width: none; }
+  /* Constrain main content widths on desktop frames */
+  .desktop-frame .va-frame > .va-list,
+  .desktop-frame .va-frame > .va-stats,
+  .desktop-frame .va-frame > .va-wishlist,
+  .desktop-frame .va-frame > .va-paints { max-width: 920px; margin: 0 auto; }
+  .desktop-frame .vb-frame > .vb-list,
+  .desktop-frame .vb-frame > .vb-stats,
+  .desktop-frame .vb-frame > .vb-wishlist,
+  .desktop-frame .vb-frame > .vb-paints { max-width: 920px; margin: 0 auto; }
+
+  /* Grid layouts on desktop for coleccion (2 cols) and stats (2 cols) */
+  .desktop-frame .va-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 12px !important; }
+  .desktop-frame .vb-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 16px !important; }
+  .desktop-frame .vc-list { display: grid; grid-template-columns: 1fr 1fr; }
+  .desktop-frame .vc-list > .vc-row { border-right: 1px solid #1f1c15; }
+  .desktop-frame .vc-list > .vc-row:nth-child(2n) { border-right: none; }
+
+  .desktop-frame .va-stats,
+  .desktop-frame .vb-stats,
+  .desktop-frame .vc-stats { display: grid !important; grid-template-columns: 1fr 1fr; gap: 14px !important; }
+  .desktop-frame .va-summary, .desktop-frame .vb-summary, .desktop-frame .vc-summary { grid-column: 1 / -1; }
+
+  /* Slot label */
+  .slot-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a8a84; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .slot-label .num { background: #2a2620; color: #f4ecdc; padding: 1px 6px; border-radius: 2px; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#14110d"/>
+  <circle cx="100" cy="100" r="44" fill="oklch(0.65 0.15 60)"/>
+  <text x="100" y="160" text-anchor="middle" font-family="monospace" font-size="14" fill="#e8e4dc" letter-spacing="2">WT</text>
+</svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="data.js"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="var-a.jsx"></script>
+<script type="text/babel" src="var-b.jsx"></script>
+<script type="text/babel" src="var-c.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// Inject all variation styles once
+const styleEl = document.createElement('style');
+styleEl.textContent = window.VarA.styles + window.VarB.styles + window.VarC.styles;
+document.head.appendChild(styleEl);
+
+function Phone({ children }) {
+  return (
+    <div className="phone">
+      <div className="phone-inner">{children}</div>
+    </div>
+  );
+}
+
+function Desktop({ url, children }) {
+  return (
+    <div className="desktop">
+      <div className="desktop-bar">
+        <div className="desktop-dot"></div>
+        <div className="desktop-dot"></div>
+        <div className="desktop-dot"></div>
+        <div className="desktop-url">{url}</div>
+      </div>
+      <div className="desktop-frame">{children}</div>
+    </div>
+  );
+}
+
+function Pair({ phone, desktop, gap = 32 }) {
+  return (
+    <div style={{ display: "flex", gap, alignItems: "flex-start" }}>
+      {phone}
+      {desktop}
+    </div>
+  );
+}
+
+function makeArtboards(V, name) {
+  const url = `xalgarra.github.io/wartracker — ${name}`;
+  return [
+    <DCArtboard key="login" id={`${name}-login`} label="01 · Login" width={420} height={760}>
+      <Phone><V.Frame hideTabs showFab={false}><V.Login /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="col-m" id={`${name}-coleccion-mobile`} label="02 · Colección · móvil" width={420} height={760}>
+      <Phone><V.Frame activeTab="coleccion"><V.Coleccion /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="col-d" id={`${name}-coleccion-desktop`} label="03 · Colección · desktop" width={1140} height={760}>
+      <Desktop url={url}><V.Frame activeTab="coleccion"><V.Coleccion /></V.Frame></Desktop>
+    </DCArtboard>,
+    <DCArtboard key="st-m" id={`${name}-stats-mobile`} label="04 · Stats · móvil" width={420} height={760}>
+      <Phone><V.Frame activeTab="stats" showFab={false}><V.Stats /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="st-d" id={`${name}-stats-desktop`} label="05 · Stats · desktop" width={1140} height={760}>
+      <Desktop url={url}><V.Frame activeTab="stats" showFab={false}><V.Stats /></V.Frame></Desktop>
+    </DCArtboard>,
+    <DCArtboard key="wl" id={`${name}-wishlist-mobile`} label="06 · Wishlist" width={420} height={620}>
+      <Phone><V.Frame activeTab="wishlist"><V.Wishlist /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="pt-m" id={`${name}-pinturas-mobile`} label="07 · Pinturas · móvil" width={420} height={760}>
+      <Phone><V.Frame activeTab="pinturas"><V.Pinturas /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="pt-d" id={`${name}-pinturas-desktop`} label="08 · Pinturas · desktop" width={1140} height={760}>
+      <Desktop url={url}><V.Frame activeTab="pinturas"><V.Pinturas /></V.Frame></Desktop>
+    </DCArtboard>,
+    <DCArtboard key="mo-m" id={`${name}-modal-mobile`} label="09 · Modal · móvil" width={420} height={760}>
+      <Phone><V.Frame activeTab="coleccion" showFab={false} showModal="bottom"><V.Coleccion /></V.Frame></Phone>
+    </DCArtboard>,
+    <DCArtboard key="mo-d" id={`${name}-modal-desktop`} label="10 · Modal · desktop" width={1140} height={760}>
+      <Desktop url={url}><V.Frame activeTab="coleccion" showFab={false} showModal="center"><V.Coleccion /></V.Frame></Desktop>
+    </DCArtboard>,
+  ];
+}
+
+function App() {
+  return (
+    <DesignCanvas
+      title="WarTracker — 3 direcciones de rediseño"
+      subtitle="Cada sección es una variación completa. Móvil + desktop lado a lado. Click una tarjeta para verla a pantalla completa."
+    >
+      <DCSection
+        id="intro"
+        title="A · Minimal Refinado"
+        description="Inter, fondo gris cálido casi blanco, badges sutiles. Pulir lo que ya tienes con mejor jerarquía y respiración. La opción más segura."
+      >
+        {makeArtboards(window.VarA, "A")}
+      </DCSection>
+
+      <DCSection
+        id="b"
+        title="B · Editorial Hobbista"
+        description="Fraunces serif + Inter, papel crema, acento rojo óxido. Cada mini es una entrada en tu cuaderno de hobby. Carácter, calidez, personalidad."
+      >
+        {makeArtboards(window.VarB, "B")}
+      </DCSection>
+
+      <DCSection
+        id="c"
+        title="C · Oscuro Atmosférico"
+        description="Space Grotesk + JetBrains Mono, fondo casi negro con tinte cálido, acento ámbar/brasa. Datos en mono. Sensación de terminal de operaciones."
+      >
+        {makeArtboards(window.VarC, "C")}
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WarTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -18,7 +21,11 @@
 
   <div id="app-screen">
     <div class="header">
-      <h1>WarTracker</h1>
+      <div class="logo">
+        <span class="logo-glyph"></span>
+        <span class="logo-mark">WarTracker</span>
+        <span class="logo-status"><span class="logo-status-dot"></span>online</span>
+      </div>
       <div class="header-actions">
         <button class="btn-link btn-theme" id="btn-theme" onclick="toggleDarkMode()">🌙</button>
         <button class="btn-link" onclick="logout()">Cerrar sesión</button>
@@ -155,7 +162,7 @@
   <div class="modal-bg" id="modal-paint-bg" onclick="cerrarModalPinturaFondo(event)">
     <div class="modal">
       <h2 id="modal-paint-title">Añadir pintura</h2>
-      <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off">
+      <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off" oninput="onPaintBrandInput()">
       <datalist id="brands-list">
         <option value="Citadel">
         <option value="Vallejo">
@@ -166,7 +173,8 @@
         <option value="Warcolours">
         <option value="Green Stuff World">
       </datalist>
-      <input id="paint-name" placeholder="Nombre de la pintura">
+      <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off" oninput="onPaintNameInput()">
+      <datalist id="paint-names-list"></datalist>
       <label class="field-label">Tipo</label>
       <select id="paint-type">
         <option value="base">Base</option>
@@ -186,6 +194,7 @@
           <span>Definir color</span>
         </label>
         <input type="color" id="paint-color-hex" value="#aaaaaa" style="display:none">
+        <button type="button" class="btn-color-search" onclick="buscarColorExterno()" title="Buscar color en Google">🔍</button>
       </div>
       <label class="paint-stock-check">
         <input type="checkbox" id="paint-in-stock" checked>
@@ -200,6 +209,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/paint-colors.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
