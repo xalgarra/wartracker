@@ -607,6 +607,11 @@ async function guardarPintura() {
   const type = document.getElementById('paint-type').value
   if (!brand || !name) { alert('Introduce marca y nombre'); return }
 
+  if (!paintEnEdicion) {
+    const duplicado = pinturas.find(p => p.brand === brand && p.name.toLowerCase() === name.toLowerCase())
+    if (duplicado) { alert(`Ya tienes "${name}" en tu colección.`); return }
+  }
+
   const hasColor = document.getElementById('paint-has-color').checked
   const payload = {
     brand,
@@ -1081,6 +1086,9 @@ async function confirmarPoteCamara() {
   }
 
   // Contexto 'catalog': guardar directamente
+  const duplicado = pinturas.find(q => q.brand === 'Citadel' && q.name.toLowerCase() === p.name.toLowerCase())
+  if (duplicado) { alert(`Ya tienes "${p.name}" en tu colección.`); cerrarCamara(); return }
+
   const payload = { brand: 'Citadel', name: p.name, type: p.type, in_stock: true }
   if (p.hex) payload.color_hex = p.hex
   const { error } = await db.from('paints').insert(payload)
