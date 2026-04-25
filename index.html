@@ -28,7 +28,10 @@
     <div class="tabs">
       <button class="tab active" id="tab-coleccion" onclick="cambiarTab('coleccion')">Colección</button>
       <button class="tab" id="tab-stats" onclick="cambiarTab('stats')">Estadísticas</button>
+      <button class="tab" id="tab-wishlist" onclick="cambiarTab('wishlist')">Wishlist</button>
     </div>
+
+    <button class="fab" onclick="abrirModal()">+</button>
 
     <div id="vista-coleccion">
       <div class="filtros">
@@ -61,12 +64,22 @@
         </select>
         <input id="busqueda" type="search" placeholder="Buscar por nombre…" oninput="onBusqueda(this.value)">
       </div>
+      <div class="sort-bar">
+        <span class="sort-label">Ordenar:</span>
+        <button class="sort-btn active" data-sort="reciente" data-label="Reciente" onclick="onOrdenar(this)">Reciente ↓</button>
+        <button class="sort-btn" data-sort="nombre"  data-label="Nombre"   onclick="onOrdenar(this)">Nombre</button>
+        <button class="sort-btn" data-sort="estado"  data-label="Estado"   onclick="onOrdenar(this)">Estado</button>
+        <button class="sort-btn" data-sort="juego"   data-label="Juego"    onclick="onOrdenar(this)">Juego</button>
+      </div>
       <div class="lista" id="lista"></div>
-      <button class="fab" onclick="abrirModal()">+</button>
     </div>
 
     <div id="vista-stats" style="display:none">
       <div id="stats-content" class="stats-container"></div>
+    </div>
+
+    <div id="vista-wishlist" style="display:none">
+      <div class="lista" id="lista-wishlist"></div>
     </div>
   </div>
 
@@ -82,12 +95,15 @@
       <input id="qty" type="number" min="1" value="1">
       <label class="field-label" for="models">Modelos en la unidad (opcional — ej: 10 para una caja de 10 marines)</label>
       <input id="models" type="number" min="1" placeholder="">
+      <label class="field-label" for="status">Estado</label>
       <select id="status">
         <option value="comprada">Comprada</option>
         <option value="montada">Montada</option>
         <option value="imprimada">Imprimada</option>
         <option value="pintando">Pintando</option>
         <option value="pintada">Pintada</option>
+        <option disabled>──────────</option>
+        <option value="wishlist">Wishlist</option>
       </select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
       <div class="modal-btns">

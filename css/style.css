@@ -31,6 +31,7 @@
   --badge-faction-bg:    #f3f4f6;
   --badge-faction-color: #374151;
 
+  --badge-wishlist-bg:    #eef2ff; --badge-wishlist-color:    #4338ca;
   --badge-comprada-bg:    #f3f4f6; --badge-comprada-color:    #6b7280;
   --badge-montada-bg:     #fef3c7; --badge-montada-color:     #92400e;
   --badge-imprimada-bg:   #dbeafe; --badge-imprimada-color:   #1e40af;
@@ -77,6 +78,7 @@ body.dark {
   --badge-faction-bg:    #22222c;
   --badge-faction-color: #a0a0b8;
 
+  --badge-wishlist-bg:    #0e0c2a; --badge-wishlist-color:    #a5b4fc;
   --badge-comprada-bg:    #22222c; --badge-comprada-color:    #8888a0;
   --badge-montada-bg:     #2e1600; --badge-montada-color:     #fcd34d;
   --badge-imprimada-bg:   #0c1a38; --badge-imprimada-color:   #93c5fd;
@@ -103,7 +105,7 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 #error-msg { color: #c00; font-size: 0.9rem; margin-top: 0.5rem; display: none; }
 
 /* APP */
-#app-screen { display: none; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+#app-screen { display: none; max-width: 960px; margin: 0 auto; padding-bottom: 80px; }
 
 /* HEADER */
 .header { background: var(--surface); padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
@@ -118,6 +120,13 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 .filtros select { flex: 1; min-width: 120px; padding: 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-2); border-radius: 8px; background: var(--input-bg); color: var(--text); }
 .filtros input[type="search"] { width: 100%; padding: 0.5rem 0.75rem; font-size: 0.85rem; border: 1px solid var(--border-2); border-radius: 8px; background: var(--input-bg); color: var(--text); outline: none; }
 .filtros input[type="search"]:focus { border-color: var(--text-3); }
+
+/* SORT BAR */
+.sort-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.sort-label { font-size: 0.78rem; color: var(--text-3); flex-shrink: 0; }
+.sort-btn { font-size: 0.78rem; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border-2); background: transparent; color: var(--text-3); cursor: pointer; }
+.sort-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.sort-btn:hover:not(.active) { border-color: var(--text-3); color: var(--text); }
 
 /* LISTA */
 .lista { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -142,6 +151,7 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 .badge-game-40k { background: var(--badge-40k-bg); color: var(--badge-40k-color); }
 .badge-game-aos { background: var(--badge-aos-bg); color: var(--badge-aos-color); }
 .badge-faction { background: var(--badge-faction-bg); color: var(--badge-faction-color); }
+.badge-status.wishlist  { background: var(--badge-wishlist-bg);  color: var(--badge-wishlist-color);  }
 .badge-status.comprada  { background: var(--badge-comprada-bg);  color: var(--badge-comprada-color);  }
 .badge-status.montada   { background: var(--badge-montada-bg);   color: var(--badge-montada-color);   }
 .badge-status.imprimada { background: var(--badge-imprimada-bg); color: var(--badge-imprimada-color); }
@@ -224,4 +234,24 @@ body { font-family: sans-serif; background: var(--bg); color: var(--text); trans
 @media (max-width: 599px) {
   .modal-bg.open { align-items: flex-end; }
   .modal { border-radius: 20px 20px 0 0; margin: 0; }
+
+  /* Filtros: grid 2×2 + búsqueda a ancho completo */
+  .filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .filtros select { flex: unset; min-width: unset; }
+  .filtros input[type="search"] { grid-column: 1 / -1; width: 100%; }
+}
+
+@media (min-width: 700px) {
+  /* Filtros: 4 selects en una fila, búsqueda a ancho completo debajo */
+  .filtros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+  .filtros select { flex: unset; min-width: unset; }
+  .filtros input[type="search"] { grid-column: 1 / -1; }
+
+  /* Cards en 2 columnas */
+  .lista { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .lista > .empty { grid-column: 1 / -1; }
+
+  /* Stats: AoS y 40K en columnas */
+  .stats-container { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .stats-summary { grid-column: 1 / -1; }
 }

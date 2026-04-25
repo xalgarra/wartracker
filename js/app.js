@@ -18,9 +18,13 @@ let units = []
 let unitMap = {}
 let typeMap = {}
 let minisActuales = []
+let wishlistActuales = []
 let miniEnEdicion = null
+let tabActual = 'coleccion'
 let filtroNombre = ''
 let filtroType = ''
+let ordenar = 'reciente'
+let sortDir = 'desc'
 
 // --- AUTH ---
 
@@ -161,7 +165,7 @@ async function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = []) {
 async function actualizarFiltroFacciones() {
   const gameSlug = document.getElementById('filtro-game').value
 
-  const { data } = await db.from('minis').select('factions')
+  const { data } = await db.from('minis').select('factions').neq('status', 'wishlist')
 
   let todas = (data || []).flatMap(m => m.factions || [])
 
@@ -185,6 +189,7 @@ async function cargarMinis() {
   const filtroStatus = document.getElementById('filtro-status').value
 
   let query = db.from('minis').select('*').order('created_at', { ascending: false })
+    .neq('status', 'wishlist')
 
   if (filtroFaction) {
     query = query.contains('factions', [filtroFaction])
@@ -212,6 +217,22 @@ function onFiltroType() {
   renderLista()
 }
 
+function onOrdenar(btn) {
+  const key = btn.dataset.sort
+  if (key === ordenar) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc'
+  } else {
+    ordenar = key
+    sortDir = key === 'reciente' ? 'desc' : 'asc'
+  }
+  document.querySelectorAll('.sort-btn').forEach(b => {
+    const active = b.dataset.sort === ordenar
+    b.classList.toggle('active', active)
+    b.textContent = active ? `${b.dataset.label} ${sortDir === 'asc' ? '↑' : '↓'}` : b.dataset.label
+  })
+  renderLista()
+}
+
 function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
     const fc = factions.find(f => f.name === faction)
@@ -222,6 +243,8 @@ function getTypeForMini(m) {
   return null
 }
 
+const STATUS_ORDER = { comprada: 0, montada: 1, imprimada: 2, pintando: 3, pintada: 4 }
+
 function renderLista() {
   const busqueda = filtroNombre.trim().toLowerCase()
   let minis = busqueda
@@ -229,66 +252,103 @@ function renderLista() {
     : minisActuales
   if (filtroType) minis = minis.filter(m => getTypeForMini(m) === filtroType)
 
+  const dir = sortDir === 'asc' ? 1 : -1
+  if (ordenar === 'nombre') {
+    minis = [...minis].sort((a, b) => dir * (a.name || '').localeCompare(b.name || '', 'es'))
+  } else if (ordenar === 'estado') {
+    minis = [...minis].sort((a, b) => dir * ((STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)))
+  } else if (ordenar === 'juego') {
+    minis = [...minis].sort((a, b) => {
+      const ga = factions.find(f => (a.factions || []).includes(f.name))?.game_slug || ''
+      const gb = factions.find(f => (b.factions || []).includes(f.name))?.game_slug || ''
+      return dir * ga.localeCompare(gb)
+    })
+  } else if (sortDir === 'asc') {
+    minis = [...minis].reverse()
+  }
+
   const lista = document.getElementById('lista')
   if (!minis.length) {
     lista.innerHTML = `<div class="empty">${minisActuales.length ? 'Sin resultados para esa búsqueda' : 'No hay minis con estos filtros'}</div>`
     return
   }
 
-  lista.innerHTML = minis.map(m => {
-    const opciones = (m.name || '').split('/').map(o => o.trim()).filter(Boolean)
-    const nombreHTML = opciones.length > 1
-      ? `<div class="card-name">${opciones[0]}</div>` +
-        opciones.slice(1).map(o => `<div class="card-name-alt">${o}</div>`).join('')
-      : `<div class="card-name">${m.name}</div>`
-    const faccionesText = (m.factions || []).join(' · ') || '-'
-    const juegosUnicos = [...new Set(
-      (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
-    )]
-    const gameAcronym = { aos: 'AoS', '40k': '40K' }
-    const gameBadges = juegosUnicos
-      .map(slug => `<span class="badge badge-game-${slug}">${gameAcronym[slug] || slug}</span>`)
-      .join(' ')
-    const gamePtsList = juegosUnicos.map(slug => {
-      const fac = (m.factions || []).find(f => factions.find(x => x.name === f && x.game_slug === slug))
-      const pts = fac ? unitMap[`${m.name}|${fac}|${slug}`] : null
-      return pts ? `${(pts * m.qty).toLocaleString()} ${gameAcronym[slug] || slug}` : null
-    }).filter(Boolean)
-    const ptsHTML = gamePtsList.length
-      ? `<span class="card-pts">${gamePtsList.join(' · ')}</span>` : ''
-    const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
-    const unitType = getTypeForMini(m)
-    const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
-    return `
-      <div class="card" onclick="abrirEdicion(${m.id})">
-        <div class="card-header">
-          <div>${nombreHTML}</div>
+  lista.innerHTML = minis.map(renderCard).join('')
+}
+
+function renderCard(m) {
+  const opciones = (m.name || '').split('/').map(o => o.trim()).filter(Boolean)
+  const nombreHTML = opciones.length > 1
+    ? `<div class="card-name">${opciones[0]}</div>` +
+      opciones.slice(1).map(o => `<div class="card-name-alt">${o}</div>`).join('')
+    : `<div class="card-name">${m.name}</div>`
+  const faccionesText = (m.factions || []).join(' · ') || '-'
+  const juegosUnicos = [...new Set(
+    (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
+  )]
+  const gameAcronym = { aos: 'AoS', '40k': '40K' }
+  const gameBadges = juegosUnicos
+    .map(slug => `<span class="badge badge-game-${slug}">${gameAcronym[slug] || slug}</span>`)
+    .join(' ')
+  const gamePtsList = juegosUnicos.map(slug => {
+    const fac = (m.factions || []).find(f => factions.find(x => x.name === f && x.game_slug === slug))
+    const pts = fac ? unitMap[`${m.name}|${fac}|${slug}`] : null
+    return pts ? `${(pts * m.qty).toLocaleString()} ${gameAcronym[slug] || slug}` : null
+  }).filter(Boolean)
+  const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
+  const unitType = getTypeForMini(m)
+  const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
+  const statusLabel = m.status === 'wishlist' ? 'wishlist' : m.status
+  return `
+    <div class="card" onclick="abrirEdicion(${m.id})">
+      <div class="card-header">
+        <div>${nombreHTML}</div>
+      </div>
+      <div class="card-factions">${faccionesText}</div>
+      <div class="card-footer">
+        <div class="card-footer-left">
+          ${gameBadges}
+          ${typeBadge}
+          <span class="badge badge-status ${m.status}">${statusLabel}</span>
         </div>
-        <div class="card-factions">${faccionesText}</div>
-        <div class="card-footer">
-          <div class="card-footer-left">
-            ${gameBadges}
-            ${typeBadge}
-            <span class="badge badge-status ${m.status}">${m.status}</span>
-          </div>
-          <div class="card-footer-right">
-            ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
-            <span class="card-qty">${m.qty} ud.${modelsStr}</span>
-          </div>
+        <div class="card-footer-right">
+          ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
+          <span class="card-qty">${m.qty} ud.${modelsStr}</span>
         </div>
       </div>
-    `
-  }).join('')
+    </div>
+  `
+}
+
+async function cargarWishlist() {
+  const { data, error } = await db.from('minis').select('*')
+    .eq('status', 'wishlist').order('name', { ascending: true })
+  if (error) { console.error(error); return }
+  wishlistActuales = data || []
+  renderWishlist()
+}
+
+function renderWishlist() {
+  const lista = document.getElementById('lista-wishlist')
+  if (!wishlistActuales.length) {
+    lista.innerHTML = '<div class="empty">La wishlist está vacía — pulsa + para añadir</div>'
+    return
+  }
+  lista.innerHTML = wishlistActuales.map(renderCard).join('')
 }
 
 // --- TABS ---
 
 function cambiarTab(tab) {
+  tabActual = tab
   document.getElementById('vista-coleccion').style.display = tab === 'coleccion' ? 'block' : 'none'
-  document.getElementById('vista-stats').style.display = tab === 'stats' ? 'block' : 'none'
+  document.getElementById('vista-stats').style.display    = tab === 'stats'      ? 'block' : 'none'
+  document.getElementById('vista-wishlist').style.display = tab === 'wishlist'   ? 'block' : 'none'
   document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
   document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
+  document.getElementById('tab-wishlist').classList.toggle('active', tab === 'wishlist')
   if (tab === 'stats') cargarStats()
+  if (tab === 'wishlist') cargarWishlist()
 }
 
 // --- ESTADÍSTICAS ---
@@ -298,6 +358,7 @@ async function cargarStats() {
   container.innerHTML = '<div class="stats-empty">Cargando...</div>'
 
   const { data: minis, error } = await db.from('minis').select('name, factions, status, qty, models')
+    .neq('status', 'wishlist')
   if (error || !minis) { container.innerHTML = '<div class="stats-empty">Error al cargar datos</div>'; return }
 
   // Global summary: total models + painted (models field || qty as fallback)
@@ -472,11 +533,12 @@ async function abrirModal() {
     await actualizarUnidades()
   }
 
+  document.getElementById('status').value = 'comprada'
   document.getElementById('modal-bg').classList.add('open')
 }
 
 async function abrirEdicion(id) {
-  const mini = minisActuales.find(m => m.id === id)
+  const mini = minisActuales.find(m => m.id === id) || wishlistActuales.find(m => m.id === id)
   if (!mini) return
   miniEnEdicion = mini
 
@@ -572,7 +634,7 @@ async function guardarMini() {
   localStorage.setItem('wt_lastGame', document.getElementById('game').value)
   localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
   cerrarModal()
-  await actualizarFiltroFacciones()
+  if (tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
 }
 
 async function eliminarMini() {
@@ -583,7 +645,7 @@ async function eliminarMini() {
   if (error) { alert('Error: ' + error.message); return }
 
   cerrarModal()
-  await actualizarFiltroFacciones()
+  if (tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
 }
 
 // --- INIT ---
