@@ -1008,7 +1008,7 @@ async function capturarPote() {
     return
   }
 
-  const MAX_W = 640
+  const MAX_W = 320
   const scale = Math.min(1, MAX_W / video.videoWidth)
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(video.videoWidth * scale)
@@ -1021,7 +1021,7 @@ async function capturarPote() {
   try {
     const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1035,7 +1035,7 @@ async function capturarPote() {
     )
     const json = await res.json()
     const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-    alert(JSON.stringify(json, null, 2))
+    alert('HTTP ' + res.status + '\n' + JSON.stringify(json, null, 2))
 
     if (!rawName || rawName === '?') {
       document.getElementById('camera-scanning').style.display = 'none'
