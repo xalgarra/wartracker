@@ -1018,16 +1018,15 @@ async function capturarPote() {
   document.getElementById('camera-result').style.display = 'none'
 
   try {
-    const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
+    const base64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1]
     const { data, error } = await db.functions.invoke('hyper-action', {
       body: { image: base64, mediaType: 'image/jpeg' }
     })
     if (error) throw error
     const rawName = (data.name || '').trim()
-    alert('DEBUG nombre: "' + rawName + '"')
 
     if (!rawName || rawName === '?') {
-      alert('Gemini no ha podido leer el nombre. Prueba con mejor iluminación y el pote más centrado.')
+      alert('No se ha podido leer el nombre. Asegúrate de que la etiqueta esté bien iluminada y centrada.')
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
