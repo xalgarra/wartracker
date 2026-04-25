@@ -1019,7 +1019,7 @@ async function capturarPote() {
 
   try {
     const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
-    const { data, error } = await db.functions.invoke('identify-paint', {
+    const { data, error } = await db.functions.invoke('hyper-action', {
       body: { image: base64, mediaType: 'image/jpeg' }
     })
     if (error) throw error
