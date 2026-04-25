@@ -381,7 +381,30 @@ function renderWishlist() {
     lista.innerHTML = '<div class="empty">La wishlist está vacía — pulsa + para añadir</div>'
     return
   }
-  lista.innerHTML = wishlistActuales.map(renderCard).join('')
+  const gameAcronym = { aos: 'AoS', '40k': '40K' }
+  lista.innerHTML = wishlistActuales.map(mini => {
+    const juegosUnicos = [...new Set(
+      (mini.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
+    )]
+    const gameStr = juegosUnicos.map(s => gameAcronym[s] || s.toUpperCase()).join(' · ')
+    const factionsStr = (mini.factions || []).join(' · ')
+    const meta = [gameStr, factionsStr, mini.notes].filter(Boolean).join(' · ')
+    const pts = juegosUnicos.reduce((found, slug) => {
+      if (found) return found
+      const fac = (mini.factions || []).find(f => factions.find(x => x.name === f && x.game_slug === slug))
+      const p = fac ? unitMap[`${mini.name}|${fac}|${slug}`] : null
+      return p ? p * mini.qty : null
+    }, null)
+    return `
+      <div class="wish-item" onclick="abrirEdicion(${mini.id})">
+        <div>
+          <div class="wish-name">${mini.name}</div>
+          <div class="wish-meta">${meta}</div>
+        </div>
+        ${pts ? `<span class="wish-pts">${pts.toLocaleString()} pts</span>` : ''}
+      </div>
+    `
+  }).join('')
 }
 
 // --- PINTURAS ---
@@ -424,7 +447,7 @@ function filtrarYRenderPinturas() {
           <span class="paint-brand">${p.brand}</span>
         </div>
         <div class="paint-tags">
-          <span class="badge badge-type">${p.type}</span>
+          <span class="badge-paint-type">${p.type}</span>
           ${stockBadge}
         </div>
       </div>

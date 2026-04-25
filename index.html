@@ -12,7 +12,10 @@
 <body>
 
   <div id="login-screen">
-    <h2>WarTracker</h2>
+    <div class="login-eyebrow">▸ wartracker.ops <span class="blink">_</span></div>
+    <div class="login-wordmark">War<span class="accent">Tracker</span></div>
+    <div class="login-sub login-sub-light">Tu colección, en orden.</div>
+    <div class="login-sub login-sub-dark">// acceso a tu armería personal</div>
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Contraseña">
     <button onclick="login()">Entrar</button>
@@ -118,6 +121,7 @@
 
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
     <div class="modal">
+      <div class="modal-eye">▸ nuevo registro</div>
       <h2 id="modal-title">Añadir miniatura</h2>
 
       <div class="modal-photo-section">
@@ -161,6 +165,7 @@
 
   <div class="modal-bg" id="modal-paint-bg" onclick="cerrarModalPinturaFondo(event)">
     <div class="modal">
+      <div class="modal-eye">▸ nueva pintura</div>
       <h2 id="modal-paint-title">Añadir pintura</h2>
       <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off" oninput="onPaintBrandInput()">
       <datalist id="brands-list">
