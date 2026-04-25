@@ -22,25 +22,35 @@
       <button class="btn-link" onclick="logout()">Cerrar sesión</button>
     </div>
 
-    <div class="filtros">
-      <select id="filtro-game" onchange="actualizarFiltroFacciones()">
-        <option value="">Todos los juegos</option>
-      </select>
-      <select id="filtro-faction" onchange="cargarMinis()">
-        <option value="">Todas las facciones</option>
-      </select>
-      <select id="filtro-status" onchange="cargarMinis()">
-        <option value="">Todos los estados</option>
-        <option value="comprada">Comprada</option>
-        <option value="montada">Montada</option>
-        <option value="imprimada">Imprimada</option>
-        <option value="pintada">Pintada</option>
-      </select>
+    <div class="tabs">
+      <button class="tab active" id="tab-coleccion" onclick="cambiarTab('coleccion')">Colección</button>
+      <button class="tab" id="tab-stats" onclick="cambiarTab('stats')">Estadísticas</button>
     </div>
 
-    <div class="lista" id="lista"></div>
+    <div id="vista-coleccion">
+      <div class="filtros">
+        <select id="filtro-game" onchange="actualizarFiltroFacciones()">
+          <option value="">Todos los juegos</option>
+        </select>
+        <select id="filtro-faction" onchange="cargarMinis()">
+          <option value="">Todas las facciones</option>
+        </select>
+        <select id="filtro-status" onchange="cargarMinis()">
+          <option value="">Todos los estados</option>
+          <option value="comprada">Comprada</option>
+          <option value="montada">Montada</option>
+          <option value="imprimada">Imprimada</option>
+          <option value="pintando">Pintando</option>
+          <option value="pintada">Pintada</option>
+        </select>
+      </div>
+      <div class="lista" id="lista"></div>
+      <button class="fab" onclick="abrirModal()">+</button>
+    </div>
 
-    <button class="fab" onclick="abrirModal()">+</button>
+    <div id="vista-stats" style="display:none">
+      <div id="stats-content" class="stats-container"></div>
+    </div>
   </div>
 
   <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
@@ -51,11 +61,13 @@
       <select id="unit-select" onchange="onUnitChange()"></select>
       <input id="name-custom" placeholder="Nombre personalizado" style="display:none">
       <div id="extra-factions-container" style="display:none"></div>
+      <label class="field-label" for="qty">Cantidad — nº de cajas o lotes (no el nº de miniaturas dentro)</label>
       <input id="qty" type="number" min="1" value="1">
       <select id="status">
         <option value="comprada">Comprada</option>
         <option value="montada">Montada</option>
         <option value="imprimada">Imprimada</option>
+        <option value="pintando">Pintando</option>
         <option value="pintada">Pintada</option>
       </select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>

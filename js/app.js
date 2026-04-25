@@ -204,6 +204,113 @@ async function cargarMinis() {
   }).join('')
 }
 
+// --- TABS ---
+
+function cambiarTab(tab) {
+  document.getElementById('vista-coleccion').style.display = tab === 'coleccion' ? 'block' : 'none'
+  document.getElementById('vista-stats').style.display = tab === 'stats' ? 'block' : 'none'
+  document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
+  document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
+  if (tab === 'stats') cargarStats()
+}
+
+// --- ESTADÍSTICAS ---
+
+async function cargarStats() {
+  const container = document.getElementById('stats-content')
+  container.innerHTML = '<div class="stats-empty">Cargando...</div>'
+
+  const { data: minis, error } = await db.from('minis').select('name, factions, status, qty')
+  if (error || !minis) { container.innerHTML = '<div class="stats-empty">Error al cargar datos</div>'; return }
+
+  const { data: unitsData } = await db.from('units').select('name, faction, game_slug, points')
+  const unitMap = {}
+  for (const u of (unitsData || [])) {
+    unitMap[`${u.name}|${u.faction}|${u.game_slug}`] = u.points
+  }
+
+  const factionStats = {}
+
+  for (const mini of minis) {
+    for (const faction of (mini.factions || [])) {
+      const fc = factions.find(f => f.name === faction)
+      if (!fc) continue
+
+      if (!factionStats[faction]) {
+        factionStats[faction] = { game_slug: fc.game_slug, counts: {}, qty: 0, points: 0, pointsPainted: 0 }
+      }
+
+      const s = factionStats[faction]
+      s.counts[mini.status] = (s.counts[mini.status] || 0) + 1
+      s.qty += mini.qty
+
+      const pts = unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
+      if (pts) {
+        s.points += pts * mini.qty
+        if (mini.status === 'pintada') s.pointsPainted += pts * mini.qty
+      }
+    }
+  }
+
+  if (!Object.keys(factionStats).length) {
+    container.innerHTML = '<div class="stats-empty">Aún no hay minis en la colección</div>'
+    return
+  }
+
+  const statuses = ['comprada', 'montada', 'imprimada', 'pintando', 'pintada']
+  const statusLabel = { comprada: 'Comprada', montada: 'Montada', imprimada: 'Imprimada', pintando: 'Pintando', pintada: 'Pintada' }
+
+  const byGame = {}
+  for (const [faction, s] of Object.entries(factionStats)) {
+    if (!byGame[s.game_slug]) byGame[s.game_slug] = []
+    byGame[s.game_slug].push({ faction, ...s })
+  }
+
+  const gameOrder = games.map(g => g.slug)
+  const sortedGames = Object.keys(byGame).sort((a, b) => gameOrder.indexOf(a) - gameOrder.indexOf(b))
+
+  container.innerHTML = sortedGames.map(gameSlug => {
+    const gameName = games.find(g => g.slug === gameSlug)?.name || gameSlug
+    const armies = byGame[gameSlug].sort((a, b) => a.faction.localeCompare(b.faction))
+
+    const totalPts = armies.reduce((sum, a) => sum + a.points, 0)
+    const totalPinted = armies.reduce((sum, a) => sum + a.pointsPainted, 0)
+
+    return `
+      <div class="stats-game-section">
+        <div class="stats-game-title">
+          <span class="badge badge-game-${gameSlug}">${gameName}</span>
+          ${totalPts ? `<span class="stats-total">${totalPts.toLocaleString()} pts totales · ${totalPinted.toLocaleString()} pts pintados</span>` : ''}
+        </div>
+        ${armies.map(a => {
+          const total = Object.values(a.counts).reduce((s, v) => s + v, 0)
+          const segs = statuses
+            .filter(st => a.counts[st])
+            .map(st => `<div class="progress-seg ${st}" style="width:${(a.counts[st] / total * 100).toFixed(1)}%"></div>`)
+            .join('')
+
+          const legend = statuses
+            .filter(st => a.counts[st])
+            .map(st => `<span class="stats-legend-item"><span class="legend-dot ${st}"></span>${a.counts[st]} ${statusLabel[st].toLowerCase()}</span>`)
+            .join('')
+
+          return `
+            <div class="stats-army">
+              <div class="stats-army-name">${a.faction}</div>
+              <div class="stats-row">
+                <span>${total} entrada${total !== 1 ? 's' : ''} · ${a.qty} miniatura${a.qty !== 1 ? 's' : ''}</span>
+                ${a.points ? `<span><span class="stats-pts">${a.points.toLocaleString()} pts</span>${a.pointsPainted ? ` · <span class="stats-pts-painted">${a.pointsPainted.toLocaleString()} pintados</span>` : ''}</span>` : ''}
+              </div>
+              <div class="progress-bar">${segs}</div>
+              <div class="stats-legend">${legend}</div>
+            </div>
+          `
+        }).join('')}
+      </div>
+    `
+  }).join('')
+}
+
 // --- MODAL: abrir / cerrar ---
 
 function abrirModal() {
