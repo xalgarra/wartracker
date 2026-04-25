@@ -12,14 +12,6 @@ const db = createClient(
   'sb_publishable_P4QRQ6nMPQKvLYvVN_shaQ_8ixoMhPw'
 )
 
-function getGeminiKey() {
-  let key = localStorage.getItem('wt_gemini_key')
-  if (!key) {
-    key = prompt('Introduce tu Gemini API key (se guardará solo en este dispositivo):')
-    if (key) localStorage.setItem('wt_gemini_key', key.trim())
-  }
-  return key
-}
 
 let games = []
 let factions = []
@@ -1027,22 +1019,11 @@ async function capturarPote() {
 
   try {
     const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1]
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getGeminiKey()}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { inline_data: { mime_type: 'image/jpeg', data: base64 } },
-            { text: 'This is a Citadel miniature paint pot. Read the paint name exactly as printed on the label. Reply with ONLY the paint name, nothing else. If you cannot read it clearly, reply with "?".' }
-          ]}]
-        })
-      }
-    )
-    const json = await res.json()
-    const rawName = (json.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-    alert('HTTP ' + res.status + '\n' + JSON.stringify(json, null, 2))
+    const { data, error } = await db.functions.invoke('identify-paint', {
+      body: { image: base64, mediaType: 'image/jpeg' }
+    })
+    if (error) throw error
+    const rawName = (data.name || '').trim()
 
     if (!rawName || rawName === '?') {
       document.getElementById('camera-scanning').style.display = 'none'
