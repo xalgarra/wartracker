@@ -186,7 +186,7 @@ async function cargarMinis() {
       (m.factions || []).map(f => factions.find(fc => fc.name === f)?.game_slug).filter(Boolean)
     )]
     const gameBadges = juegosUnicos
-      .map(slug => `<span class="badge badge-game">${games.find(g => g.slug === slug)?.name || slug}</span>`)
+      .map(slug => `<span class="badge badge-game-${slug}">${games.find(g => g.slug === slug)?.name || slug}</span>`)
       .join(' ')
     return `
       <div class="card" onclick="abrirEdicion(${m.id})">
