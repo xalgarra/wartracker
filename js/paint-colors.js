@@ -1,5 +1,5 @@
 ﻿// Catálogo Citadel — fuente: grimify.app (github.com/NathanHealea/grimify.app)
-const CITADEL_CATALOG = [
+export const CITADEL_CATALOG = [
   { name: 'Abaddon Black', type: 'base', hex: "#231f20" },
   { name: 'Averland Sunset', type: 'base', hex: "#fdb825" },
   { name: 'Balthasar Gold', type: 'base', hex: "#a47552" },
@@ -344,7 +344,7 @@ const CITADEL_CATALOG = [
 ]
 
 // Lookup rápido por nombre para el modal
-const PAINT_COLORS = { 'Citadel': {} }
+export const PAINT_COLORS = { 'Citadel': {} }
 for (const p of CITADEL_CATALOG) {
   if (p.hex) PAINT_COLORS['Citadel'][p.name] = p.hex
 }

@@ -7,9 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+  <script>
+    ;(function(){
+      const s = localStorage.getItem('wt_theme')
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (s === 'dark' || (!s && prefersDark)) document.body.classList.add('dark')
+    })()
+  </script>
 
   <div id="login-screen">
     <div class="login-eyebrow">▸ wartracker.ops <span class="blink">_</span></div>
@@ -18,7 +25,7 @@
     <div class="login-sub login-sub-dark">// acceso a tu armería personal</div>
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Entrar</button>
+    <button id="btn-login">Entrar</button>
     <p id="error-msg">Email o contraseña incorrectos</p>
   </div>
 
@@ -30,29 +37,29 @@
         <span class="logo-status"><span class="logo-status-dot"></span>online</span>
       </div>
       <div class="header-actions">
-        <button class="btn-link btn-theme" id="btn-theme" onclick="toggleDarkMode()">🌙</button>
-        <button class="btn-link" onclick="logout()">Cerrar sesión</button>
+        <button class="btn-link btn-theme" id="btn-theme">🌙</button>
+        <button class="btn-link" id="btn-logout">Cerrar sesión</button>
       </div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" id="tab-coleccion" onclick="cambiarTab('coleccion')">Colección</button>
-      <button class="tab" id="tab-stats" onclick="cambiarTab('stats')">Estadísticas</button>
-      <button class="tab" id="tab-wishlist" onclick="cambiarTab('wishlist')">Wishlist</button>
-      <button class="tab" id="tab-pinturas" onclick="cambiarTab('pinturas')">Pinturas</button>
+      <button class="tab active" id="tab-coleccion">Colección</button>
+      <button class="tab" id="tab-stats">Estadísticas</button>
+      <button class="tab" id="tab-wishlist">Wishlist</button>
+      <button class="tab" id="tab-pinturas">Pinturas</button>
     </div>
 
-    <button class="fab" onclick="abrirModal()">+</button>
+    <button class="fab" id="btn-fab">+</button>
 
     <div id="vista-coleccion">
       <div class="filtros">
-        <select id="filtro-game" onchange="actualizarFiltroFacciones()">
+        <select id="filtro-game">
           <option value="">Todos los juegos</option>
         </select>
-        <select id="filtro-faction" onchange="cargarMinis()">
+        <select id="filtro-faction">
           <option value="">Todas las facciones</option>
         </select>
-        <select id="filtro-status" onchange="cargarMinis()">
+        <select id="filtro-status">
           <option value="">Todos los estados</option>
           <option value="comprada">Comprada</option>
           <option value="montada">Montada</option>
@@ -60,7 +67,7 @@
           <option value="pintando">Pintando</option>
           <option value="pintada">Pintada</option>
         </select>
-        <select id="filtro-type" onchange="onFiltroType()">
+        <select id="filtro-type">
           <option value="">Todos los tipos</option>
           <option value="único">Único</option>
           <option value="personaje">Personaje</option>
@@ -73,14 +80,14 @@
           <option value="artillería">Artillería</option>
           <option value="faction terrain">Faction Terrain</option>
         </select>
-        <input id="busqueda" type="search" placeholder="Buscar por nombre…" oninput="onBusqueda(this.value)">
+        <input id="busqueda" type="search" placeholder="Buscar por nombre…">
       </div>
       <div class="sort-bar">
         <span class="sort-label">Ordenar:</span>
-        <button class="sort-btn active" data-sort="reciente" data-label="Reciente" onclick="onOrdenar(this)">Reciente ↓</button>
-        <button class="sort-btn" data-sort="nombre"  data-label="Nombre"   onclick="onOrdenar(this)">Nombre</button>
-        <button class="sort-btn" data-sort="estado"  data-label="Estado"   onclick="onOrdenar(this)">Estado</button>
-        <button class="sort-btn" data-sort="juego"   data-label="Juego"    onclick="onOrdenar(this)">Juego</button>
+        <button class="sort-btn active" data-sort="reciente" data-label="Reciente">Reciente ↓</button>
+        <button class="sort-btn" data-sort="nombre"  data-label="Nombre">Nombre</button>
+        <button class="sort-btn" data-sort="estado"  data-label="Estado">Estado</button>
+        <button class="sort-btn" data-sort="juego"   data-label="Juego">Juego</button>
       </div>
       <div class="lista" id="lista"></div>
     </div>
@@ -96,13 +103,13 @@
     <div id="vista-pinturas" style="display:none">
       <div class="catalog-search-section">
         <div class="catalog-search-row">
-          <input type="search" id="catalog-search" placeholder="Añadir del catálogo Citadel…" oninput="onCatalogSearch(this.value)" onfocus="onCatalogSearch(this.value)" autocomplete="off">
-          <button class="btn-camera" onclick="abrirCamara()" title="Escanear pote con cámara">📷</button>
+          <input type="search" id="catalog-search" placeholder="Añadir del catálogo Citadel…" autocomplete="off">
+          <button class="btn-camera" id="btn-camera-catalog" title="Escanear pote con cámara">📷</button>
         </div>
         <div class="catalog-results" id="catalog-results"></div>
       </div>
       <div class="filtros filtros-pinturas">
-        <select id="filtro-paint-type" onchange="filtrarYRenderPinturas()">
+        <select id="filtro-paint-type">
           <option value="">Todos los tipos</option>
           <option value="base">Base</option>
           <option value="layer">Layer</option>
@@ -115,18 +122,19 @@
           <option value="texture">Texture</option>
           <option value="primer">Primer</option>
         </select>
-        <select id="filtro-paint-stock" onchange="filtrarYRenderPinturas()">
+        <select id="filtro-paint-stock">
           <option value="">Todas</option>
           <option value="1">En stock</option>
           <option value="0">Sin stock</option>
         </select>
-        <input type="search" id="busqueda-paint" placeholder="Buscar nombre o marca…" oninput="filtrarYRenderPinturas()">
+        <input type="search" id="busqueda-paint" placeholder="Buscar nombre o marca…">
       </div>
       <div class="paint-list" id="lista-pinturas"></div>
     </div>
   </div>
 
-  <div class="modal-bg" id="modal-bg" onclick="cerrarModalFondo(event)">
+  <!-- Modal: añadir/editar miniatura -->
+  <div class="modal-bg" id="modal-bg">
     <div class="modal">
       <div class="modal-eye">▸ nuevo registro</div>
       <h2 id="modal-title">Añadir miniatura</h2>
@@ -136,15 +144,15 @@
         <div class="modal-photo-actions">
           <label class="btn-photo" for="photo-input">
             <span id="photo-btn-text">Añadir foto</span>
-            <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="onPhotoSelected(this)">
+            <input type="file" id="photo-input" accept="image/*" style="display:none">
           </label>
-          <button type="button" id="btn-remove-photo" class="btn-photo-remove" onclick="removePhoto()" style="display:none">Eliminar foto</button>
+          <button type="button" id="btn-remove-photo" class="btn-photo-remove" style="display:none">Eliminar foto</button>
         </div>
       </div>
 
-      <select id="game" onchange="actualizarFacciones()"></select>
-      <select id="faction" onchange="actualizarUnidades()"></select>
-      <select id="unit-select" onchange="onUnitChange()"></select>
+      <select id="game"></select>
+      <select id="faction"></select>
+      <select id="unit-select"></select>
       <input id="name-custom" placeholder="Nombre personalizado" style="display:none">
       <div id="extra-factions-container" style="display:none"></div>
       <label class="field-label" for="qty">Cantidad — nº de cajas o lotes</label>
@@ -163,18 +171,19 @@
       </select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
       <div class="modal-btns">
-        <button id="btn-eliminar" class="btn-danger" onclick="eliminarMini()" style="display:none">Eliminar</button>
-        <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-        <button class="btn-primary" onclick="guardarMini()">Guardar</button>
+        <button id="btn-eliminar" class="btn-danger" style="display:none">Eliminar</button>
+        <button id="btn-cerrar-modal" class="btn-cancel">Cancelar</button>
+        <button id="btn-guardar-mini" class="btn-primary">Guardar</button>
       </div>
     </div>
   </div>
 
-  <div class="modal-bg" id="modal-paint-bg" onclick="cerrarModalPinturaFondo(event)">
+  <!-- Modal: añadir/editar pintura -->
+  <div class="modal-bg" id="modal-paint-bg">
     <div class="modal">
       <div class="modal-eye">▸ nueva pintura</div>
       <h2 id="modal-paint-title">Añadir pintura</h2>
-      <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off" oninput="onPaintBrandInput()">
+      <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off">
       <datalist id="brands-list">
         <option value="Citadel">
         <option value="Vallejo">
@@ -186,8 +195,8 @@
         <option value="Green Stuff World">
       </datalist>
       <div class="catalog-search-row">
-        <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off" oninput="onPaintNameInput()">
-        <button class="btn-camera" type="button" onclick="abrirCamara('modal')" title="Escanear pote con cámara">📷</button>
+        <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off">
+        <button class="btn-camera" id="btn-camera-modal" type="button" title="Escanear pote con cámara">📷</button>
       </div>
       <datalist id="paint-names-list"></datalist>
       <label class="field-label">Tipo</label>
@@ -205,11 +214,11 @@
       </select>
       <div class="paint-color-row">
         <label class="paint-color-label">
-          <input type="checkbox" id="paint-has-color" onchange="toggleColorPicker(this)">
+          <input type="checkbox" id="paint-has-color">
           <span>Definir color</span>
         </label>
         <input type="color" id="paint-color-hex" value="#aaaaaa" style="display:none">
-        <button type="button" class="btn-color-search" onclick="buscarColorExterno()" title="Buscar color en Google">🔍</button>
+        <button type="button" id="btn-color-search" class="btn-color-search" title="Buscar color en Google">🔍</button>
       </div>
       <label class="field-label" for="paint-qty">Cantidad de potes</label>
       <input id="paint-qty" type="number" min="1" value="1">
@@ -218,25 +227,25 @@
         <span>En stock</span>
       </label>
       <div class="modal-btns">
-        <button id="btn-eliminar-paint" class="btn-danger" onclick="eliminarPintura()" style="display:none">Eliminar</button>
-        <button class="btn-cancel" onclick="cerrarModalPintura()">Cancelar</button>
-        <button class="btn-primary" onclick="guardarPintura()">Guardar</button>
+        <button id="btn-eliminar-paint" class="btn-danger" style="display:none">Eliminar</button>
+        <button id="btn-cerrar-modal-paint" class="btn-cancel">Cancelar</button>
+        <button id="btn-guardar-pintura" class="btn-primary">Guardar</button>
       </div>
     </div>
   </div>
 
-  <!-- Overlay cámara para escanear pote -->
+  <!-- Overlay cámara -->
   <div class="camera-overlay" id="camera-overlay">
     <div class="camera-header">
       <span class="camera-title">Apunta al pote</span>
-      <button class="camera-close" onclick="cerrarCamara()">✕</button>
+      <button class="camera-close" id="btn-cerrar-camara">✕</button>
     </div>
     <div class="camera-viewport">
       <video id="camera-video" autoplay playsinline muted></video>
       <div class="camera-guide"></div>
     </div>
     <div class="camera-footer">
-      <button class="camera-capture-btn" id="camera-capture-btn" onclick="capturarPote()">
+      <button class="camera-capture-btn" id="camera-capture-btn">
         <span class="camera-shutter"></span>
       </button>
     </div>
@@ -249,8 +258,8 @@
         </div>
       </div>
       <div class="camera-result-actions">
-        <button class="btn-cancel" onclick="reintentarCamara()">Reintentar</button>
-        <button class="btn-primary" onclick="confirmarPoteCamara()">Añadir</button>
+        <button id="btn-reintentar-camara" class="btn-cancel">Reintentar</button>
+        <button id="btn-confirmar-camara" class="btn-primary">Añadir</button>
       </div>
     </div>
     <div class="camera-scanning" id="camera-scanning" style="display:none">
@@ -259,8 +268,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/paint-colors.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
