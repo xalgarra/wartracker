@@ -1,6 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { STATUS_ORDER } from './constants.js'
+import { STATUS_ORDER, UNIT_TYPES } from './constants.js'
 
 export function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
@@ -136,6 +136,15 @@ export async function cargarMinis() {
   if (error) { console.error(error); return }
 
   state.minisActuales = data || []
+
+  const tipos = [...new Set(state.minisActuales.map(m => getTypeForMini(m)).filter(Boolean))].sort()
+  const sel = document.getElementById('filtro-type')
+  const prevVal = sel.value
+  sel.innerHTML = '<option value="">Todos los tipos</option>' +
+    UNIT_TYPES.filter(t => tipos.includes(t.value)).map(t => `<option value="${t.value}">${t.label}</option>`).join('')
+  if (tipos.includes(prevVal)) sel.value = prevVal
+  else { sel.value = ''; state.filtroType = '' }
+
   renderLista()
 }
 

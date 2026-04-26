@@ -1,11 +1,17 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { CITADEL_CATALOG, PAINT_COLORS } from '../js/paint-colors.js'
+import { PAINT_BRANDS } from './constants.js'
 
 export async function cargarPinturas() {
   const { data, error } = await db.from('paints').select('*').order('brand').order('name')
   if (error) { console.error(error); return }
   state.pinturas = data || []
+
+  const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))]
+  const todasLasMarcas = [...new Set([...PAINT_BRANDS, ...marcasUsuario])]
+  document.getElementById('brands-list').innerHTML = todasLasMarcas.map(b => `<option value="${b}">`).join('')
+
   filtrarYRenderPinturas()
 }
 
