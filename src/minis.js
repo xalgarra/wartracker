@@ -1,6 +1,7 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { STATUS_ORDER, UNIT_TYPES } from './constants.js'
+import { mostrarError } from './toast.js'
 
 export function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
@@ -36,7 +37,7 @@ export function renderCard(m) {
   const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
   const thumbHTML = m.photo_url ? `<img class="card-thumb" src="${m.photo_url}" alt="">` : ''
   return `
-    <div class="card" onclick="abrirEdicion(${m.id})">
+    <div class="card" data-mini-id="${m.id}">
       ${thumbHTML}
       <div class="card-body">
         <div class="card-header">
@@ -133,7 +134,7 @@ export async function cargarMinis() {
   if (filtroStatus) query = query.eq('status', filtroStatus)
 
   const { data, error } = await query
-  if (error) { console.error(error); return }
+  if (error) { mostrarError('Error al cargar la colección'); return }
 
   state.minisActuales = data || []
 

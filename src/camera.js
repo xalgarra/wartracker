@@ -2,6 +2,7 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { CITADEL_CATALOG } from '../js/paint-colors.js'
 import { toggleColorPicker, cargarPinturas } from './paints.js'
+import { mostrarError } from './toast.js'
 
 export async function abrirCamara(context = 'catalog') {
   state.cameraContext = context
@@ -16,7 +17,7 @@ export async function abrirCamara(context = 'catalog') {
     })
     document.getElementById('camera-video').srcObject = state.cameraStream
   } catch (e) {
-    alert('No se puede acceder a la cámara: ' + e.message)
+    mostrarError('No se puede acceder a la cámara: ' + e.message)
     cerrarCamara()
   }
 }
@@ -31,7 +32,7 @@ export async function capturarPote() {
   const video = document.getElementById('camera-video')
 
   if (!video.videoWidth || !video.videoHeight) {
-    alert('La cámara aún no está lista. Espera un momento e intenta de nuevo.')
+    mostrarError('La cámara aún no está lista, espera un momento')
     return
   }
 
@@ -54,7 +55,7 @@ export async function capturarPote() {
     const rawName = (data.name || '').trim()
 
     if (!rawName || rawName === '?') {
-      alert('No se ha podido leer el nombre. Asegúrate de que la etiqueta esté bien iluminada y centrada.')
+      mostrarError('No se ha podido leer el nombre — asegúrate de que la etiqueta esté bien iluminada')
       document.getElementById('camera-scanning').style.display = 'none'
       return
     }
@@ -77,8 +78,7 @@ export async function capturarPote() {
     document.getElementById('camera-scanning').style.display = 'none'
     document.getElementById('camera-result').style.display = 'block'
   } catch (e) {
-    console.error(e)
-    alert('Error al identificar: ' + e.message)
+    mostrarError('Error al identificar: ' + e.message)
     document.getElementById('camera-scanning').style.display = 'none'
   }
 }
@@ -109,12 +109,12 @@ export async function confirmarPoteCamara() {
   const existente = state.pinturas.find(q => q.brand === 'Citadel' && q.name.toLowerCase() === p.name.toLowerCase())
   if (existente) {
     const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
-    if (error) { alert('Error: ' + error.message); return }
+    if (error) { mostrarError('Error: ' + error.message); return }
   } else {
     const payload = { brand: 'Citadel', name: p.name, type: p.type, in_stock: true, quantity: 1 }
     if (p.hex) payload.color_hex = p.hex
     const { error } = await db.from('paints').insert(payload)
-    if (error) { alert('Error: ' + error.message); return }
+    if (error) { mostrarError('Error: ' + error.message); return }
   }
   cerrarCamara()
   await cargarPinturas()

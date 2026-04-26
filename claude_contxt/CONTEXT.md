@@ -1,109 +1,244 @@
-# WarTracker — Contexto del proyecto
+# WarTracker — Resumen del proyecto
 
 ## Qué es
-App web personal para gestionar una colección de miniaturas de Warhammer (40K y Age of Sigmar). Accesible desde móvil y PC, con login, datos persistentes en la nube y diseño mobile-first.
 
-## Stack
-- **Frontend**: HTML + CSS + JavaScript vanilla (un solo archivo `index.html`)
-- **Base de datos**: Supabase (PostgreSQL en la nube, gratuito)
-- **Auth**: Supabase Auth (email + contraseña)
-- **Hosting**: GitHub Pages, rama `release`
-- **Editor**: VS Code con Live Server para desarrollo local
+App web personal para gestionar una colección de miniaturas de Warhammer (40K y Age of Sigmar).
+Permite llevar un registro de qué tienes, en qué estado de pintura están, cuántos puntos tienes por facción, qué quieres comprar (wishlist) y qué pinturas tienes en el taller.
 
-## URLs
+Accesible desde móvil y PC, con login personal, datos en la nube y modo oscuro.
+
 - **App en producción**: https://xalgarra.github.io/wartracker
 - **Repositorio**: https://github.com/xalgarra/wartracker
-- **Supabase proyecto**: https://yxmviaviyglyemoyqfws.supabase.co
+- **Supabase**: https://yxmviaviyglyemoyqfws.supabase.co
 
-## Estructura del repositorio
+---
+
+## Funcionalidades implementadas
+
+### Autenticación
+- Login con email y contraseña (Supabase Auth).
+- Sesión persistente: no pide login en cada visita.
+- Botón de cerrar sesión en el header.
+
+### Colección de minis
+- Añadir una mini con: nombre (selector con autocompletado del catálogo), juego, una o varias facciones, cantidad, número de modelos por unidad, estado de pintura y notas.
+- **Multi-facción**: una mini puede pertenecer a varias facciones a la vez (p.ej. daemons de Tzeentch que están en Thousand Sons y en Disciples of Tzeentch). Se guarda como array en BD.
+- **Puntos automáticos**: al seleccionar el nombre de la unidad se rellena automáticamente los puntos desde el catálogo. Se muestra en la tarjeta por juego.
+- **Foto de la mini**: se puede adjuntar una foto desde el dispositivo o tomar una con la cámara.
+- Editar y eliminar cualquier mini existente.
+- **Estados de pintura**: Comprada → Montada → Imprimada → Pintando → Pintada.
+
+### Filtros y búsqueda (colección)
+- Filtro por juego (40K / AoS).
+- Filtro por facción (se actualiza según el juego seleccionado).
+- Filtro por estado de pintura.
+- Filtro por tipo de unidad (personaje, infantería, élite, vehículo…).
+- Búsqueda por nombre (filtrado en cliente, sin llamadas a BD).
+- Ordenar por: fecha de creación, nombre, estado (ascendente/descendente).
+
+### Estadísticas (pestaña Stats)
+- Resumen global: total de modelos, pintados, % pintado.
+- Desglose por juego y por facción:
+  - Número de entradas y modelos totales/pintados.
+  - Puntos totales y puntos pintados.
+  - Barra de progreso de pintura (ponderada por número de modelos).
+  - Lista de minis con estado y puntos, ordenadas por estado.
+
+### Wishlist
+- Lista separada de minis con estado `wishlist` (no aparecen en la colección ni en stats).
+- Muestra nombre, juego, facción, notas y puntos si el nombre coincide con una unidad del catálogo.
+
+### Inventario de pinturas
+- Registrar pinturas con: marca, nombre, tipo (base/shade/layer/contrast…), color (picker hex), cantidad en taller, y si hay stock.
+- **Autocompletado del catálogo Citadel**: al escribir el nombre rellena automáticamente el color hex y el tipo desde el catálogo local (`js/paint-colors.js`).
+- **Búsqueda rápida por catálogo**: barra de búsqueda que muestra sugerencias del catálogo Citadel. Si ya tienes la pintura, la marca como "✓ tengo"; si no, la añade con un clic.
+- Filtros: por tipo, por stock (tengo/sin stock) y búsqueda por nombre o marca.
+- Botón para buscar el color en Google si no está en el catálogo.
+
+### Cámara / identificación con IA
+- Overlay de cámara para apuntar a un pote de pintura.
+- Captura la imagen y la envía a Gemini 2.5 Flash (via Supabase Edge Function) que devuelve marca, nombre, tipo y color hex del pote.
+- Se puede usar desde el catálogo de búsqueda (para añadir directamente) o desde el modal de edición de pintura.
+
+### Dark mode
+- Tema claro/oscuro con un botón en el header.
+- La preferencia se guarda en `localStorage` y persiste entre sesiones.
+- En la primera visita respeta la preferencia del sistema operativo (`prefers-color-scheme`).
+- Sin parpadeo al cargar (script inline que aplica el tema antes de pintar la página).
+
+---
+
+## Stack técnico
+
+| Capa | Herramienta | Para qué |
+|------|-------------|----------|
+| Build tool | **Vite 8** | Servidor de desarrollo con HMR, empaquetado para producción |
+| Frontend | **HTML + CSS + JS vanilla** | Sin framework. ES Modules nativos. |
+| Base de datos | **Supabase (PostgreSQL)** | Datos persistentes en la nube, gratuito |
+| Autenticación | **Supabase Auth** | Login email/contraseña, sesión JWT |
+| Almacenamiento | **Supabase Storage** | Fotos de minis |
+| IA | **Gemini 2.5 Flash** | OCR de potes de pintura (via Edge Function) |
+| Edge Function | **Supabase Edge Function** | Proxy seguro a Gemini (para no exponer la API key) |
+| Hosting | **GitHub Pages** | Gratuito, despliega automáticamente |
+| CI/CD | **GitHub Actions** | Build + deploy automático en cada push a `master` |
+| Editor | **VS Code** | `Ctrl+Shift+B` lanza `npm run dev` |
+
+---
+
+## Arquitectura del código
+
+### Módulos (`src/`)
+
 ```
-wartracker/
-  index.html         # Toda la app
-  sql/
-    01_create_tables.sql
-    02_rls_policies.sql
+src/
+  main.js        → Entry point: registra todos los event listeners, expone
+                   funciones al HTML, arranca la sesión de Supabase.
+  db.js          → Instancia única del cliente Supabase.
+  state.js       → Estado global compartido (objeto mutable único, alternativa
+                   simple a un store reactivo).
+  constants.js   → Listas estáticas: estados, tipos de pintura, tipos de unidad,
+                   marcas de pinturas.
+  auth.js        → login, logout, toggleDarkMode, mostrarApp.
+  init.js        → inicializar (carga games/factions/units en paralelo),
+                   cambiarTab.
+  minis.js       → cargarMinis, renderLista, filtros, ordenación,
+                   actualizarFiltroFacciones.
+  mini-modal.js  → Modal de añadir/editar mini: abrir, cerrar, guardar,
+                   eliminar, foto.
+  stats.js       → cargarStats: estadísticas globales y por facción.
+  wishlist.js    → cargarWishlist, renderWishlist.
+  paints.js      → cargarPinturas, filtros, modal de pintura, catálogo
+                   Citadel, quickAdd, cámara.
+  camera.js      → Overlay de cámara, captura, llamada a Edge Function,
+                   confirmación del resultado.
 ```
+
+### Patrón de estado compartido
+
+No hay framework reactivo. Todos los módulos importan el mismo objeto `state` de `state.js`. Cuando un módulo modifica `state.algo`, el siguiente render lo leerá actualizado. Es simple y funciona porque la app no tiene UI paralela compleja.
+
+### Funciones expuestas al HTML
+
+El HTML generado dinámicamente usa `onclick="abrirEdicion(id)"`. Como Vite empaqueta el JS en un scope privado, estas funciones se exponen explícitamente: `window.abrirEdicion = abrirEdicion` en `main.js`.
+
+### Catálogo de unidades
+
+Tabla `units` en Supabase con `(name, faction, game_slug, points, type)`. Al arrancar se carga todo en `state.unitMap` como lookup `name|faction|game_slug → points`. Esto permite mostrar puntos instantáneamente sin queries adicionales.
+
+### Cross-game (unidades compartidas)
+
+Los daemons de Tzeentch existen en AoS (Disciples of Tzeentch) y en 40K (Thousand Sons) con el mismo nombre exacto. Al añadir una mini de ese tipo aparece un checkbox para marcar que también pertenece a la otra facción/juego. Los puntos se calculan por separado para cada juego usando `unitMap`.
+
+---
 
 ## Base de datos
 
 ### Tablas
-**`games`** — juegos disponibles
+
+**`games`** — juegos disponibles (`40k`, `aos`)
+
+**`factions`** — facciones de cada juego (~25 por juego)
 | columna | tipo |
 |---------|------|
 | id | serial PK |
 | name | text |
-| slug | text UNIQUE |
+| game_slug | text → games.slug |
 
-Datos: `{ name: 'Warhammer 40K', slug: '40k' }`, `{ name: 'Age of Sigmar', slug: 'aos' }`
-
-**`factions`** — facciones por juego
-| columna | tipo |
-|---------|------|
-| id | serial PK |
-| name | text |
-| game_slug | text FK → games.slug |
-
-Contiene todas las facciones oficiales de 40K y AoS (aprox. 25 por juego).
+**`units`** — catálogo de unidades
+| columna | tipo | notas |
+|---------|------|-------|
+| id | serial PK | |
+| name | text | nombre de la unidad |
+| faction | text | facción a la que pertenece |
+| game_slug | text | 40k / aos |
+| points | int | puntos (puede ser null) |
+| type | text | personaje / infantería / élite / vehículo… |
 
 **`minis`** — colección del usuario
 | columna | tipo | notas |
 |---------|------|-------|
-| id | int8 PK | autoincrement |
-| created_at | timestamptz | default now() |
+| id | int8 PK | |
 | name | text | nombre de la unidad |
-| faction | text | FK lógica → factions.name |
-| game | text | FK → games.slug |
-| qty | int4 | default 1 |
-| status | text | comprada / montada / imprimada / pintada |
+| factions | text[] | array de facciones (multi-facción) |
+| game | text | 40k / aos |
+| qty | int | cantidad de cajas/kits |
+| models | int | modelos por caja (null = 1) |
+| status | text | comprada/montada/imprimada/pintando/pintada/wishlist |
 | notes | text | notas libres |
+| photo_url | text | URL en Supabase Storage |
+| user_id | uuid | propietario (RLS) |
 
-### Seguridad
-- RLS activado en todas las tablas
-- `minis`: solo usuarios autenticados pueden leer y escribir
-- `games` y `factions`: solo usuarios autenticados pueden leer
-- Un único usuario creado manualmente en Supabase Auth
+**`paints`** — inventario de pinturas
+| columna | tipo | notas |
+|---------|------|-------|
+| id | int8 PK | |
+| brand | text | Citadel, Vallejo… |
+| name | text | nombre del pote |
+| type | text | base/shade/layer/contrast… |
+| color_hex | text | color del pote (puede ser null) |
+| in_stock | boolean | si quedan en el taller |
+| quantity | int | número de potes (default 1) |
+| user_id | uuid | propietario (RLS) |
 
-## Flujo de trabajo Git
-- **`master`**: rama de desarrollo
-- **`release`**: rama de producción (GitHub Pages despliega desde aquí)
+### Seguridad (RLS)
 
-Flujo para publicar:
-```bash
-# Desarrollar en master
-git add .
-git commit -m "descripción"
-git push
+Row Level Security activado en todas las tablas. Cada usuario solo ve y puede modificar sus propios datos. `games`, `factions` y `units` son de solo lectura para usuarios autenticados.
 
-# Publicar
-git checkout release
-git merge master
-git push
-git checkout master
+---
+
+## Estructura del repositorio
+
+```
+wartracker/
+  index.html               ← UI completa (sin inline handlers)
+  vite.config.js           ← base: '/wartracker/' para GitHub Pages
+  package.json
+  .env.local               ← VITE_SUPABASE_URL y VITE_SUPABASE_KEY (gitignored)
+
+  src/                     ← módulos JS (ES modules)
+    main.js, db.js, state.js, constants.js
+    auth.js, init.js, minis.js, mini-modal.js
+    stats.js, wishlist.js, paints.js, camera.js
+
+  css/
+    style.css              ← todos los estilos, CSS custom properties
+
+  js/
+    paint-colors.js        ← catálogo Citadel offline (~500 pinturas) + PAINT_COLORS
+
+  sql/                     ← migraciones numeradas (historial, ejecutar en Supabase)
+    01_create_tables.sql
+    03_units_catalog.sql   ← catálogo completo de unidades
+    06_units_points.sql    ← puntos por unidad
+    10_minis_models.sql    ← columna models
+    15_minis_photo.sql     ← columna photo_url
+    16_paints.sql          ← tabla paints
+    17_paints_quantity.sql ← columna quantity
+    ... (intermedios son correcciones y fixes del catálogo)
+
+  claude_contxt/
+    CONTEXT.md             ← este fichero
+
+  .github/workflows/
+    deploy.yml             ← GitHub Actions: npm ci → build → deploy Pages
+  .vscode/
+    tasks.json             ← Ctrl+Shift+B = npm run dev
 ```
 
-## Estado actual de la app
-- ✅ Login con email/contraseña
-- ✅ Sesión persistente (no pide login cada vez)
-- ✅ Añadir minis con nombre, juego, facción, cantidad, estado y notas
-- ✅ Facciones cargadas desde Supabase, filtradas por juego
-- ✅ Lista de minis en tarjetas
-- ✅ Filtros por juego, facción y estado
-- ✅ Diseño mobile-first, funciona en móvil y PC
-- ✅ Modal con botón flotante "+" para añadir
-- ✅ Cerrar sesión
+---
 
-## Pendiente (próximos pasos)
-- [ ] Editar una mini existente
-- [ ] Borrar una mini
-- [ ] Estadísticas / resumen de la colección (cuántas pintadas, progreso por facción...)
-- [ ] Mejoras de diseño
+## Flujo de desarrollo
 
-## Perfil del desarrollador
-- Background en Swift (iOS)
-- Aprendiendo JavaScript sobre la marcha
-- Objetivo: entender el código, no solo copiarlo
+```bash
+npm run dev      # servidor local en http://localhost:5173/wartracker/
+                 # (o Ctrl+Shift+B en VS Code)
 
-## Notas importantes
-- Las claves de Supabase están hardcodeadas en `index.html` (la `anon key` es pública por diseño, pero no compartir la `service_role key`)
-- Los cambios de estructura en Supabase se hacen manualmente desde el SQL Editor y se guardan en la carpeta `sql/` como historial
-- Live Server en VS Code sirve el archivo en `http://127.0.0.1:5500` evitando errores de seguridad de `file://`
+# Subir cambios → el deploy a GitHub Pages es automático:
+git add src/algo.js
+git commit -m "descripción"
+git push         # GitHub Actions hace el build y despliega
+```
+
+Las claves de Supabase van en `.env.local` (no se sube al repo). En GitHub Actions se configuran como Secrets del repositorio (`VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`).
+
+Los cambios de estructura en BD se hacen manualmente en el SQL Editor de Supabase y se guardan en `sql/` como historial numerado.

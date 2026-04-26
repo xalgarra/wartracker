@@ -2,10 +2,11 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { CITADEL_CATALOG, PAINT_COLORS } from '../js/paint-colors.js'
 import { PAINT_BRANDS } from './constants.js'
+import { mostrarError } from './toast.js'
 
 export async function cargarPinturas() {
   const { data, error } = await db.from('paints').select('*').order('brand').order('name')
-  if (error) { console.error(error); return }
+  if (error) { mostrarError('Error al cargar pinturas'); return }
   state.pinturas = data || []
 
   const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))]
@@ -40,7 +41,7 @@ export function filtrarYRenderPinturas() {
     const stockBadge = p.in_stock ? '' : '<span class="badge badge-sin-stock">Sin stock</span>'
     const qtyBadge = (p.quantity || 1) > 1 ? `<span class="badge-qty">×${p.quantity}</span>` : ''
     return `
-      <div class="paint-item" onclick="abrirEdicionPintura(${p.id})">
+      <div class="paint-item" data-paint-id="${p.id}">
         ${swatch}
         <div class="paint-info">
           <span class="paint-name">${p.name}</span>
@@ -162,10 +163,9 @@ export function onCatalogSearch(query) {
     const isOwned = owned.has(p.name.toLowerCase())
     const swatchClass = p.hex ? '' : ' catalog-swatch-none'
     const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
-    const safeName = p.name.replace(/'/g, "\\'")
-    const onclick = isOwned ? '' : `onclick="quickAddPintura('${safeName}','${p.type}','${p.hex || ''}')" `
+    const dataAttrs = isOwned ? '' : `data-action="quick-add" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
     return `
-      <div class="catalog-result${isOwned ? ' owned' : ''}" ${onclick}>
+      <div class="catalog-result${isOwned ? ' owned' : ''}" ${dataAttrs}>
         <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
         <div class="catalog-result-info">
           <span class="catalog-result-name">${p.name}</span>
@@ -184,12 +184,12 @@ export async function quickAddPintura(name, type, hex) {
   const existente = state.pinturas.find(p => p.brand === 'Citadel' && p.name.toLowerCase() === name.toLowerCase())
   if (existente) {
     const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
-    if (error) { console.error(error); return }
+    if (error) { mostrarError('Error: ' + error.message); return }
   } else {
     const payload = { brand: 'Citadel', name, type, in_stock: true, quantity: 1 }
     if (hex) payload.color_hex = hex
     const { error } = await db.from('paints').insert(payload)
-    if (error) { console.error(error); return }
+    if (error) { mostrarError('Error: ' + error.message); return }
   }
   document.getElementById('catalog-search').value = ''
   document.getElementById('catalog-results').style.display = 'none'
@@ -200,7 +200,7 @@ export async function guardarPintura() {
   const brand = document.getElementById('paint-brand').value.trim()
   const name = document.getElementById('paint-name').value.trim()
   const type = document.getElementById('paint-type').value
-  if (!brand || !name) { alert('Introduce marca y nombre'); return }
+  if (!brand || !name) { mostrarError('Introduce marca y nombre'); return }
 
   const hasColor = document.getElementById('paint-has-color').checked
   const payload = {
@@ -218,7 +218,7 @@ export async function guardarPintura() {
   } else {
     ;({ error } = await db.from('paints').insert(payload))
   }
-  if (error) { alert('Error: ' + error.message); return }
+  if (error) { mostrarError('Error: ' + error.message); return }
 
   cerrarModalPintura()
   await cargarPinturas()
@@ -228,7 +228,7 @@ export async function eliminarPintura() {
   if (!state.paintEnEdicion) return
   if (!confirm(`¿Eliminar "${state.paintEnEdicion.name}"?`)) return
   const { error } = await db.from('paints').delete().eq('id', state.paintEnEdicion.id)
-  if (error) { alert('Error: ' + error.message); return }
+  if (error) { mostrarError('Error: ' + error.message); return }
   cerrarModalPintura()
   await cargarPinturas()
 }

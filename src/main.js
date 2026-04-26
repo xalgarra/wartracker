@@ -31,10 +31,23 @@ import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPot
     PAINT_BRANDS.map(b => `<option value="${b}">`).join('')
 })()
 
-// Expose functions needed by dynamically generated HTML onclick attributes
-window.abrirEdicion = abrirEdicion
-window.abrirEdicionPintura = abrirEdicionPintura
-window.quickAddPintura = quickAddPintura
+// Event delegation for dynamically rendered lists (replaces window.* globals)
+document.getElementById('lista').addEventListener('click', e => {
+  const card = e.target.closest('[data-mini-id]')
+  if (card) abrirEdicion(Number(card.dataset.miniId))
+})
+document.getElementById('lista-wishlist').addEventListener('click', e => {
+  const item = e.target.closest('[data-mini-id]')
+  if (item) abrirEdicion(Number(item.dataset.miniId))
+})
+document.getElementById('lista-pinturas').addEventListener('click', e => {
+  const item = e.target.closest('[data-paint-id]')
+  if (item) abrirEdicionPintura(Number(item.dataset.paintId))
+})
+document.getElementById('catalog-results').addEventListener('click', e => {
+  const item = e.target.closest('[data-action="quick-add"]')
+  if (item) quickAddPintura(item.dataset.name, item.dataset.type, item.dataset.hex || '')
+})
 
 // Auth
 document.getElementById('btn-login')?.addEventListener('click', login)

@@ -30,7 +30,7 @@ export function renderWishlist() {
       return p ? p * mini.qty : null
     }, null)
     return `
-      <div class="wish-item" onclick="abrirEdicion(${mini.id})">
+      <div class="wish-item" data-mini-id="${mini.id}">
         <div>
           <div class="wish-name">${mini.name}</div>
           <div class="wish-meta">${meta}</div>

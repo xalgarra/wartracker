@@ -2,14 +2,34 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { actualizarFiltroFacciones } from './minis.js'
 import { cargarWishlist } from './wishlist.js'
+import { mostrarError } from './toast.js'
 
-export function onPhotoSelected(input) {
+async function compressImage(file, maxWidth = 1200, quality = 0.82) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
+
+export async function onPhotoSelected(input) {
   const file = input.files[0]
   if (!file) return
-  state.pendingPhotoFile = file
+  const compressed = await compressImage(file)
+  state.pendingPhotoFile = compressed
   state.pendingPhotoRemove = false
   const preview = document.getElementById('photo-preview')
-  preview.src = URL.createObjectURL(file)
+  preview.src = URL.createObjectURL(compressed)
   preview.style.display = 'block'
   document.getElementById('btn-remove-photo').style.display = 'inline-block'
   document.getElementById('photo-btn-text').textContent = 'Cambiar foto'
@@ -199,7 +219,7 @@ export async function guardarMini() {
   const name = unitVal === '__custom__'
     ? document.getElementById('name-custom').value.trim()
     : unitVal
-  if (!name) { alert('Selecciona una unidad'); return }
+  if (!name) { mostrarError('Selecciona una unidad'); return }
 
   const primaryFaction = document.getElementById('faction').value
   const game = document.getElementById('game').value
@@ -228,12 +248,11 @@ export async function guardarMini() {
     if (inserted) savedId = inserted.id
   }
 
-  if (error) { alert('Error: ' + error.message); return }
+  if (error) { mostrarError('Error: ' + error.message); return }
 
   if (savedId) {
     if (state.pendingPhotoFile) {
-      const ext = state.pendingPhotoFile.name.split('.').pop().toLowerCase()
-      const path = `${savedId}.${ext}`
+      const path = `${savedId}.jpg`
       await db.storage.from('mini-photos').upload(path, state.pendingPhotoFile, { upsert: true })
       const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
       await db.from('minis').update({ photo_url: publicUrl }).eq('id', savedId)
@@ -259,7 +278,7 @@ export async function eliminarMini() {
     if (path) await db.storage.from('mini-photos').remove([path])
   }
   const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
-  if (error) { alert('Error: ' + error.message); return }
+  if (error) { mostrarError('Error: ' + error.message); return }
 
   cerrarModal()
   if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
