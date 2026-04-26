@@ -1,0 +1,318 @@
+/* ===== Fase 1 Dashboard / Home ====================================
+   Añadir al final de css/style.css. Reutiliza variables y clases ya
+   existentes (.badge, .badge-status.*, .progress-seg.*, .legend-dot.*).
+
+   La pantalla está pensada para dark mode primero. Los selectores con
+   `body:not(.dark)` aclaran las superficies para tema light.
+==================================================================== */
+
+#vista-home { padding: 0; }
+.home-container { padding: 14px 14px 28px; display: flex; flex-direction: column; gap: 12px; }
+
+@media (min-width: 900px) {
+  .home-container {
+    padding: 20px 24px 32px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 14px;
+    max-width: 1080px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  .home-hero,
+  .home-summary { grid-column: 1 / -1; }
+}
+
+/* ---------- HERO dominante ---------- */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 0%, oklch(0.5 0.18 305 / 0.35), transparent 55%),
+    linear-gradient(165deg, oklch(0.22 0.08 305) 0%, oklch(0.16 0.05 305) 60%, #14110d 100%);
+  border: 1px solid oklch(0.45 0.12 305);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 8px 32px oklch(0.4 0.15 305 / 0.25);
+  color: #fff;
+}
+@media (min-width: 900px) {
+  .home-hero { padding: 24px 26px 22px; }
+}
+.home-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(transparent, oklch(0.12 0.04 305 / 0.4));
+  pointer-events: none;
+}
+.home-hero > * { position: relative; z-index: 1; }
+
+.home-hero-photo {
+  position: absolute;
+  top: 0; right: 0;
+  width: 50%; height: 100%;
+  object-fit: cover;
+  opacity: 0.18;
+  mix-blend-mode: luminosity;
+  mask-image: linear-gradient(to left, #000 30%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 100%);
+  z-index: 0;
+}
+
+.home-hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: oklch(0.88 0.12 305);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.home-hero-pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: oklch(0.78 0.2 305);
+  box-shadow: 0 0 8px oklch(0.78 0.2 305);
+  animation: home-hero-pulse 1.6s infinite;
+}
+@keyframes home-hero-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.2 305 / 0.7), 0 0 8px oklch(0.78 0.2 305); }
+  50%      { box-shadow: 0 0 0 8px oklch(0.78 0.2 305 / 0), 0 0 8px oklch(0.78 0.2 305); }
+}
+.home-hero-name {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: #fff;
+}
+@media (min-width: 900px) {
+  .home-hero-name { font-size: 38px; }
+}
+.home-hero-fac { font-size: 13px; color: oklch(0.85 0.05 305); margin-top: 6px; }
+.home-hero-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: oklch(0.78 0.05 305);
+  margin-top: 4px;
+}
+
+.home-hero-cta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+.home-hero-cta {
+  flex: 1;
+  min-width: 140px;
+  padding: 13px 18px;
+  background: #fff;
+  color: #14110d;
+  border: none;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255,255,255,0.15);
+  letter-spacing: -0.005em;
+  transition: transform 0.15s;
+}
+@media (min-width: 900px) {
+  .home-hero-cta { flex: 0 0 auto; min-width: 220px; padding: 14px 28px; font-size: 15px; }
+}
+.home-hero-cta:hover { transform: translateY(-1px); }
+
+.home-hero-quick { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.home-hero-quick-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: oklch(0.75 0.05 305);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  align-self: center;
+  margin-right: 4px;
+}
+.home-hero-quick-pill {
+  padding: 6px 12px;
+  background: oklch(0.18 0.05 305 / 0.6);
+  border: 1px solid oklch(0.45 0.1 305);
+  color: oklch(0.92 0.05 305);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.home-hero-quick-pill:hover { background: oklch(0.28 0.08 305); color: #fff; }
+.home-hero-quick-pill.active {
+  background: oklch(0.6 0.15 305);
+  color: #14110d;
+  border-color: oklch(0.6 0.15 305);
+}
+
+/* ---------- Resumen comprimido ---------- */
+.home-summary {
+  display: flex;
+  background: var(--surface, #16130d);
+  border: 1px solid var(--border, #221e16);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.home-summary-cell {
+  flex: 1;
+  padding: 10px 8px;
+  text-align: center;
+  border-right: 1px solid var(--border, #221e16);
+}
+.home-summary-cell:last-child { border-right: none; }
+.home-summary-v {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text, #e8e4dc);
+}
+.home-summary-v--green { color: oklch(0.78 0.15 145); }
+.home-summary-l {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted, #6a6050);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+@media (min-width: 900px) {
+  .home-summary-cell { padding: 14px 10px; }
+  .home-summary-v { font-size: 22px; }
+  .home-summary-l { font-size: 10px; }
+}
+
+/* ---------- Bloques secundarios ---------- */
+.home-block {
+  background: var(--surface, #16130d);
+  border: 1px solid var(--border, #221e16);
+  border-radius: 10px;
+  padding: 13px;
+}
+.home-block-h {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted, #6a6050);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.home-block-link { cursor: pointer; }
+.home-block-link:hover { color: oklch(0.78 0.15 60); }
+
+/* Por juego */
+.home-game-row { margin-bottom: 10px; }
+.home-game-row:last-child { margin-bottom: 0; }
+.home-game-line {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 5px;
+}
+.home-game-name { font-size: 13px; font-weight: 500; letter-spacing: -0.005em; }
+.home-game-name.home-game-aos { color: oklch(0.85 0.1 195); }
+.home-game-name.home-game-40k { color: oklch(0.85 0.13 30); }
+.home-game-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-soft, #c8bfa8); }
+.home-game-bar { height: 5px; background: var(--bg, #0e0c08); border-radius: 999px; overflow: hidden; }
+.home-game-bar-fill { height: 100%; border-radius: 999px; }
+.home-game-bar-fill.home-game-aos { background: oklch(0.7 0.13 195); }
+.home-game-bar-fill.home-game-40k { background: oklch(0.7 0.15 30); }
+.home-game-pts { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted, #6a6050); margin-top: 4px; }
+
+/* En cola */
+.home-queue { display: flex; flex-direction: column; }
+.home-queue-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border-soft, #1a1610);
+  cursor: pointer;
+}
+.home-queue-row:first-child { border-top: none; padding-top: 2px; }
+.home-queue-thumb {
+  width: 38px; height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.home-queue-thumb--placeholder {
+  background:
+    linear-gradient(135deg, var(--border, #221e16) 25%, transparent 25%, transparent 75%, var(--border, #221e16) 75%),
+    linear-gradient(135deg, var(--border, #221e16) 25%, transparent 25%, transparent 75%, var(--border, #221e16) 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  background-color: var(--bg, #0e0c08);
+}
+.home-queue-mid { flex: 1; min-width: 0; }
+.home-queue-name {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.home-queue-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted, #6a6050); margin-top: 2px; }
+
+/* Backlog */
+.home-backlog-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.home-backlog-num { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+.home-backlog-l { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted, #6a6050); }
+.home-stack {
+  /* reutiliza .progress-bar pero con altura concreta */
+  height: 10px;
+  background: var(--bg, #0e0c08);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  gap: 1px;
+}
+.home-stack-leg {
+  display: flex; flex-wrap: wrap; gap: 9px;
+  margin-top: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: #8a8170;
+}
+.home-stack-leg-i { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Últimas añadidas */
+.home-last { display: flex; flex-direction: column; }
+.home-last-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border-soft, #1a1610);
+  cursor: pointer;
+}
+.home-last-row:first-child { border-top: none; padding-top: 2px; }
+.home-last-name { font-size: 12px; }
+.home-last-meta { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted, #6a6050); }
+
+/* Estados vacíos */
+.home-empty { padding: 40px 20px; text-align: center; color: var(--text-muted, #6a6050); }
+.home-empty-inline { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted, #6a6050); padding: 6px 0; }
+
+/* ---------- Tema light: afinar superficies y textos ---------- */
+body:not(.dark) .home-hero {
+  /* Mantenemos el hero oscuro morado en ambos temas para no perder peso */
+}
+body:not(.dark) .home-summary,
+body:not(.dark) .home-block {
+  background: #fff;
+  border-color: #e6e4df;
+}
+body:not(.dark) .home-summary-cell { border-right-color: #e6e4df; }
+body:not(.dark) .home-summary-v { color: #1c1a16; }
+body:not(.dark) .home-summary-l,
+body:not(.dark) .home-block-h,
+body:not(.dark) .home-block-link,
+body:not(.dark) .home-backlog-l,
+body:not(.dark) .home-game-pts,
+body:not(.dark) .home-queue-meta,
+body:not(.dark) .home-last-meta { color: #6a6050; }
+body:not(.dark) .home-game-bar { background: #efece6; }
+body:not(.dark) .home-stack { background: #efece6; }
+body:not(.dark) .home-queue-row,
+body:not(.dark) .home-last-row { border-top-color: #efece6; }
+body:not(.dark) .home-queue-thumb--placeholder {
+  background-color: #efece6;
+}
