@@ -6,6 +6,7 @@ import { cargarStats } from './stats.js'
 import { cargarWishlist } from './wishlist.js'
 import { cargarPinturas } from './paints.js'
 import { cargarHome } from './home.js'
+import { cargarLists, bindListsEvents } from './lists.js'
 
 export async function inicializar() {
   const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
@@ -44,13 +45,21 @@ export function cambiarTab(tab) {
   document.getElementById('vista-stats').style.display     = tab === 'stats'     ? 'block' : 'none'
   document.getElementById('vista-wishlist').style.display  = tab === 'wishlist'  ? 'block' : 'none'
   document.getElementById('vista-pinturas').style.display  = tab === 'pinturas'  ? 'block' : 'none'
+  document.getElementById('vista-listas').style.display    = tab === 'listas'    ? 'block' : 'none'
   document.getElementById('tab-home').classList.toggle('active', tab === 'home')
   document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
   document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
   document.getElementById('tab-wishlist').classList.toggle('active', tab === 'wishlist')
   document.getElementById('tab-pinturas').classList.toggle('active', tab === 'pinturas')
+  document.getElementById('tab-listas').classList.toggle('active', tab === 'listas')
   if (tab === 'home') cargarHome()
   if (tab === 'stats') cargarStats()
   if (tab === 'wishlist') cargarWishlist()
   if (tab === 'pinturas') cargarPinturas()
+  if (tab === 'listas') {
+    cargarLists().then(() => {
+      const el = document.getElementById('listas-content')
+      if (el) bindListsEvents(el)
+    })
+  }
 }

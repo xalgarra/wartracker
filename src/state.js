@@ -19,4 +19,6 @@ export const state = {
   cameraStream: null,
   cameraPendingPaint: null,
   cameraContext: 'catalog',
+  listsActuales: [],
+  listaEnDetalle: null,
 }

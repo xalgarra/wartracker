@@ -108,6 +108,7 @@ document.getElementById('tab-coleccion')?.addEventListener('click', () => cambia
 document.getElementById('tab-stats')?.addEventListener('click', () => cambiarTab('stats'))
 document.getElementById('tab-wishlist')?.addEventListener('click', () => cambiarTab('wishlist'))
 document.getElementById('tab-pinturas')?.addEventListener('click', () => cambiarTab('pinturas'))
+document.getElementById('tab-listas')?.addEventListener('click', () => cambiarTab('listas'))
 
 // FAB — context-aware: opens paint modal when on pinturas tab
 document.getElementById('btn-fab')?.addEventListener('click', () => {
