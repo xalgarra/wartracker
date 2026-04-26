@@ -1,7 +1,8 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { CITADEL_CATALOG } from '../js/paint-colors.js'
-import { toggleColorPicker, cargarPinturas } from './paints.js'
+import { cargarPinturas } from './paints.js'
+import { toggleColorPicker } from './paint-modal.js'
 import { mostrarError } from './toast.js'
 
 export async function abrirCamara(context = 'catalog') {
