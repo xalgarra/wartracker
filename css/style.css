@@ -1671,3 +1671,46 @@ body.dark .camera-result-name { font-weight: 400; }
 
 .toast-error  { background: #c0392b; color: #fff; }
 .toast-exito  { background: oklch(0.5 0.15 145); color: #fff; }
+
+/* ====================================================================
+   STATUS QUICK-PICK
+   ==================================================================== */
+.status-picker {
+  display: none;
+  position: fixed;
+  flex-direction: column;
+  background: var(--surface-modal);
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 100;
+  overflow: hidden;
+  min-width: 148px;
+}
+
+.status-picker.open { display: flex; }
+
+.status-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.status-picker-item:hover { background: var(--subtle); }
+
+.status-picker-item.current {
+  font-weight: 600;
+  background: var(--subtle);
+}
+
+[data-action="status-quick"] {
+  cursor: pointer;
+  user-select: none;
+}
+
+[data-action="status-quick"]:hover { opacity: 0.75; }

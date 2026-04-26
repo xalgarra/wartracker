@@ -1,7 +1,9 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { STATUS_ORDER, UNIT_TYPES } from './constants.js'
+import { STATUSES, STATUS_ORDER, UNIT_TYPES } from './constants.js'
 import { mostrarError } from './toast.js'
+
+const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 
 export function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
@@ -48,7 +50,7 @@ export function renderCard(m) {
           <div class="card-footer-left">
             ${gameBadges}
             ${typeBadge}
-            <span class="badge badge-status ${m.status}">${m.status}</span>
+            <span class="badge badge-status ${m.status}" data-action="status-quick" data-mini-id="${m.id}" data-status="${m.status}">${STATUS_LABEL[m.status] || m.status}</span>
           </div>
           <div class="card-footer-right">
             ${gamePtsList.map(p => `<span class="card-pts-line">${p}</span>`).join('')}
@@ -168,4 +170,11 @@ export async function actualizarFiltroFacciones() {
     unicas.map(f => `<option value="${f}">${f}</option>`).join('')
 
   cargarMinis()
+}
+
+export async function cambiarStatusRapido(miniId, nuevoStatus) {
+  const { error } = await db.from('minis').update({ status: nuevoStatus }).eq('id', miniId)
+  if (error) { mostrarError('Error al actualizar estado'); return }
+  const mini = state.minisActuales.find(m => m.id === miniId)
+  if (mini) { mini.status = nuevoStatus; renderLista() }
 }

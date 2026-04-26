@@ -3,7 +3,7 @@ import { state } from './state.js'
 import { STATUSES, PAINT_TYPES, UNIT_TYPES, PAINT_BRANDS } from './constants.js'
 import { login, logout, toggleDarkMode, mostrarApp } from './auth.js'
 import { cambiarTab } from './init.js'
-import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis } from './minis.js'
+import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, onCatalogSearch, quickAddPintura, guardarPintura, eliminarPintura, filtrarYRenderPinturas } from './paints.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
@@ -31,8 +31,51 @@ import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPot
     PAINT_BRANDS.map(b => `<option value="${b}">`).join('')
 })()
 
+// Status quick-pick
+const statusPicker = document.getElementById('status-picker')
+
+function abrirStatusPicker(badge) {
+  const miniId = Number(badge.dataset.miniId)
+  const current = badge.dataset.status
+  const rect = badge.getBoundingClientRect()
+
+  statusPicker.innerHTML = STATUSES.map(s => `
+    <div class="status-picker-item${s.value === current ? ' current' : ''}"
+         data-mini-id="${miniId}" data-new-status="${s.value}">
+      <span class="legend-dot ${s.value}"></span>${s.label}
+    </div>
+  `).join('')
+
+  statusPicker.style.top = (rect.bottom + 4) + 'px'
+  statusPicker.style.left = rect.left + 'px'
+  statusPicker.classList.add('open')
+
+  requestAnimationFrame(() => {
+    const r = statusPicker.getBoundingClientRect()
+    if (r.right > window.innerWidth - 8) statusPicker.style.left = (window.innerWidth - r.width - 8) + 'px'
+  })
+}
+
+function cerrarStatusPicker() { statusPicker.classList.remove('open') }
+
+statusPicker.addEventListener('click', async e => {
+  const item = e.target.closest('[data-new-status]')
+  if (!item) return
+  cerrarStatusPicker()
+  await cambiarStatusRapido(Number(item.dataset.miniId), item.dataset.newStatus)
+})
+
+document.addEventListener('click', e => {
+  if (!statusPicker.classList.contains('open')) return
+  if (!e.target.closest('#status-picker') && !e.target.closest('[data-action="status-quick"]')) cerrarStatusPicker()
+})
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarStatusPicker() })
+
 // Event delegation for dynamically rendered lists (replaces window.* globals)
 document.getElementById('lista').addEventListener('click', e => {
+  const badge = e.target.closest('[data-action="status-quick"]')
+  if (badge) { abrirStatusPicker(badge); return }
   const card = e.target.closest('[data-mini-id]')
   if (card) abrirEdicion(Number(card.dataset.miniId))
 })
