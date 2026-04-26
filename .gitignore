@@ -1,3 +1,9 @@
+# Vite cache
+.vite/
+
+# Claude Code IDE settings
+.claude/
+
 # Logs
 logs
 *.log
