@@ -1,7 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
-
-const STATUS_ORDER = { comprada: 0, montada: 1, imprimada: 2, pintando: 3, pintada: 4 }
+import { STATUS_ORDER } from './constants.js'
 
 export function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {

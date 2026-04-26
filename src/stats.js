@@ -1,5 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
+import { STATUSES } from './constants.js'
 
 export async function cargarStats() {
   const container = document.getElementById('stats-content')
@@ -61,8 +62,8 @@ export async function cargarStats() {
     return
   }
 
-  const statuses = ['comprada', 'montada', 'imprimada', 'pintando', 'pintada']
-  const statusLabel = { comprada: 'Comprada', montada: 'Montada', imprimada: 'Imprimada', pintando: 'Pintando', pintada: 'Pintada' }
+  const statuses = STATUSES.map(s => s.value)
+  const statusLabel = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 
   const byGame = {}
   for (const [faction, s] of Object.entries(factionStats)) {

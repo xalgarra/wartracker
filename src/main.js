@@ -1,11 +1,35 @@
 import { db } from './db.js'
 import { state } from './state.js'
+import { STATUSES, PAINT_TYPES, UNIT_TYPES, PAINT_BRANDS } from './constants.js'
 import { login, logout, toggleDarkMode, mostrarApp } from './auth.js'
 import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, onCatalogSearch, quickAddPintura, guardarPintura, eliminarPintura, filtrarYRenderPinturas } from './paints.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
+
+// Populate static selects from constants (single source of truth)
+;(function populateSelects() {
+  const statusOpts = STATUSES.map(s => `<option value="${s.value}">${s.label}</option>`).join('')
+  document.getElementById('filtro-status').innerHTML =
+    '<option value="">Todos los estados</option>' + statusOpts
+  document.getElementById('status').innerHTML =
+    statusOpts + '<option disabled>──────────</option><option value="wishlist">Wishlist</option>'
+
+  const paintTypeOpts = PAINT_TYPES.map(t =>
+    `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
+  ).join('')
+  document.getElementById('filtro-paint-type').innerHTML =
+    '<option value="">Todos los tipos</option>' + paintTypeOpts
+  document.getElementById('paint-type').innerHTML = paintTypeOpts
+
+  document.getElementById('filtro-type').innerHTML =
+    '<option value="">Todos los tipos</option>' +
+    UNIT_TYPES.map(t => `<option value="${t.value}">${t.label}</option>`).join('')
+
+  document.getElementById('brands-list').innerHTML =
+    PAINT_BRANDS.map(b => `<option value="${b}">`).join('')
+})()
 
 // Expose functions needed by dynamically generated HTML onclick attributes
 window.abrirEdicion = abrirEdicion

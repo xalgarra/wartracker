@@ -59,27 +59,8 @@
         <select id="filtro-faction">
           <option value="">Todas las facciones</option>
         </select>
-        <select id="filtro-status">
-          <option value="">Todos los estados</option>
-          <option value="comprada">Comprada</option>
-          <option value="montada">Montada</option>
-          <option value="imprimada">Imprimada</option>
-          <option value="pintando">Pintando</option>
-          <option value="pintada">Pintada</option>
-        </select>
-        <select id="filtro-type">
-          <option value="">Todos los tipos</option>
-          <option value="único">Único</option>
-          <option value="personaje">Personaje</option>
-          <option value="infantería">Infantería</option>
-          <option value="élite">Élite</option>
-          <option value="caballería">Caballería</option>
-          <option value="vehículo">Vehículo</option>
-          <option value="monstruo">Monstruo</option>
-          <option value="aeronave">Aeronave</option>
-          <option value="artillería">Artillería</option>
-          <option value="faction terrain">Faction Terrain</option>
-        </select>
+        <select id="filtro-status"></select>
+        <select id="filtro-type"></select>
         <input id="busqueda" type="search" placeholder="Buscar por nombre…">
       </div>
       <div class="sort-bar">
@@ -109,19 +90,7 @@
         <div class="catalog-results" id="catalog-results"></div>
       </div>
       <div class="filtros filtros-pinturas">
-        <select id="filtro-paint-type">
-          <option value="">Todos los tipos</option>
-          <option value="base">Base</option>
-          <option value="layer">Layer</option>
-          <option value="shade">Shade</option>
-          <option value="dry">Dry</option>
-          <option value="contrast">Contrast</option>
-          <option value="technical">Technical</option>
-          <option value="air">Air</option>
-          <option value="spray">Spray</option>
-          <option value="texture">Texture</option>
-          <option value="primer">Primer</option>
-        </select>
+        <select id="filtro-paint-type"></select>
         <select id="filtro-paint-stock">
           <option value="">Todas</option>
           <option value="1">En stock</option>
@@ -160,15 +129,7 @@
       <label class="field-label" for="models">Modelos en la unidad (opcional — ej: 10 para una caja de 10 marines)</label>
       <input id="models" type="number" min="1" placeholder="">
       <label class="field-label" for="status">Estado</label>
-      <select id="status">
-        <option value="comprada">Comprada</option>
-        <option value="montada">Montada</option>
-        <option value="imprimada">Imprimada</option>
-        <option value="pintando">Pintando</option>
-        <option value="pintada">Pintada</option>
-        <option disabled>──────────</option>
-        <option value="wishlist">Wishlist</option>
-      </select>
+      <select id="status"></select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
       <div class="modal-btns">
         <button id="btn-eliminar" class="btn-danger" style="display:none">Eliminar</button>
@@ -184,34 +145,14 @@
       <div class="modal-eye">▸ nueva pintura</div>
       <h2 id="modal-paint-title">Añadir pintura</h2>
       <input id="paint-brand" list="brands-list" placeholder="Marca" autocomplete="off">
-      <datalist id="brands-list">
-        <option value="Citadel">
-        <option value="Vallejo">
-        <option value="Army Painter">
-        <option value="Scale75">
-        <option value="Reaper">
-        <option value="AK Interactive">
-        <option value="Warcolours">
-        <option value="Green Stuff World">
-      </datalist>
+      <datalist id="brands-list"></datalist>
       <div class="catalog-search-row">
         <input id="paint-name" placeholder="Nombre de la pintura" list="paint-names-list" autocomplete="off">
         <button class="btn-camera" id="btn-camera-modal" type="button" title="Escanear pote con cámara">📷</button>
       </div>
       <datalist id="paint-names-list"></datalist>
       <label class="field-label">Tipo</label>
-      <select id="paint-type">
-        <option value="base">Base</option>
-        <option value="layer">Layer</option>
-        <option value="shade">Shade</option>
-        <option value="dry">Dry</option>
-        <option value="contrast">Contrast</option>
-        <option value="technical">Technical</option>
-        <option value="air">Air</option>
-        <option value="spray">Spray</option>
-        <option value="texture">Texture</option>
-        <option value="primer">Primer</option>
-      </select>
+      <select id="paint-type"></select>
       <div class="paint-color-row">
         <label class="paint-color-label">
           <input type="checkbox" id="paint-has-color">
