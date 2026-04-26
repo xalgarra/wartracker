@@ -37,6 +37,23 @@ function ptsFor(mini) {
   return { pts: 0, gameSlug: null }
 }
 
+// Para byGame: devuelve pts por cada juego en que la mini tiene entrada
+// (las cross-game cuentan en ambos juegos con los pts de cada sistema)
+function ptsPerGame(mini) {
+  const seen = new Set()
+  const results = []
+  for (const faction of (mini.factions || [])) {
+    const fc = state.factions.find(f => f.name === faction)
+    if (!fc || seen.has(fc.game_slug)) continue
+    const pts = state.unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
+    if (pts) {
+      results.push({ pts, gameSlug: fc.game_slug })
+      seen.add(fc.game_slug)
+    }
+  }
+  return results
+}
+
 export function modelsFor(mini) {
   return (mini.models != null ? mini.models : 1) * mini.qty
 }
@@ -89,14 +106,10 @@ export async function cargarHome() {
       paintedPts += totalForMini
     }
 
-    if (gameSlug) {
-      if (!byGame[gameSlug]) byGame[gameSlug] = { totalPts: 0, paintedPts: 0, models: 0, painted: 0 }
-      byGame[gameSlug].totalPts += totalForMini
-      byGame[gameSlug].models += mod
-      if (m.status === 'pintada') {
-        byGame[gameSlug].paintedPts += totalForMini
-        byGame[gameSlug].painted += mod
-      }
+    for (const { pts: gamePts, gameSlug: slug } of ptsPerGame(m)) {
+      if (!byGame[slug]) byGame[slug] = { totalPts: 0, paintedPts: 0, models: 0, painted: 0 }
+      byGame[slug].totalPts += gamePts * m.qty
+      if (m.status === 'pintada') byGame[slug].paintedPts += gamePts * m.qty
     }
   }
 
