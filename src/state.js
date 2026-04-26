@@ -9,7 +9,7 @@ export const state = {
   pinturas: [],
   miniEnEdicion: null,
   paintEnEdicion: null,
-  tabActual: 'coleccion',
+  tabActual: 'home',
   pendingPhotoFile: null,
   pendingPhotoRemove: false,
   filtroNombre: '',

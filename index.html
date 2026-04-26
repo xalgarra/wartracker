@@ -45,7 +45,8 @@
     </div>
 
     <div class="tabs">
-      <button class="tab active" id="tab-coleccion">Colección</button>
+      <button class="tab active" id="tab-home">Inicio</button>
+      <button class="tab" id="tab-coleccion">Colección</button>
       <button class="tab" id="tab-stats">Estadísticas</button>
       <button class="tab" id="tab-wishlist">Wishlist</button>
       <button class="tab" id="tab-pinturas">Pinturas</button>
@@ -53,7 +54,11 @@
 
     <button class="fab" id="btn-fab">+</button>
 
-    <div id="vista-coleccion">
+    <div id="vista-home">
+      <div id="home-content" class="home-container"></div>
+    </div>
+
+    <div id="vista-coleccion" style="display:none">
       <div class="filtros">
         <select id="filtro-game">
           <option value="">Todos los juegos</option>

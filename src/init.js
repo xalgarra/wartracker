@@ -5,6 +5,7 @@ import { actualizarFiltroFacciones } from './minis.js'
 import { cargarStats } from './stats.js'
 import { cargarWishlist } from './wishlist.js'
 import { cargarPinturas } from './paints.js'
+import { cargarHome } from './home.js'
 
 export async function inicializar() {
   const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
@@ -33,18 +34,22 @@ export async function inicializar() {
 
   actualizarFacciones()
   await actualizarFiltroFacciones()
+  await cargarHome()
 }
 
 export function cambiarTab(tab) {
   state.tabActual = tab
+  document.getElementById('vista-home').style.display      = tab === 'home'      ? 'block' : 'none'
   document.getElementById('vista-coleccion').style.display = tab === 'coleccion' ? 'block' : 'none'
-  document.getElementById('vista-stats').style.display    = tab === 'stats'      ? 'block' : 'none'
-  document.getElementById('vista-wishlist').style.display = tab === 'wishlist'   ? 'block' : 'none'
-  document.getElementById('vista-pinturas').style.display = tab === 'pinturas'   ? 'block' : 'none'
+  document.getElementById('vista-stats').style.display     = tab === 'stats'     ? 'block' : 'none'
+  document.getElementById('vista-wishlist').style.display  = tab === 'wishlist'  ? 'block' : 'none'
+  document.getElementById('vista-pinturas').style.display  = tab === 'pinturas'  ? 'block' : 'none'
+  document.getElementById('tab-home').classList.toggle('active', tab === 'home')
   document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
   document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
   document.getElementById('tab-wishlist').classList.toggle('active', tab === 'wishlist')
   document.getElementById('tab-pinturas').classList.toggle('active', tab === 'pinturas')
+  if (tab === 'home') cargarHome()
   if (tab === 'stats') cargarStats()
   if (tab === 'wishlist') cargarWishlist()
   if (tab === 'pinturas') cargarPinturas()

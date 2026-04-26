@@ -3,6 +3,7 @@ import { state } from './state.js'
 import { actualizarFiltroFacciones } from './minis.js'
 import { cargarWishlist } from './wishlist.js'
 import { mostrarError } from './toast.js'
+import { cargarHome } from './home.js'
 
 async function compressImage(file, maxWidth = 1200, quality = 0.82) {
   return new Promise(resolve => {
@@ -267,6 +268,7 @@ export async function guardarMini() {
   localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
   cerrarModal()
   if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
+  if (state.tabActual === 'home') cargarHome()
 }
 
 export async function eliminarMini() {
@@ -282,4 +284,5 @@ export async function eliminarMini() {
 
   cerrarModal()
   if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
+  if (state.tabActual === 'home') cargarHome()
 }

@@ -103,6 +103,7 @@ document.getElementById('email')?.addEventListener('keydown', e => { if (e.key =
 document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
 
 // Tabs
+document.getElementById('tab-home')?.addEventListener('click', () => cambiarTab('home'))
 document.getElementById('tab-coleccion')?.addEventListener('click', () => cambiarTab('coleccion'))
 document.getElementById('tab-stats')?.addEventListener('click', () => cambiarTab('stats'))
 document.getElementById('tab-wishlist')?.addEventListener('click', () => cambiarTab('wishlist'))
