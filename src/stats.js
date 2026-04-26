@@ -2,6 +2,16 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { STATUSES } from './constants.js'
 
+export function calcularGlobales(minis) {
+  let total = 0, pintados = 0
+  for (const m of minis) {
+    const mod = (m.models != null ? m.models : 1) * m.qty
+    total += mod
+    if (m.status === 'pintada') pintados += mod
+  }
+  return { total, pintados, pct: total ? Math.round(pintados / total * 100) : 0 }
+}
+
 export async function cargarStats() {
   const container = document.getElementById('stats-content')
   container.innerHTML = '<div class="stats-empty">Cargando...</div>'

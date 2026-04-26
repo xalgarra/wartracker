@@ -5,6 +5,13 @@ import { mostrarError } from './toast.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 
+export function calcularPtsPorJuego(mini, juegosUnicos, factions, unitMap) {
+  return juegosUnicos.map(slug => {
+    const fac = (mini.factions || []).find(f => factions.find(x => x.name === f && x.game_slug === slug))
+    return fac ? (unitMap[`${mini.name}|${fac}|${slug}`] ?? null) : null
+  })
+}
+
 export function getTypeForMini(m) {
   for (const faction of (m.factions || [])) {
     const fc = state.factions.find(f => f.name === faction)
