@@ -7,6 +7,7 @@ import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarM
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, onCatalogSearch, quickAddPintura, guardarPintura, eliminarPintura, filtrarYRenderPinturas } from './paints.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
+import { exportarJSON } from './export.js'
 
 // Populate static selects from constants (single source of truth)
 ;(function populateSelects() {
@@ -93,6 +94,7 @@ document.getElementById('catalog-results').addEventListener('click', e => {
 })
 
 // Auth
+document.getElementById('btn-export')?.addEventListener('click', exportarJSON)
 document.getElementById('btn-login')?.addEventListener('click', login)
 document.getElementById('btn-logout')?.addEventListener('click', logout)
 document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)
