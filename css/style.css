@@ -453,9 +453,11 @@ body:not(.dark) .btn-link {
 .tabs::-webkit-scrollbar { display: none; }
 .tabs::after {
   content: '';
-  position: sticky;
+  position: absolute;
+  top: 0;
   right: 0;
-  min-width: 32px;
+  bottom: 0;
+  width: 40px;
   background: linear-gradient(to right, transparent, var(--surface));
   pointer-events: none;
 }
