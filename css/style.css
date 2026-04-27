@@ -1885,6 +1885,179 @@ body.dark .camera-result-name { font-weight: 400; }
   border-color: oklch(0.6 0.15 305);
 }
 
+/* ---------- Hero: selector de mini activa ---------- */
+.home-hero-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.home-hero-sel-pill {
+  padding: 4px 10px;
+  background: oklch(0.18 0.05 305 / 0.6);
+  border: 1px solid oklch(0.4 0.1 305);
+  color: oklch(0.82 0.06 305);
+  font-family: var(--font-body);
+  font-size: 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.home-hero-sel-pill.active {
+  background: oklch(0.45 0.15 305);
+  border-color: oklch(0.55 0.18 305);
+  color: #fff;
+}
+
+/* ---------- Hero: progreso ---------- */
+.home-hero-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+.home-hero-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: oklch(0.28 0.05 305 / 0.5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.home-hero-progress-fill {
+  height: 100%;
+  background: oklch(0.78 0.2 305);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.home-hero-progress-input {
+  width: 46px;
+  padding: 3px 6px;
+  background: oklch(0.18 0.05 305 / 0.6);
+  border: 1px solid oklch(0.42 0.1 305);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+.home-hero-progress-pct {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: oklch(0.72 0.08 305);
+}
+
+/* ---------- Hero: pinturas usadas ---------- */
+.home-hero-section-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: oklch(0.68 0.08 305);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.home-hero-paints { margin-bottom: 4px; }
+
+.home-hero-paint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.home-hero-paint-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.home-hero-paint-swatch-none {
+  background: oklch(0.28 0.03 305);
+  border: 1px solid oklch(0.38 0.05 305);
+}
+.home-hero-paint-name {
+  flex: 1;
+  font-size: 12px;
+  color: #fff;
+}
+.home-hero-paint-brand {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: oklch(0.65 0.05 305);
+}
+.home-hero-paint-remove {
+  background: none;
+  border: none;
+  color: oklch(0.55 0.08 305);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.home-hero-paint-remove:hover { color: #fff; }
+
+/* Buscador añadir pintura */
+.home-hero-paint-add-wrap { position: relative; margin-top: 8px; }
+.home-hero-paint-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 12px;
+  background: oklch(0.18 0.05 305 / 0.6);
+  border: 1px solid oklch(0.38 0.1 305 / 0.8);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-family: var(--font-body);
+}
+.home-hero-paint-search::placeholder { color: oklch(0.58 0.06 305); }
+.home-hero-paint-search:focus { outline: none; border-color: oklch(0.6 0.15 305); }
+
+.hero-paint-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: oklch(0.17 0.06 305);
+  border: 1px solid oklch(0.38 0.1 305);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 20;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.hero-paint-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.hero-paint-result:hover { background: oklch(0.25 0.08 305); }
+.hero-paint-result-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.hero-paint-result-swatch-none {
+  background: oklch(0.28 0.03 305);
+  border: 1px solid oklch(0.38 0.05 305);
+}
+.hero-paint-result span { font-size: 12px; color: #fff; flex: 1; min-width: 0; }
+.hero-paint-result-brand {
+  font-size: 10px;
+  color: oklch(0.62 0.05 305);
+  font-family: var(--font-mono);
+  flex: 0 0 auto;
+}
+.hero-paint-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: oklch(0.58 0.05 305);
+}
+
 /* ---------- Resumen comprimido ---------- */
 .home-summary {
   display: flex;

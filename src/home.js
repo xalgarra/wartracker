@@ -1,10 +1,3 @@
-// src/home.js — Fase 1 Dashboard ("Inicio")
-// Pantalla de entrada que responde a: cómo va mi colección, qué tengo
-// pendiente y qué puedo hacer ahora.
-//
-// Carga datos vía Supabase (mismo patrón que stats.js). Usa state.units /
-// state.unitMap / state.factions ya cargados por init.js.
-
 import { db } from './db.js'
 import { state } from './state.js'
 import { STATUSES, STATUS_ORDER } from './constants.js'
@@ -14,9 +7,7 @@ import { cambiarTab } from './init.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 
-// Prioridad para el hero: pintando > imprimada > montada > comprada
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
-// "En cola": estados que el usuario ya ha empezado, ordenados por urgencia
 const IN_PROGRESS_STATUSES = ['pintando', 'imprimada', 'montada']
 
 export function pickHero(minis) {
@@ -37,8 +28,6 @@ function ptsFor(mini) {
   return { pts: 0, gameSlug: null }
 }
 
-// Para byGame: devuelve pts por cada juego en que la mini tiene entrada
-// (las cross-game cuentan en ambos juegos con los pts de cada sistema)
 function ptsPerGame(mini) {
   const seen = new Set()
   const results = []
@@ -65,7 +54,7 @@ export async function cargarHome() {
 
   const { data: minis, error } = await db
     .from('minis')
-    .select('id, name, factions, status, qty, models, photo_url, created_at')
+    .select('id, name, factions, status, qty, models, photo_url, created_at, paint_progress')
     .neq('status', 'wishlist')
     .order('created_at', { ascending: false })
 
@@ -86,28 +75,30 @@ export async function cargarHome() {
     return
   }
 
-  // ---- agregaciones ----
-  let totalModels = 0, paintedModels = 0, totalPts = 0, paintedPts = 0
+  if (!state.pinturas.length) {
+    const { data } = await db.from('paints').select('*').order('brand').order('name')
+    if (data) state.pinturas = data
+  }
+
+  // Agregaciones
+  let totalModels = 0, paintedModels = 0, totalPts = 0
   const byStatusEntries = {}
   const byStatusModels = {}
   const byGame = {}
 
   for (const m of minis) {
     const mod = modelsFor(m)
-    const { pts, gameSlug } = ptsFor(m)
+    const { pts } = ptsFor(m)
     const totalForMini = pts * m.qty
 
     totalModels += mod
     totalPts += totalForMini
     byStatusEntries[m.status] = (byStatusEntries[m.status] || 0) + 1
     byStatusModels[m.status] = (byStatusModels[m.status] || 0) + mod
-    if (m.status === 'pintada') {
-      paintedModels += mod
-      paintedPts += totalForMini
-    }
+    if (m.status === 'pintada') paintedModels += mod
 
     for (const { pts: gamePts, gameSlug: slug } of ptsPerGame(m)) {
-      if (!byGame[slug]) byGame[slug] = { totalPts: 0, paintedPts: 0, models: 0, painted: 0 }
+      if (!byGame[slug]) byGame[slug] = { totalPts: 0, paintedPts: 0 }
       byGame[slug].totalPts += gamePts * m.qty
       if (m.status === 'pintada') byGame[slug].paintedPts += gamePts * m.qty
     }
@@ -117,17 +108,35 @@ export async function cargarHome() {
   const pendientes = totalModels - paintedModels
   const pctPendiente = totalModels ? Math.round(pendientes / totalModels * 100) : 0
 
-  const hero = pickHero(minis)
+  // Hero: preferencia guardada en localStorage
+  const heroOptions = minis.filter(m => HERO_PRIORITY.includes(m.status))
+  let hero = pickHero(minis)
+  const savedId = Number(localStorage.getItem('wt_heroMiniId'))
+  if (savedId) {
+    const saved = minis.find(m => m.id === savedId && HERO_PRIORITY.includes(m.status))
+    if (saved) hero = saved
+    else localStorage.removeItem('wt_heroMiniId')
+  }
+
+  // Pinturas usadas por la mini hero
+  let heroMiniPaints = []
+  if (hero) {
+    const { data: mpData } = await db
+      .from('mini_paints')
+      .select('id, paint_id, paints(name, brand, color_hex)')
+      .eq('mini_id', hero.id)
+    heroMiniPaints = mpData || []
+  }
+
   const inQueue = minis
     .filter(m => IN_PROGRESS_STATUSES.includes(m.status) && (!hero || m.id !== hero.id))
     .sort((a, b) => (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) ||
                     (new Date(b.created_at) - new Date(a.created_at)))
     .slice(0, 3)
-  const ultimas = minis.slice(0, 3) // ya viene ordenado desc por created_at
+  const ultimas = minis.slice(0, 3)
 
-  // ---- HTML ----
   container.innerHTML = `
-    ${hero ? renderHero(hero) : renderHeroEmpty()}
+    ${hero ? renderHero(hero, heroOptions, heroMiniPaints) : renderHeroEmpty()}
     ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
     ${renderByGame(byGame)}
     ${renderQueue(inQueue)}
@@ -135,17 +144,59 @@ export async function cargarHome() {
     ${renderLast(ultimas)}
   `
 
-  // listeners delegados
   bindHomeEvents(container)
 }
 
-function renderHero(m) {
+function renderHero(m, heroOptions, miniPaints) {
   const { pts } = ptsFor(m)
   const totalPts = pts * m.qty
   const factions = (m.factions || []).join(' + ')
   const photo = m.photo_url
     ? `<img class="home-hero-photo" src="${m.photo_url}" alt="">`
     : ''
+  const progress = m.paint_progress || 0
+
+  const selectorHtml = heroOptions.length > 1 ? `
+    <div class="home-hero-selector">
+      ${heroOptions.map(opt => `
+        <button class="home-hero-sel-pill ${opt.id === m.id ? 'active' : ''}"
+                data-action="select-hero" data-mini-id="${opt.id}">
+          ${escapeHtml(opt.name)}
+        </button>
+      `).join('')}
+    </div>
+  ` : ''
+
+  const addedPaintIds = new Set(miniPaints.map(mp => mp.paint_id))
+
+  const paintsHtml = `
+    <div class="home-hero-paints">
+      <div class="home-hero-section-label">// pinturas usadas</div>
+      ${miniPaints.map(mp => `
+        <div class="home-hero-paint-row">
+          ${mp.paints?.color_hex
+            ? `<div class="home-hero-paint-swatch" style="background:${mp.paints.color_hex}"></div>`
+            : `<div class="home-hero-paint-swatch home-hero-paint-swatch-none"></div>`
+          }
+          <span class="home-hero-paint-name">${escapeHtml(mp.paints?.name || '')}</span>
+          <span class="home-hero-paint-brand">${escapeHtml(mp.paints?.brand || '')}</span>
+          <button class="home-hero-paint-remove"
+                  data-action="remove-mini-paint"
+                  data-mp-id="${mp.id}"
+                  data-paint-id="${mp.paint_id}"
+                  title="Quitar">✕</button>
+        </div>
+      `).join('')}
+      <div class="home-hero-paint-add-wrap">
+        <input type="text" class="home-hero-paint-search" id="hero-paint-search"
+               placeholder="Añadir pintura…" autocomplete="off"
+               data-mini-id="${m.id}"
+               data-added="${[...addedPaintIds].join(',')}">
+        <div class="hero-paint-results" id="hero-paint-results"></div>
+      </div>
+    </div>
+  `
+
   return `
     <div class="home-hero" data-mini-id="${m.id}">
       ${photo}
@@ -153,9 +204,21 @@ function renderHero(m) {
         <span class="home-hero-pulse"></span>
         Continúa donde lo dejaste
       </div>
+      ${selectorHtml}
       <div class="home-hero-name">${escapeHtml(m.name)}</div>
       <div class="home-hero-fac">${escapeHtml(factions)}</div>
       <div class="home-hero-meta">${modelsFor(m)} modelo${modelsFor(m) !== 1 ? 's' : ''}${totalPts ? ` · ${totalPts.toLocaleString()} pts` : ''}</div>
+
+      <div class="home-hero-progress-row">
+        <div class="home-hero-progress-bar">
+          <div class="home-hero-progress-fill" style="width:${progress}%"></div>
+        </div>
+        <input class="home-hero-progress-input" type="number" min="0" max="100"
+               value="${progress}" data-action="update-progress" data-mini-id="${m.id}">
+        <span class="home-hero-progress-pct">%</span>
+      </div>
+
+      ${paintsHtml}
 
       <div class="home-hero-cta-row">
         <button class="home-hero-cta" data-action="continue" data-mini-id="${m.id}">
@@ -310,12 +373,72 @@ function renderLast(items) {
   `
 }
 
+// ---------------------------------------------------------------------------
+// Event handlers
+// ---------------------------------------------------------------------------
+
+function onHeroPaintSearch(query, miniId) {
+  const results = document.getElementById('hero-paint-results')
+  if (!results) return
+  const q = query.trim().toLowerCase()
+  if (!q) { results.innerHTML = ''; return }
+
+  const input = document.getElementById('hero-paint-search')
+  const added = new Set((input?.dataset.added || '').split(',').map(Number).filter(Boolean))
+
+  const matches = state.pinturas
+    .filter(p => !added.has(p.id) && (
+      p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)
+    ))
+    .slice(0, 8)
+
+  if (!matches.length) {
+    results.innerHTML = '<div class="hero-paint-empty">Sin resultados</div>'
+    return
+  }
+  results.innerHTML = matches.map(p => `
+    <div class="hero-paint-result" data-action="hero-paint-result"
+         data-paint-id="${p.id}" data-mini-id="${miniId}">
+      ${p.color_hex
+        ? `<div class="hero-paint-result-swatch" style="background:${p.color_hex}"></div>`
+        : `<div class="hero-paint-result-swatch hero-paint-result-swatch-none"></div>`
+      }
+      <span>${escapeHtml(p.name)}</span>
+      <span class="hero-paint-result-brand">${escapeHtml(p.brand)}</span>
+    </div>
+  `).join('')
+}
+
+async function saveProgress(miniId, value) {
+  await db.from('minis').update({ paint_progress: value }).eq('id', miniId)
+  const fill = document.querySelector('.home-hero-progress-fill')
+  if (fill) fill.style.width = value + '%'
+}
+
+async function handleAddMiniPaint(miniId, paintId) {
+  const { error } = await db.from('mini_paints').insert({ mini_id: miniId, paint_id: paintId })
+  if (error) return
+  document.getElementById('hero-paint-search').value = ''
+  document.getElementById('hero-paint-results').innerHTML = ''
+  await cargarHome()
+}
+
+async function handleRemoveMiniPaint(mpId) {
+  await db.from('mini_paints').delete().eq('id', mpId)
+  await cargarHome()
+}
+
 function bindHomeEvents(container) {
-  // Un único listener delegado
   if (container.dataset.bound === '1') return
   container.dataset.bound = '1'
 
   container.addEventListener('click', async e => {
+    // Cerrar resultados al clicar fuera del buscador
+    if (!e.target.closest('.home-hero-paint-add-wrap')) {
+      const r = document.getElementById('hero-paint-results')
+      if (r) r.innerHTML = ''
+    }
+
     const actionEl = e.target.closest('[data-action]')
     if (!actionEl) return
     const action = actionEl.dataset.action
@@ -328,11 +451,35 @@ function bindHomeEvents(container) {
       const newStatus = actionEl.dataset.newStatus
       if (id && newStatus) {
         await cambiarStatusRapido(id, newStatus)
-        // Refresca el dashboard tras el cambio
         cargarHome()
       }
     } else if (action === 'goto-coleccion') {
       cambiarTab('coleccion')
+    } else if (action === 'select-hero') {
+      if (id) {
+        localStorage.setItem('wt_heroMiniId', id)
+        await cargarHome()
+      }
+    } else if (action === 'hero-paint-result') {
+      const paintId = Number(actionEl.dataset.paintId)
+      if (paintId && id) await handleAddMiniPaint(id, paintId)
+    } else if (action === 'remove-mini-paint') {
+      const mpId = actionEl.dataset.mpId
+      if (mpId) await handleRemoveMiniPaint(mpId)
+    }
+  })
+
+  container.addEventListener('input', e => {
+    if (e.target.id === 'hero-paint-search') {
+      onHeroPaintSearch(e.target.value, Number(e.target.dataset.miniId))
+    }
+  })
+
+  container.addEventListener('change', e => {
+    if (e.target.dataset.action === 'update-progress') {
+      const val = Math.min(100, Math.max(0, Number(e.target.value) || 0))
+      e.target.value = val
+      saveProgress(Number(e.target.dataset.miniId), val)
     }
   })
 }
