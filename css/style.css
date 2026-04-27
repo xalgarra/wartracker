@@ -447,7 +447,10 @@ body:not(.dark) .btn-link {
   position: sticky;
   top: 53px;
   z-index: 9;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.tabs::-webkit-scrollbar { display: none; }
 
 body.dark .tabs {
   padding: 8px 18px;
@@ -476,12 +479,6 @@ body.dark .tabs {
   border-bottom: var(--tab-active-bdb);
 }
 
-/* Números de tab en dark */
-body.dark #tab-coleccion::before { content: '01 '; font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
-body.dark #tab-stats::before     { content: '02 '; font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
-body.dark #tab-wishlist::before  { content: '03 '; font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
-body.dark #tab-pinturas::before  { content: '04 '; font-family: var(--font-mono); font-size: 9px; color: var(--text-4); }
-body.dark .tab.active::before    { color: oklch(0.22 0.04 65); }
 
 /* ====================================================================
    FILTROS
