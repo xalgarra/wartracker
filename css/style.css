@@ -451,6 +451,15 @@ body:not(.dark) .btn-link {
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
+.tabs::after {
+  content: '';
+  position: sticky;
+  right: 0;
+  min-width: 32px;
+  background: linear-gradient(to right, transparent, var(--surface));
+  pointer-events: none;
+}
+body.dark .tabs::after { background: linear-gradient(to right, transparent, var(--bg)); }
 
 body.dark .tabs {
   padding: 8px 18px;
