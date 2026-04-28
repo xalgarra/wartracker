@@ -75,9 +75,10 @@ export function onCatalogSearch(query) {
 
   results.innerHTML = matches.map(p => {
     const isOwned = owned.has(p.name.toLowerCase())
+    const existente = isOwned ? state.pinturas.find(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase()) : null
     const swatchClass = p.hex ? '' : ' catalog-swatch-none'
     const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
-    const dataAttrs = isOwned ? '' : `data-action="quick-add" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
+    const dataAttrs = `data-action="quick-add" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
     return `
       <div class="catalog-result${isOwned ? ' owned' : ''}" ${dataAttrs}>
         <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
@@ -86,7 +87,7 @@ export function onCatalogSearch(query) {
           <span class="catalog-result-type">${p.type}</span>
         </div>
         ${isOwned
-          ? '<span class="catalog-owned-mark">✓ tengo</span>'
+          ? `<span class="catalog-owned-mark">×${existente?.quantity || 1} +1</span>`
           : '<span class="catalog-add-btn">+</span>'}
       </div>
     `
