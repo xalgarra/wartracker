@@ -1,10 +1,12 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { mostrarError } from './toast.js'
-import { escapeHtml } from './utils.js'
+import { escapeHtml, compressImage } from './utils.js'
 import { cargarHome, getMinis, getProyectos, syncProyecto } from './home.js'
 
 let _modalProjectId = null
+let _pendingPhotoFile = null
+let _pendingPhotoRemove = false
 
 // ---------------------------------------------------------------------------
 // Apertura / cierre
@@ -22,6 +24,7 @@ export async function abrirModalProyecto(projectId) {
   document.getElementById('proj-modal-unit-results').innerHTML = ''
   document.getElementById('proj-modal-paint-search').value = ''
   document.getElementById('proj-modal-paint-results').innerHTML = ''
+  resetPhotoUI(project?.photo_url || null)
 
   renderModalUnits(project)
   renderModalPaints(project)
@@ -47,10 +50,26 @@ export async function cerrarModalProyecto() {
 export async function guardarProyecto() {
   const name = document.getElementById('proj-edit-name').value.trim()
   if (!name) { mostrarError('El proyecto necesita un nombre'); return }
-  if (_modalProjectId) {
-    const { error } = await db.from('projects').update({ name }).eq('id', _modalProjectId)
-    if (error) { mostrarError('Error guardando proyecto'); return }
+  if (!_modalProjectId) { await cerrarModalProyecto(); return }
+
+  const payload = { name }
+
+  if (_pendingPhotoFile) {
+    const path = `${_modalProjectId}.jpg`
+    await db.storage.from('project-photos').upload(path, _pendingPhotoFile, { upsert: true })
+    const { data: { publicUrl } } = db.storage.from('project-photos').getPublicUrl(path)
+    payload.photo_url = publicUrl
+  } else if (_pendingPhotoRemove) {
+    const project = getProyectos().find(p => p.id === _modalProjectId)
+    if (project?.photo_url) {
+      const path = project.photo_url.split('/project-photos/')[1]
+      if (path) await db.storage.from('project-photos').remove([path])
+    }
+    payload.photo_url = null
   }
+
+  const { error } = await db.from('projects').update(payload).eq('id', _modalProjectId)
+  if (error) { mostrarError('Error guardando proyecto'); return }
   await cerrarModalProyecto()
 }
 
@@ -61,7 +80,7 @@ export async function completarProyecto() {
   const miniIds = (project?.project_minis || []).map(pm => Number(pm.mini_id))
   await Promise.all([
     miniIds.length ? db.from('minis').update({ status: 'pintada' }).in('id', miniIds) : Promise.resolve(),
-    db.from('projects').update({ status: 'completado' }).eq('id', _modalProjectId)
+    db.from('projects').update({ status: 'completado', completed_at: new Date().toISOString() }).eq('id', _modalProjectId)
   ])
   await cerrarModalProyecto()
 }
@@ -70,8 +89,58 @@ export async function eliminarProyecto() {
   if (!_modalProjectId) return
   const project = getProyectos().find(p => p.id === _modalProjectId)
   if (!confirm(`¿Eliminar "${project?.name || 'este proyecto'}"?`)) return
+  if (project?.photo_url) {
+    const path = project.photo_url.split('/project-photos/')[1]
+    if (path) await db.storage.from('project-photos').remove([path])
+  }
   await db.from('projects').delete().eq('id', _modalProjectId)
   await cerrarModalProyecto()
+}
+
+// ---------------------------------------------------------------------------
+// Foto de proyecto
+// ---------------------------------------------------------------------------
+
+export async function onProjPhotoSelected(input) {
+  const file = input.files[0]
+  if (!file) return
+  const compressed = await compressImage(file)
+  _pendingPhotoFile = compressed
+  _pendingPhotoRemove = false
+  const preview = document.getElementById('proj-photo-preview')
+  preview.src = URL.createObjectURL(compressed)
+  preview.style.display = 'block'
+  document.getElementById('btn-remove-proj-photo').style.display = 'inline-block'
+  document.getElementById('proj-photo-btn-text').textContent = 'Cambiar foto'
+}
+
+export function removeProjPhoto() {
+  _pendingPhotoFile = null
+  _pendingPhotoRemove = true
+  const preview = document.getElementById('proj-photo-preview')
+  preview.style.display = 'none'
+  preview.src = ''
+  document.getElementById('proj-photo-input').value = ''
+  document.getElementById('btn-remove-proj-photo').style.display = 'none'
+  document.getElementById('proj-photo-btn-text').textContent = 'Añadir foto'
+}
+
+function resetPhotoUI(photoUrl) {
+  _pendingPhotoFile = null
+  _pendingPhotoRemove = false
+  const preview = document.getElementById('proj-photo-preview')
+  document.getElementById('proj-photo-input').value = ''
+  if (photoUrl) {
+    preview.src = photoUrl
+    preview.style.display = 'block'
+    document.getElementById('btn-remove-proj-photo').style.display = 'inline-block'
+    document.getElementById('proj-photo-btn-text').textContent = 'Cambiar foto'
+  } else {
+    preview.style.display = 'none'
+    preview.src = ''
+    document.getElementById('btn-remove-proj-photo').style.display = 'none'
+    document.getElementById('proj-photo-btn-text').textContent = 'Añadir foto'
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { STATUSES, PAINT_TYPES, UNIT_TYPES, PAINT_BRANDS } from './constants.js'
 import { login, logout, toggleDarkMode, mostrarApp } from './auth.js'
-import { cerrarModalProyecto, guardarProyecto, completarProyecto, eliminarProyecto } from './project-modal.js'
+import { cerrarModalProyecto, guardarProyecto, completarProyecto, eliminarProyecto, onProjPhotoSelected, removeProjPhoto } from './project-modal.js'
 import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
@@ -152,6 +152,8 @@ document.getElementById('btn-cerrar-modal-project')?.addEventListener('click', c
 document.getElementById('btn-guardar-project')?.addEventListener('click', guardarProyecto)
 document.getElementById('btn-completar-project')?.addEventListener('click', completarProyecto)
 document.getElementById('btn-eliminar-project')?.addEventListener('click', eliminarProyecto)
+document.getElementById('proj-photo-input')?.addEventListener('change', e => onProjPhotoSelected(e.target))
+document.getElementById('btn-remove-proj-photo')?.addEventListener('click', removeProjPhoto)
 
 // Paint modal
 document.getElementById('modal-paint-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-paint-bg') cerrarModalPintura() })

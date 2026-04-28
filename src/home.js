@@ -98,11 +98,18 @@ export async function cargarHome() {
 
   const { data: proyectos } = await db
     .from('projects')
-    .select('id, name, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .select('id, name, photo_url, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
     .eq('status', 'activo')
     .order('created_at', { ascending: false })
 
   _proyectos = proyectos || []
+
+  const { data: historial } = await db
+    .from('projects')
+    .select('id, name, photo_url, completed_at, project_minis(id)')
+    .eq('status', 'completado')
+    .order('completed_at', { ascending: false })
+    .limit(10)
 
   // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
@@ -138,6 +145,7 @@ export async function cargarHome() {
     ${renderQueue(inQueue)}
     ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
     ${renderLast(minis.slice(0, 3))}
+    ${renderHistorial(historial || [])}
   `
 
   bindHomeEvents(container)
@@ -194,21 +202,23 @@ function renderProjectCard(project, allMinis) {
          title="${escapeHtml(pp.paints?.name || '')}"></div>
   `).join('')
 
+  const photoHtml = project.photo_url
+    ? `<img class="home-proj-photo" src="${project.photo_url}" alt="">`
+    : ''
+
   return `
-    <div class="home-proj-card" data-project-id="${project.id}">
+    <div class="home-proj-card" data-action="edit-project" data-project-id="${project.id}">
+      ${photoHtml}
       <div class="home-proj-card-header">
         <span class="home-proj-name">${escapeHtml(project.name)}</span>
-        <div class="home-proj-card-actions">
-          <span class="home-proj-pct">${avgProgress}%</span>
-          <button class="home-proj-edit-btn" data-action="edit-project" data-project-id="${project.id}">Editar</button>
-        </div>
+        <span class="home-proj-pct">${avgProgress}%</span>
       </div>
       <div class="home-proj-progress-bar">
         <div class="home-proj-progress-fill" style="width:${avgProgress}%"></div>
       </div>
       ${unitsHtml
         ? `<div class="home-proj-units">${unitsHtml}</div>`
-        : '<div class="home-proj-units-empty">Sin minis — pulsa Editar</div>'}
+        : '<div class="home-proj-units-empty">Sin minis — toca para editar</div>'}
       ${paintsHtml ? `<div class="home-proj-paints-row">${paintsHtml}</div>` : ''}
     </div>
   `
@@ -332,6 +342,35 @@ function renderLast(items) {
             <span class="home-last-meta">${escapeHtml((m.factions || [])[0] || '-')}</span>
           </div>
         `).join('')}
+      </div>
+    </div>
+  `
+}
+
+function renderHistorial(proyectos) {
+  if (!proyectos.length) return ''
+  return `
+    <div class="home-block">
+      <div class="home-block-h"><span>// proyectos completados</span></div>
+      <div class="home-historial">
+        ${proyectos.map(p => {
+          const miniCount = (p.project_minis || []).length
+          const date = p.completed_at
+            ? new Date(p.completed_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+            : ''
+          return `
+            <div class="home-historial-row">
+              ${p.photo_url
+                ? `<img class="home-historial-thumb" src="${p.photo_url}" alt="">`
+                : `<div class="home-historial-thumb home-historial-thumb--empty"></div>`}
+              <div class="home-historial-info">
+                <span class="home-historial-name">${escapeHtml(p.name)}</span>
+                <span class="home-historial-meta">${miniCount} mini${miniCount !== 1 ? 's' : ''}${date ? ' · ' + date : ''}</span>
+              </div>
+              <span class="home-historial-badge">✓</span>
+            </div>
+          `
+        }).join('')}
       </div>
     </div>
   `
