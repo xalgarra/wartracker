@@ -275,20 +275,23 @@ function renderModalUnits(project) {
   if (!container) return
   container.innerHTML = projMinis.length
     ? projMinis.map(pm => {
-        const mini = _minis.find(m => m.id === pm.mini_id)
+        const mini = _minis.find(m => m.id === Number(pm.mini_id))
         if (!mini) return ''
         const p = mini.paint_progress || 0
         return `
-          <div class="proj-modal-row">
+          <div class="proj-modal-unit-row">
             <span class="proj-modal-row-name">${escapeHtml(mini.name)}</span>
-            <input type="number" class="proj-modal-pct" min="0" max="100" value="${p}"
-                   data-action="modal-update-progress" data-mini-id="${mini.id}">
-            <span class="proj-modal-pct-label">%</span>
+            <label class="proj-modal-pct-wrap">
+              <span class="proj-modal-pct-label">Pintado</span>
+              <input type="number" class="proj-modal-pct" min="0" max="100" value="${p}"
+                     data-action="modal-update-progress" data-mini-id="${mini.id}">
+              <span class="proj-modal-pct-label">%</span>
+            </label>
             <button class="proj-modal-remove" data-action="modal-remove-mini" data-pm-id="${pm.id}">✕</button>
           </div>
         `
       }).join('')
-    : '<div class="proj-modal-empty">Sin unidades añadidas</div>'
+    : '<div class="proj-modal-empty">Sin minis añadidas</div>'
 }
 
 function renderModalPaints(project) {

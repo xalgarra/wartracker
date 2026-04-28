@@ -2051,16 +2051,25 @@ body.dark .camera-result-name { font-weight: 400; }
   display: flex; align-items: center; gap: 8px;
   padding: 6px 0; border-bottom: 1px solid var(--border);
 }
-.proj-modal-row:last-child { border-bottom: none; }
+.proj-modal-unit-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+}
+.proj-modal-row:last-child,
+.proj-modal-unit-row:last-child { border-bottom: none; }
 .proj-modal-row-name { flex: 1; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .proj-modal-row-brand { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.proj-modal-pct-wrap {
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0; cursor: default;
+}
 .proj-modal-pct {
-  width: 44px; padding: 3px 5px;
+  width: 40px; padding: 2px 4px;
   border: 1px solid var(--border); border-radius: 6px;
   background: var(--input-bg); color: var(--text);
   font-family: var(--font-mono); font-size: 12px; text-align: center;
 }
-.proj-modal-pct-label { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.proj-modal-pct-label { font-size: 10px; color: var(--text-3); flex-shrink: 0; }
 .proj-modal-remove {
   background: none; border: none; color: var(--text-3);
   cursor: pointer; font-size: 11px; padding: 2px 4px;
