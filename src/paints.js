@@ -108,4 +108,5 @@ export async function quickAddPintura(name, type, hex) {
   document.getElementById('catalog-search').value = ''
   document.getElementById('catalog-results').style.display = 'none'
   await cargarPinturas()
+  document.getElementById('catalog-search').focus()
 }
