@@ -1695,6 +1695,8 @@ body.dark .camera-result-name { font-weight: 400; }
   .filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .filtros select { flex: unset; min-width: unset; }
   .filtros input[type="search"] { grid-column: 1 / -1; }
+  .filter-dropdown { min-width: unset; }
+  .filter-dropdown-btn { width: 100%; }
 }
 
 @media (min-width: 700px) {
@@ -1702,6 +1704,8 @@ body.dark .camera-result-name { font-weight: 400; }
   .filtros select { flex: unset; min-width: unset; }
   .filtros input[type="search"] { grid-column: 1 / -1; }
   .filtros-pinturas { grid-template-columns: repeat(2, 1fr); }
+  .filter-dropdown { min-width: unset; }
+  .filter-dropdown-btn { width: 100%; }
 
   /* Cards 2 columnas en light, columna única en dark */
   body:not(.dark) .lista { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
