@@ -330,7 +330,6 @@ export const CITADEL_CATALOG = [
   { name: 'Contrast Medium', type: 'technical', hex: "#f0f0f0" },
   { name: 'Lahmian Medium', type: 'technical', hex: "#f0f0f0" },
   { name: 'Mordant Earth', type: 'technical', hex: "#1a1a18" },
-  { name: 'Nurgles Rot', type: 'technical', hex: "#9d8c30" },
   { name: 'Soulstone Blue', type: 'technical', hex: "#294c86" },
   { name: 'Spiritstone Red', type: 'technical', hex: "#fd5d3d" },
   { name: 'Stormshield', type: 'technical', hex: "#f0f0f0" },
@@ -339,6 +338,20 @@ export const CITADEL_CATALOG = [
   { name: 'Guilliman Blue', type: 'technical', hex: "#2e83c6" },
   { name: 'Lamenters Yellow', type: 'technical', hex: "#fbf44c" },
   { name: 'Waywatcher Green', type: 'technical', hex: "#78b04b" },
+  { name: 'Skulls', type: 'technical', hex: "#d4b890" },
+  { name: 'Agrellan Earth', type: 'texture', hex: "#b08040" },
+  { name: 'Agrellan Badland', type: 'texture', hex: "#8a6030" },
+  { name: 'Astrogranite', type: 'texture', hex: "#6a7070" },
+  { name: 'Astrogranite Debris', type: 'texture', hex: "#505560" },
+  { name: 'Stirland Mud', type: 'texture', hex: "#463820" },
+  { name: 'Stirland Battlemire', type: 'texture', hex: "#3a3018" },
+  { name: 'Valhallan Blizzard', type: 'texture', hex: "#dce8f0" },
+  { name: 'Martian Ironcrust', type: 'texture', hex: "#6a2018" },
+  { name: 'Martian Ironearth', type: 'texture', hex: "#882818" },
+  { name: 'Armageddon Dust', type: 'texture', hex: "#c8a870" },
+  { name: 'Lustrian Undergrowth', type: 'texture', hex: "#3a5e22" },
+  { name: 'Mourn Mountain Snow', type: 'texture', hex: "#d8e8f2" },
+  { name: 'Blackstone Fortress Rubble', type: 'texture', hex: "#3a3c40" },
 ]
 
 // Lookup rápido por nombre para el modal
