@@ -559,6 +559,11 @@ body.dark .filtros input[type="search"] {
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.12s, color 0.12s;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  box-sizing: border-box;
+  text-align: center;
 }
 .filter-dropdown-btn.active {
   border-color: var(--accent, oklch(0.65 0.18 65));
