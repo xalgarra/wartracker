@@ -2,15 +2,24 @@ import { db } from './db.js'
 import { state } from './state.js'
 import { STATUSES, STATUS_ORDER } from './constants.js'
 import { mostrarError } from './toast.js'
+import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
 const IN_PROGRESS_STATUSES = ['pintando', 'imprimada', 'montada']
 
+// Caché de módulo — accesible desde project-modal.js vía getters
 let _minis = []
 let _proyectos = []
-let _modalProjectId = null
+
+export const getMinis     = () => _minis
+export const getProyectos = () => _proyectos
+export function syncProyecto(proj) {
+  const idx = _proyectos.findIndex(p => p.id === proj.id)
+  if (idx >= 0) _proyectos[idx] = proj
+  else _proyectos.unshift(proj)
+}
 
 // ---------------------------------------------------------------------------
 // Helpers de colección
@@ -41,10 +50,7 @@ function ptsPerGame(mini) {
     const fc = state.factions.find(f => f.name === faction)
     if (!fc || seen.has(fc.game_slug)) continue
     const pts = state.unitMap[`${mini.name}|${faction}|${fc.game_slug}`]
-    if (pts) {
-      results.push({ pts, gameSlug: fc.game_slug })
-      seen.add(fc.game_slug)
-    }
+    if (pts) { results.push({ pts, gameSlug: fc.game_slug }); seen.add(fc.game_slug) }
   }
   return results
 }
@@ -70,7 +76,7 @@ export async function cargarHome() {
 
   if (error) { container.innerHTML = '<div class="home-empty">Error al cargar datos</div>'; return }
 
-  if (!minis || !minis.length) {
+  if (!minis?.length) {
     container.innerHTML = `
       <div class="home-empty">
         <p>Aún no hay minis en tu colección.</p>
@@ -98,6 +104,7 @@ export async function cargarHome() {
 
   _proyectos = proyectos || []
 
+  // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
   const byStatusEntries = {}, byStatusModels = {}, byGame = {}
 
@@ -116,14 +123,13 @@ export async function cargarHome() {
     }
   }
 
-  const pctGlobal = totalModels ? Math.round(paintedModels / totalModels * 100) : 0
-  const pendientes = totalModels - paintedModels
+  const pctGlobal    = totalModels ? Math.round(paintedModels / totalModels * 100) : 0
+  const pendientes   = totalModels - paintedModels
   const pctPendiente = totalModels ? Math.round(pendientes / totalModels * 100) : 0
   const inQueue = minis
     .filter(m => IN_PROGRESS_STATUSES.includes(m.status))
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 3)
-  const ultimas = minis.slice(0, 3)
 
   container.innerHTML = `
     ${renderProjects(_proyectos, minis)}
@@ -131,18 +137,17 @@ export async function cargarHome() {
     ${renderByGame(byGame)}
     ${renderQueue(inQueue)}
     ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
-    ${renderLast(ultimas)}
+    ${renderLast(minis.slice(0, 3))}
   `
 
   bindHomeEvents(container)
 }
 
 // ---------------------------------------------------------------------------
-// Render: proyectos (tarjetas de resumen)
+// Render: proyectos (tarjetas de resumen — solo lectura)
 // ---------------------------------------------------------------------------
 
 function renderProjects(proyectos, allMinis) {
-  const cards = proyectos.map(p => renderProjectCard(p, allMinis)).join('')
   return `
     <div class="home-hero home-proj-section">
       <div class="home-hero-eyebrow">
@@ -150,7 +155,7 @@ function renderProjects(proyectos, allMinis) {
         Proyectos activos
       </div>
       ${proyectos.length
-        ? cards
+        ? proyectos.map(p => renderProjectCard(p, allMinis)).join('')
         : '<div class="home-proj-empty-msg">Sin proyectos activos — crea uno abajo</div>'
       }
       <div class="home-proj-new-row">
@@ -163,11 +168,11 @@ function renderProjects(proyectos, allMinis) {
 }
 
 function renderProjectCard(project, allMinis) {
-  const projMinis = project.project_minis || []
+  const projMinis  = project.project_minis || []
   const projPaints = project.project_paints || []
 
   const progressValues = projMinis.map(pm => {
-    const mini = allMinis.find(m => m.id === pm.mini_id)
+    const mini = allMinis.find(m => m.id === Number(pm.mini_id))
     return mini?.paint_progress || 0
   })
   const avgProgress = progressValues.length
@@ -175,10 +180,12 @@ function renderProjectCard(project, allMinis) {
     : 0
 
   const unitsHtml = projMinis.map(pm => {
-    const mini = allMinis.find(m => m.id === pm.mini_id)
+    const mini = allMinis.find(m => m.id === Number(pm.mini_id))
     if (!mini) return ''
-    const p = mini.paint_progress || 0
-    return `<span class="proj-unit-chip"><span class="proj-unit-chip-name">${escapeHtml(mini.name)}</span><span class="proj-unit-chip-pct">${p}%</span></span>`
+    return `<span class="proj-unit-chip">
+      <span class="proj-unit-chip-name">${escapeHtml(mini.name)}</span>
+      <span class="proj-unit-chip-pct">${mini.paint_progress || 0}%</span>
+    </span>`
   }).join('')
 
   const paintsHtml = projPaints.map(pp => `
@@ -199,240 +206,16 @@ function renderProjectCard(project, allMinis) {
       <div class="home-proj-progress-bar">
         <div class="home-proj-progress-fill" style="width:${avgProgress}%"></div>
       </div>
-      ${unitsHtml ? `<div class="home-proj-units">${unitsHtml}</div>` : '<div class="home-proj-units-empty">Sin unidades — pulsa Editar</div>'}
+      ${unitsHtml
+        ? `<div class="home-proj-units">${unitsHtml}</div>`
+        : '<div class="home-proj-units-empty">Sin minis — pulsa Editar</div>'}
       ${paintsHtml ? `<div class="home-proj-paints-row">${paintsHtml}</div>` : ''}
     </div>
   `
 }
 
 // ---------------------------------------------------------------------------
-// Modal de proyecto
-// ---------------------------------------------------------------------------
-
-export async function abrirModalProyecto(projectId) {
-  _modalProjectId = projectId || null
-  const project = projectId ? _proyectos.find(p => p.id === projectId) : null
-
-  document.getElementById('modal-project-title').textContent = project ? 'Editar proyecto' : 'Nuevo proyecto'
-  document.getElementById('proj-edit-name').value = project?.name || ''
-  document.getElementById('btn-eliminar-project').style.display = project ? 'block' : 'none'
-  document.getElementById('btn-completar-project').style.display = project ? 'block' : 'none'
-  document.getElementById('proj-modal-unit-search').value = ''
-  document.getElementById('proj-modal-unit-results').innerHTML = ''
-  document.getElementById('proj-modal-paint-search').value = ''
-  document.getElementById('proj-modal-paint-results').innerHTML = ''
-
-  renderModalUnits(project)
-  renderModalPaints(project)
-
-  if (!document.getElementById('modal-project-bg').dataset.bound) {
-    bindModalProjectEvents()
-    document.getElementById('modal-project-bg').dataset.bound = '1'
-  }
-
-  document.getElementById('modal-project-bg').classList.add('open')
-}
-
-export async function cerrarModalProyecto() {
-  document.getElementById('modal-project-bg').classList.remove('open')
-  _modalProjectId = null
-  await cargarHome()
-}
-
-export async function guardarProyecto() {
-  const name = document.getElementById('proj-edit-name').value.trim()
-  if (!name) { mostrarError('El proyecto necesita un nombre'); return }
-  if (_modalProjectId) {
-    const { error } = await db.from('projects').update({ name }).eq('id', _modalProjectId)
-    if (error) { mostrarError('Error guardando proyecto'); return }
-  }
-  await cerrarModalProyecto()
-}
-
-export async function completarProyecto() {
-  if (!_modalProjectId) return
-  if (!confirm('¿Completar proyecto? Todas sus unidades se marcarán como pintadas.')) return
-  const project = _proyectos.find(p => p.id === _modalProjectId)
-  const miniIds = (project?.project_minis || []).map(pm => pm.mini_id)
-  await Promise.all([
-    miniIds.length ? db.from('minis').update({ status: 'pintada' }).in('id', miniIds) : Promise.resolve(),
-    db.from('projects').update({ status: 'completado' }).eq('id', _modalProjectId)
-  ])
-  await cerrarModalProyecto()
-}
-
-export async function eliminarProyecto() {
-  if (!_modalProjectId) return
-  const project = _proyectos.find(p => p.id === _modalProjectId)
-  if (!confirm(`¿Eliminar "${project?.name || 'este proyecto'}"?`)) return
-  await db.from('projects').delete().eq('id', _modalProjectId)
-  await cerrarModalProyecto()
-}
-
-function renderModalUnits(project) {
-  const projMinis = project?.project_minis || []
-  const container = document.getElementById('proj-modal-units')
-  if (!container) return
-  container.innerHTML = projMinis.length
-    ? projMinis.map(pm => {
-        const mini = _minis.find(m => m.id === Number(pm.mini_id))
-        if (!mini) return ''
-        const p = mini.paint_progress || 0
-        return `
-          <div class="proj-modal-unit-row">
-            <span class="proj-modal-row-name">${escapeHtml(mini.name)}</span>
-            <label class="proj-modal-pct-wrap">
-              <span class="proj-modal-pct-label">Pintado</span>
-              <input type="number" class="proj-modal-pct" min="0" max="100" value="${p}"
-                     data-action="modal-update-progress" data-mini-id="${mini.id}">
-              <span class="proj-modal-pct-label">%</span>
-            </label>
-            <button class="proj-modal-remove" data-action="modal-remove-mini" data-pm-id="${pm.id}">✕</button>
-          </div>
-        `
-      }).join('')
-    : '<div class="proj-modal-empty">Sin minis añadidas</div>'
-}
-
-function renderModalPaints(project) {
-  const projPaints = project?.project_paints || []
-  const container = document.getElementById('proj-modal-paints')
-  if (!container) return
-  container.innerHTML = projPaints.length
-    ? projPaints.map(pp => `
-        <div class="proj-modal-row">
-          <div class="paint-swatch ${pp.paints?.color_hex ? '' : 'paint-swatch-none'}"
-               style="${pp.paints?.color_hex ? `background:${pp.paints.color_hex}` : ''}"></div>
-          <span class="proj-modal-row-name">${escapeHtml(pp.paints?.name || '')}</span>
-          <span class="proj-modal-row-brand">${escapeHtml(pp.paints?.brand || '')}</span>
-          <button class="proj-modal-remove" data-action="modal-remove-paint" data-pp-id="${pp.id}">✕</button>
-        </div>
-      `).join('')
-    : '<div class="proj-modal-empty">Sin pinturas añadidas</div>'
-}
-
-async function recargarModal() {
-  if (!_modalProjectId) return
-  const { data } = await db
-    .from('projects')
-    .select('id, name, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
-    .eq('id', _modalProjectId)
-    .single()
-  if (!data) return
-  const idx = _proyectos.findIndex(p => p.id === _modalProjectId)
-  if (idx >= 0) _proyectos[idx] = data
-  else _proyectos.unshift(data)
-  renderModalUnits(data)
-  renderModalPaints(data)
-}
-
-function onModalUnitSearch(query) {
-  const q = query.trim().toLowerCase()
-  const results = document.getElementById('proj-modal-unit-results')
-  if (!q) { if (results) results.innerHTML = ''; return }
-  const allProjectMiniIds = new Set(
-    _proyectos.flatMap(p => (p.project_minis || []).map(pm => Number(pm.mini_id)))
-  )
-  const matches = _minis.filter(m =>
-    !allProjectMiniIds.has(m.id) &&
-    m.status !== 'pintada' &&
-    m.name.toLowerCase().includes(q)
-  ).slice(0, 6)
-  results.innerHTML = matches.length
-    ? matches.map(m => `
-        <div class="home-proj-search-result" data-action="modal-add-mini" data-mini-id="${m.id}">
-          <span>${escapeHtml(m.name)}</span>
-          <span class="home-proj-result-meta">${escapeHtml((m.factions || [])[0] || '')}</span>
-        </div>
-      `).join('')
-    : '<div class="home-proj-result-empty">Sin resultados</div>'
-}
-
-function onModalPaintSearch(query) {
-  const q = query.trim().toLowerCase()
-  const results = document.getElementById('proj-modal-paint-results')
-  if (!q) { if (results) results.innerHTML = ''; return }
-  const project = _proyectos.find(p => p.id === _modalProjectId)
-  const addedIds = new Set((project?.project_paints || []).map(pp => pp.paint_id))
-  const matches = state.pinturas
-    .filter(p => !addedIds.has(p.id) && (p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)))
-    .slice(0, 6)
-  results.innerHTML = matches.length
-    ? matches.map(p => `
-        <div class="home-proj-search-result" data-action="modal-add-paint" data-paint-id="${p.id}">
-          <div class="paint-swatch ${p.color_hex ? '' : 'paint-swatch-none'}"
-               style="${p.color_hex ? `background:${p.color_hex}` : ''}"></div>
-          <span>${escapeHtml(p.name)}</span>
-          <span class="home-proj-result-meta">${escapeHtml(p.brand)}</span>
-        </div>
-      `).join('')
-    : '<div class="home-proj-result-empty">Sin resultados</div>'
-}
-
-function bindModalProjectEvents() {
-  const modal = document.querySelector('#modal-project-bg .modal')
-
-  document.getElementById('proj-modal-unit-search').addEventListener('input', e => {
-    onModalUnitSearch(e.target.value)
-  })
-  document.getElementById('proj-modal-paint-search').addEventListener('input', e => {
-    onModalPaintSearch(e.target.value)
-  })
-
-  modal.addEventListener('click', async e => {
-    const actionEl = e.target.closest('[data-action]')
-    if (!actionEl) return
-    const action = actionEl.dataset.action
-
-    if (action === 'modal-add-mini') {
-      const { error } = await db.from('project_minis').insert({ project_id: _modalProjectId, mini_id: Number(actionEl.dataset.miniId) })
-      if (error) { mostrarError('Error añadiendo unidad'); return }
-      document.getElementById('proj-modal-unit-search').value = ''
-      document.getElementById('proj-modal-unit-results').innerHTML = ''
-      await recargarModal()
-    } else if (action === 'modal-add-paint') {
-      const { error } = await db.from('project_paints').insert({ project_id: _modalProjectId, paint_id: Number(actionEl.dataset.paintId) })
-      if (error) { mostrarError('Error añadiendo pintura'); return }
-      document.getElementById('proj-modal-paint-search').value = ''
-      document.getElementById('proj-modal-paint-results').innerHTML = ''
-      await recargarModal()
-    } else if (action === 'modal-remove-mini') {
-      await db.from('project_minis').delete().eq('id', actionEl.dataset.pmId)
-      await recargarModal()
-    } else if (action === 'modal-remove-paint') {
-      await db.from('project_paints').delete().eq('id', actionEl.dataset.ppId)
-      await recargarModal()
-    }
-  })
-
-  modal.addEventListener('change', async e => {
-    if (e.target.dataset.action === 'modal-update-progress') {
-      const val = Math.min(100, Math.max(0, Number(e.target.value) || 0))
-      e.target.value = val
-      await db.from('minis').update({ paint_progress: val }).eq('id', Number(e.target.dataset.miniId))
-      const mini = _minis.find(m => m.id === Number(e.target.dataset.miniId))
-      if (mini) mini.paint_progress = val
-    }
-  })
-}
-
-// ---------------------------------------------------------------------------
-// Handlers de la sección de proyectos en home
-// ---------------------------------------------------------------------------
-
-async function handleCreateProject() {
-  const input = document.getElementById('proj-new-name')
-  const name = input?.value.trim()
-  if (!name) return
-  const { data, error } = await db.from('projects').insert({ name }).select().single()
-  if (error) { mostrarError('Error creando proyecto: ' + error.message); return }
-  if (input) input.value = ''
-  _proyectos.unshift({ ...data, project_minis: [], project_paints: [] })
-  await abrirModalProyecto(data.id)
-}
-
-// ---------------------------------------------------------------------------
-// Render: resto del dashboard
+// Render: dashboard
 // ---------------------------------------------------------------------------
 
 function renderSummary({ totalModels, paintedModels, pctGlobal, totalPts }) {
@@ -467,9 +250,9 @@ function renderByGame(byGame) {
     <div class="home-block">
       <div class="home-block-h"><span>// por juego</span></div>
       ${slugs.map(slug => {
-        const g = byGame[slug]
+        const g    = byGame[slug]
         const name = state.games.find(x => x.slug === slug)?.name || slug
-        const pct = g.totalPts ? Math.round(g.paintedPts / g.totalPts * 100) : 0
+        const pct  = g.totalPts ? Math.round(g.paintedPts / g.totalPts * 100) : 0
         return `
           <div class="home-game-row">
             <div class="home-game-line">
@@ -555,7 +338,7 @@ function renderLast(items) {
 }
 
 // ---------------------------------------------------------------------------
-// Event binding (home-content)
+// Event binding (home-content, delegación)
 // ---------------------------------------------------------------------------
 
 function bindHomeEvents(container) {
@@ -565,17 +348,17 @@ function bindHomeEvents(container) {
   container.addEventListener('click', async e => {
     const actionEl = e.target.closest('[data-action]')
     if (!actionEl) return
-    const action = actionEl.dataset.action
+    const { action, projectId, miniId } = actionEl.dataset
 
     if (action === 'create-project') {
       await handleCreateProject()
     } else if (action === 'edit-project') {
-      await abrirModalProyecto(actionEl.dataset.projectId)
+      const { abrirModalProyecto } = await import('./project-modal.js')
+      await abrirModalProyecto(projectId)
     } else if (action === 'open-mini') {
-      const id = Number(actionEl.dataset.miniId)
-      if (id) {
+      if (miniId) {
         const { abrirEdicion } = await import('./mini-modal.js')
-        abrirEdicion(id)
+        abrirEdicion(Number(miniId))
       }
     } else if (action === 'goto-coleccion') {
       cambiarTab('coleccion')
@@ -583,12 +366,14 @@ function bindHomeEvents(container) {
   })
 }
 
-// ---------------------------------------------------------------------------
-// Util
-// ---------------------------------------------------------------------------
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]))
+async function handleCreateProject() {
+  const input = document.getElementById('proj-new-name')
+  const name = input?.value.trim()
+  if (!name) return
+  const { data, error } = await db.from('projects').insert({ name }).select().single()
+  if (error) { mostrarError('Error creando proyecto: ' + error.message); return }
+  if (input) input.value = ''
+  _proyectos.unshift({ ...data, project_minis: [], project_paints: [] })
+  const { abrirModalProyecto } = await import('./project-modal.js')
+  await abrirModalProyecto(data.id)
 }
