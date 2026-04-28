@@ -330,9 +330,14 @@ function onModalUnitSearch(query) {
   const q = query.trim().toLowerCase()
   const results = document.getElementById('proj-modal-unit-results')
   if (!q) { if (results) results.innerHTML = ''; return }
-  const project = _proyectos.find(p => p.id === _modalProjectId)
-  const addedIds = new Set((project?.project_minis || []).map(pm => pm.mini_id))
-  const matches = _minis.filter(m => !addedIds.has(m.id) && m.name.toLowerCase().includes(q)).slice(0, 6)
+  const allProjectMiniIds = new Set(
+    _proyectos.flatMap(p => (p.project_minis || []).map(pm => Number(pm.mini_id)))
+  )
+  const matches = _minis.filter(m =>
+    !allProjectMiniIds.has(m.id) &&
+    m.status !== 'pintada' &&
+    m.name.toLowerCase().includes(q)
+  ).slice(0, 6)
   results.innerHTML = matches.length
     ? matches.map(m => `
         <div class="home-proj-search-result" data-action="modal-add-mini" data-mini-id="${m.id}">
