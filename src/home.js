@@ -8,9 +8,9 @@ const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
 const IN_PROGRESS_STATUSES = ['pintando', 'imprimada', 'montada']
 
-// Caché de módulo para búsquedas en event handlers
 let _minis = []
 let _proyectos = []
+let _modalProjectId = null
 
 // ---------------------------------------------------------------------------
 // Helpers de colección
@@ -90,7 +90,6 @@ export async function cargarHome() {
     if (data) state.pinturas = data
   }
 
-  // Proyectos activos con sus unidades y pinturas
   const { data: proyectos } = await db
     .from('projects')
     .select('id, name, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
@@ -99,7 +98,6 @@ export async function cargarHome() {
 
   _proyectos = proyectos || []
 
-  // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
   const byStatusEntries = {}, byStatusModels = {}, byGame = {}
 
@@ -140,7 +138,7 @@ export async function cargarHome() {
 }
 
 // ---------------------------------------------------------------------------
-// Render: sección de proyectos (reemplaza el hero)
+// Render: proyectos (tarjetas de resumen)
 // ---------------------------------------------------------------------------
 
 function renderProjects(proyectos, allMinis) {
@@ -176,39 +174,17 @@ function renderProjectCard(project, allMinis) {
     ? Math.round(progressValues.reduce((a, b) => a + b, 0) / progressValues.length)
     : 0
 
-  const addedMiniIds = new Set(projMinis.map(pm => pm.mini_id))
-  const addedPaintIds = new Set(projPaints.map(pp => pp.paint_id))
-
-  const minisHtml = projMinis.length
-    ? projMinis.map(pm => {
-        const mini = allMinis.find(m => m.id === pm.mini_id)
-        if (!mini) return ''
-        const p = mini.paint_progress || 0
-        return `
-          <div class="home-proj-mini-row">
-            <span class="home-proj-mini-name">${escapeHtml(mini.name)}</span>
-            <div class="home-proj-mini-bar">
-              <div class="home-proj-mini-fill" style="width:${p}%"></div>
-            </div>
-            <input class="home-proj-mini-pct" type="number" min="0" max="100" value="${p}"
-                   data-action="update-proj-mini-progress"
-                   data-mini-id="${mini.id}" data-project-id="${project.id}">
-            <span class="home-proj-mini-pct-label">%</span>
-            <button class="home-proj-mini-remove" data-action="remove-proj-mini"
-                    data-pm-id="${pm.id}" title="Quitar">✕</button>
-          </div>
-        `
-      }).join('')
-    : '<div class="home-proj-mini-empty">Añade unidades al proyecto</div>'
+  const unitsHtml = projMinis.map(pm => {
+    const mini = allMinis.find(m => m.id === pm.mini_id)
+    if (!mini) return ''
+    const p = mini.paint_progress || 0
+    return `<span class="proj-unit-chip"><span class="proj-unit-chip-name">${escapeHtml(mini.name)}</span><span class="proj-unit-chip-pct">${p}%</span></span>`
+  }).join('')
 
   const paintsHtml = projPaints.map(pp => `
-    <div class="home-proj-paint-chip">
-      <div class="home-proj-paint-dot ${pp.paints?.color_hex ? '' : 'home-proj-paint-dot-none'}"
-           style="${pp.paints?.color_hex ? `background:${pp.paints.color_hex}` : ''}"
-           title="${escapeHtml(pp.paints?.name || '')}"></div>
-      <button class="home-proj-paint-remove" data-action="remove-proj-paint"
-              data-pp-id="${pp.id}" title="Quitar ${escapeHtml(pp.paints?.name || '')}">✕</button>
-    </div>
+    <div class="paint-swatch ${pp.paints?.color_hex ? '' : 'paint-swatch-none'}"
+         style="${pp.paints?.color_hex ? `background:${pp.paints.color_hex}` : ''}"
+         title="${escapeHtml(pp.paints?.name || '')}"></div>
   `).join('')
 
   return `
@@ -217,47 +193,238 @@ function renderProjectCard(project, allMinis) {
         <span class="home-proj-name">${escapeHtml(project.name)}</span>
         <div class="home-proj-card-actions">
           <span class="home-proj-pct">${avgProgress}%</span>
-          <button class="home-proj-delete-btn" data-action="delete-project"
-                  data-project-id="${project.id}" title="Eliminar proyecto">✕</button>
+          <button class="home-proj-edit-btn" data-action="edit-project" data-project-id="${project.id}">Editar</button>
         </div>
       </div>
       <div class="home-proj-progress-bar">
         <div class="home-proj-progress-fill" style="width:${avgProgress}%"></div>
       </div>
-
-      <div class="home-proj-minis">${minisHtml}</div>
-
-      <div class="home-proj-paints-row">
-        ${paintsHtml}
-      </div>
-
-      <div class="home-proj-search-wrap">
-        <input type="text" class="home-proj-search-input home-proj-mini-search"
-               placeholder="+ añadir unidad…" autocomplete="off"
-               data-project-id="${project.id}"
-               data-added-minis="${[...addedMiniIds].join(',')}">
-        <div class="home-proj-search-results" id="mini-results-${project.id}"></div>
-      </div>
-      <div class="home-proj-search-wrap">
-        <input type="text" class="home-proj-search-input home-proj-paint-search"
-               placeholder="+ añadir pintura…" autocomplete="off"
-               data-project-id="${project.id}"
-               data-added-paints="${[...addedPaintIds].join(',')}">
-        <div class="home-proj-search-results" id="paint-results-${project.id}"></div>
-      </div>
-
-      ${project.notes ? `<div class="home-proj-notes">${escapeHtml(project.notes)}</div>` : ''}
-
-      <button class="home-proj-complete-btn" data-action="complete-project"
-              data-project-id="${project.id}">
-        Marcar como completado ✓
-      </button>
+      ${unitsHtml ? `<div class="home-proj-units">${unitsHtml}</div>` : '<div class="home-proj-units-empty">Sin unidades — pulsa Editar</div>'}
+      ${paintsHtml ? `<div class="home-proj-paints-row">${paintsHtml}</div>` : ''}
     </div>
   `
 }
 
 // ---------------------------------------------------------------------------
-// Render: resto del dashboard (sin cambios de lógica)
+// Modal de proyecto
+// ---------------------------------------------------------------------------
+
+export async function abrirModalProyecto(projectId) {
+  _modalProjectId = projectId || null
+  const project = projectId ? _proyectos.find(p => p.id === projectId) : null
+
+  document.getElementById('modal-project-title').textContent = project ? 'Editar proyecto' : 'Nuevo proyecto'
+  document.getElementById('proj-edit-name').value = project?.name || ''
+  document.getElementById('btn-eliminar-project').style.display = project ? 'block' : 'none'
+  document.getElementById('btn-completar-project').style.display = project ? 'block' : 'none'
+  document.getElementById('proj-modal-unit-search').value = ''
+  document.getElementById('proj-modal-unit-results').innerHTML = ''
+  document.getElementById('proj-modal-paint-search').value = ''
+  document.getElementById('proj-modal-paint-results').innerHTML = ''
+
+  renderModalUnits(project)
+  renderModalPaints(project)
+
+  if (!document.getElementById('modal-project-bg').dataset.bound) {
+    bindModalProjectEvents()
+    document.getElementById('modal-project-bg').dataset.bound = '1'
+  }
+
+  document.getElementById('modal-project-bg').classList.add('open')
+}
+
+export async function cerrarModalProyecto() {
+  document.getElementById('modal-project-bg').classList.remove('open')
+  _modalProjectId = null
+  await cargarHome()
+}
+
+export async function guardarProyecto() {
+  const name = document.getElementById('proj-edit-name').value.trim()
+  if (!name) { mostrarError('El proyecto necesita un nombre'); return }
+  if (_modalProjectId) {
+    const { error } = await db.from('projects').update({ name }).eq('id', _modalProjectId)
+    if (error) { mostrarError('Error guardando proyecto'); return }
+  }
+  await cerrarModalProyecto()
+}
+
+export async function completarProyecto() {
+  if (!_modalProjectId) return
+  if (!confirm('¿Completar proyecto? Todas sus unidades se marcarán como pintadas.')) return
+  const project = _proyectos.find(p => p.id === _modalProjectId)
+  const miniIds = (project?.project_minis || []).map(pm => pm.mini_id)
+  await Promise.all([
+    miniIds.length ? db.from('minis').update({ status: 'pintada' }).in('id', miniIds) : Promise.resolve(),
+    db.from('projects').update({ status: 'completado' }).eq('id', _modalProjectId)
+  ])
+  await cerrarModalProyecto()
+}
+
+export async function eliminarProyecto() {
+  if (!_modalProjectId) return
+  const project = _proyectos.find(p => p.id === _modalProjectId)
+  if (!confirm(`¿Eliminar "${project?.name || 'este proyecto'}"?`)) return
+  await db.from('projects').delete().eq('id', _modalProjectId)
+  await cerrarModalProyecto()
+}
+
+function renderModalUnits(project) {
+  const projMinis = project?.project_minis || []
+  const container = document.getElementById('proj-modal-units')
+  if (!container) return
+  container.innerHTML = projMinis.length
+    ? projMinis.map(pm => {
+        const mini = _minis.find(m => m.id === pm.mini_id)
+        if (!mini) return ''
+        const p = mini.paint_progress || 0
+        return `
+          <div class="proj-modal-row">
+            <span class="proj-modal-row-name">${escapeHtml(mini.name)}</span>
+            <input type="number" class="proj-modal-pct" min="0" max="100" value="${p}"
+                   data-action="modal-update-progress" data-mini-id="${mini.id}">
+            <span class="proj-modal-pct-label">%</span>
+            <button class="proj-modal-remove" data-action="modal-remove-mini" data-pm-id="${pm.id}">✕</button>
+          </div>
+        `
+      }).join('')
+    : '<div class="proj-modal-empty">Sin unidades añadidas</div>'
+}
+
+function renderModalPaints(project) {
+  const projPaints = project?.project_paints || []
+  const container = document.getElementById('proj-modal-paints')
+  if (!container) return
+  container.innerHTML = projPaints.length
+    ? projPaints.map(pp => `
+        <div class="proj-modal-row">
+          <div class="paint-swatch ${pp.paints?.color_hex ? '' : 'paint-swatch-none'}"
+               style="${pp.paints?.color_hex ? `background:${pp.paints.color_hex}` : ''}"></div>
+          <span class="proj-modal-row-name">${escapeHtml(pp.paints?.name || '')}</span>
+          <span class="proj-modal-row-brand">${escapeHtml(pp.paints?.brand || '')}</span>
+          <button class="proj-modal-remove" data-action="modal-remove-paint" data-pp-id="${pp.id}">✕</button>
+        </div>
+      `).join('')
+    : '<div class="proj-modal-empty">Sin pinturas añadidas</div>'
+}
+
+async function recargarModal() {
+  if (!_modalProjectId) return
+  const { data } = await db
+    .from('projects')
+    .select('id, name, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .eq('id', _modalProjectId)
+    .single()
+  if (!data) return
+  const idx = _proyectos.findIndex(p => p.id === _modalProjectId)
+  if (idx >= 0) _proyectos[idx] = data
+  else _proyectos.unshift(data)
+  renderModalUnits(data)
+  renderModalPaints(data)
+}
+
+function onModalUnitSearch(query) {
+  const q = query.trim().toLowerCase()
+  const results = document.getElementById('proj-modal-unit-results')
+  if (!q) { if (results) results.innerHTML = ''; return }
+  const project = _proyectos.find(p => p.id === _modalProjectId)
+  const addedIds = new Set((project?.project_minis || []).map(pm => pm.mini_id))
+  const matches = _minis.filter(m => !addedIds.has(m.id) && m.name.toLowerCase().includes(q)).slice(0, 6)
+  results.innerHTML = matches.length
+    ? matches.map(m => `
+        <div class="home-proj-search-result" data-action="modal-add-mini" data-mini-id="${m.id}">
+          <span>${escapeHtml(m.name)}</span>
+          <span class="home-proj-result-meta">${escapeHtml((m.factions || [])[0] || '')}</span>
+        </div>
+      `).join('')
+    : '<div class="home-proj-result-empty">Sin resultados</div>'
+}
+
+function onModalPaintSearch(query) {
+  const q = query.trim().toLowerCase()
+  const results = document.getElementById('proj-modal-paint-results')
+  if (!q) { if (results) results.innerHTML = ''; return }
+  const project = _proyectos.find(p => p.id === _modalProjectId)
+  const addedIds = new Set((project?.project_paints || []).map(pp => pp.paint_id))
+  const matches = state.pinturas
+    .filter(p => !addedIds.has(p.id) && (p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)))
+    .slice(0, 6)
+  results.innerHTML = matches.length
+    ? matches.map(p => `
+        <div class="home-proj-search-result" data-action="modal-add-paint" data-paint-id="${p.id}">
+          <div class="paint-swatch ${p.color_hex ? '' : 'paint-swatch-none'}"
+               style="${p.color_hex ? `background:${p.color_hex}` : ''}"></div>
+          <span>${escapeHtml(p.name)}</span>
+          <span class="home-proj-result-meta">${escapeHtml(p.brand)}</span>
+        </div>
+      `).join('')
+    : '<div class="home-proj-result-empty">Sin resultados</div>'
+}
+
+function bindModalProjectEvents() {
+  const modal = document.querySelector('#modal-project-bg .modal')
+
+  document.getElementById('proj-modal-unit-search').addEventListener('input', e => {
+    onModalUnitSearch(e.target.value)
+  })
+  document.getElementById('proj-modal-paint-search').addEventListener('input', e => {
+    onModalPaintSearch(e.target.value)
+  })
+
+  modal.addEventListener('click', async e => {
+    const actionEl = e.target.closest('[data-action]')
+    if (!actionEl) return
+    const action = actionEl.dataset.action
+
+    if (action === 'modal-add-mini') {
+      const { error } = await db.from('project_minis').insert({ project_id: _modalProjectId, mini_id: Number(actionEl.dataset.miniId) })
+      if (error) { mostrarError('Error añadiendo unidad'); return }
+      document.getElementById('proj-modal-unit-search').value = ''
+      document.getElementById('proj-modal-unit-results').innerHTML = ''
+      await recargarModal()
+    } else if (action === 'modal-add-paint') {
+      const { error } = await db.from('project_paints').insert({ project_id: _modalProjectId, paint_id: Number(actionEl.dataset.paintId) })
+      if (error) { mostrarError('Error añadiendo pintura'); return }
+      document.getElementById('proj-modal-paint-search').value = ''
+      document.getElementById('proj-modal-paint-results').innerHTML = ''
+      await recargarModal()
+    } else if (action === 'modal-remove-mini') {
+      await db.from('project_minis').delete().eq('id', actionEl.dataset.pmId)
+      await recargarModal()
+    } else if (action === 'modal-remove-paint') {
+      await db.from('project_paints').delete().eq('id', actionEl.dataset.ppId)
+      await recargarModal()
+    }
+  })
+
+  modal.addEventListener('change', async e => {
+    if (e.target.dataset.action === 'modal-update-progress') {
+      const val = Math.min(100, Math.max(0, Number(e.target.value) || 0))
+      e.target.value = val
+      await db.from('minis').update({ paint_progress: val }).eq('id', Number(e.target.dataset.miniId))
+      const mini = _minis.find(m => m.id === Number(e.target.dataset.miniId))
+      if (mini) mini.paint_progress = val
+    }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Handlers de la sección de proyectos en home
+// ---------------------------------------------------------------------------
+
+async function handleCreateProject() {
+  const input = document.getElementById('proj-new-name')
+  const name = input?.value.trim()
+  if (!name) return
+  const { data, error } = await db.from('projects').insert({ name }).select().single()
+  if (error) { mostrarError('Error creando proyecto: ' + error.message); return }
+  if (input) input.value = ''
+  _proyectos.unshift({ ...data, project_minis: [], project_paints: [] })
+  await abrirModalProyecto(data.id)
+}
+
+// ---------------------------------------------------------------------------
+// Render: resto del dashboard
 // ---------------------------------------------------------------------------
 
 function renderSummary({ totalModels, paintedModels, pctGlobal, totalPts }) {
@@ -380,137 +547,7 @@ function renderLast(items) {
 }
 
 // ---------------------------------------------------------------------------
-// Búsquedas en tarjetas de proyecto
-// ---------------------------------------------------------------------------
-
-function onProjMiniSearch(query, projectId) {
-  const results = document.getElementById(`mini-results-${projectId}`)
-  if (!results) return
-  const q = query.trim().toLowerCase()
-  if (!q) { results.innerHTML = ''; return }
-
-  const input = document.querySelector(`.home-proj-mini-search[data-project-id="${projectId}"]`)
-  const added = new Set((input?.dataset.addedMinis || '').split(',').map(Number).filter(Boolean))
-
-  const matches = _minis
-    .filter(m => !added.has(m.id) && m.name.toLowerCase().includes(q))
-    .slice(0, 6)
-
-  results.innerHTML = matches.length
-    ? matches.map(m => `
-        <div class="home-proj-search-result" data-action="add-mini-to-proj"
-             data-mini-id="${m.id}" data-project-id="${projectId}">
-          <span>${escapeHtml(m.name)}</span>
-          <span class="home-proj-result-meta">${escapeHtml((m.factions || [])[0] || '')}</span>
-        </div>
-      `).join('')
-    : '<div class="home-proj-result-empty">Sin resultados</div>'
-}
-
-function onProjPaintSearch(query, projectId) {
-  const results = document.getElementById(`paint-results-${projectId}`)
-  if (!results) return
-  const q = query.trim().toLowerCase()
-  if (!q) { results.innerHTML = ''; return }
-
-  const input = document.querySelector(`.home-proj-paint-search[data-project-id="${projectId}"]`)
-  const added = new Set((input?.dataset.addedPaints || '').split(',').map(Number).filter(Boolean))
-
-  const matches = state.pinturas
-    .filter(p => !added.has(p.id) && (p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)))
-    .slice(0, 6)
-
-  results.innerHTML = matches.length
-    ? matches.map(p => `
-        <div class="home-proj-search-result" data-action="add-paint-to-proj"
-             data-paint-id="${p.id}" data-project-id="${projectId}">
-          ${p.color_hex
-            ? `<div class="home-proj-paint-dot" style="background:${p.color_hex}"></div>`
-            : `<div class="home-proj-paint-dot home-proj-paint-dot-none"></div>`
-          }
-          <span>${escapeHtml(p.name)}</span>
-          <span class="home-proj-result-meta">${escapeHtml(p.brand)}</span>
-        </div>
-      `).join('')
-    : '<div class="home-proj-result-empty">Sin resultados</div>'
-}
-
-// ---------------------------------------------------------------------------
-// Handlers CRUD proyectos
-// ---------------------------------------------------------------------------
-
-async function handleCreateProject() {
-  const input = document.getElementById('proj-new-name')
-  const name = input?.value.trim()
-  if (!name) return
-  const { error } = await db.from('projects').insert({ name })
-  if (error) { mostrarError('Error creando proyecto'); return }
-  if (input) input.value = ''
-  await cargarHome()
-}
-
-async function handleCompleteProject(projectId) {
-  if (!confirm('¿Completar proyecto? Todas sus unidades se marcarán como pintadas.')) return
-  const project = _proyectos.find(p => p.id === projectId)
-  if (!project) return
-  const miniIds = (project.project_minis || []).map(pm => pm.mini_id)
-  await Promise.all([
-    miniIds.length ? db.from('minis').update({ status: 'pintada' }).in('id', miniIds) : Promise.resolve(),
-    db.from('projects').update({ status: 'completado' }).eq('id', projectId)
-  ])
-  await cargarHome()
-}
-
-async function handleDeleteProject(projectId) {
-  if (!confirm('¿Eliminar este proyecto? Las unidades no se modifican.')) return
-  await db.from('projects').delete().eq('id', projectId)
-  await cargarHome()
-}
-
-async function handleAddMiniToProj(miniId, projectId) {
-  const { error } = await db.from('project_minis').insert({ project_id: projectId, mini_id: Number(miniId) })
-  if (error) { mostrarError('Error añadiendo unidad'); return }
-  const input = document.querySelector(`.home-proj-mini-search[data-project-id="${projectId}"]`)
-  if (input) input.value = ''
-  const results = document.getElementById(`mini-results-${projectId}`)
-  if (results) results.innerHTML = ''
-  await cargarHome()
-}
-
-async function handleAddPaintToProj(paintId, projectId) {
-  const { error } = await db.from('project_paints').insert({ project_id: projectId, paint_id: Number(paintId) })
-  if (error) { mostrarError('Error añadiendo pintura'); return }
-  const input = document.querySelector(`.home-proj-paint-search[data-project-id="${projectId}"]`)
-  if (input) input.value = ''
-  const results = document.getElementById(`paint-results-${projectId}`)
-  if (results) results.innerHTML = ''
-  await cargarHome()
-}
-
-async function handleRemoveProjMini(pmId) {
-  await db.from('project_minis').delete().eq('id', pmId)
-  await cargarHome()
-}
-
-async function handleRemoveProjPaint(ppId) {
-  await db.from('project_paints').delete().eq('id', ppId)
-  await cargarHome()
-}
-
-function updateProjectProgressInDom(projectId) {
-  const card = document.querySelector(`.home-proj-card[data-project-id="${projectId}"]`)
-  if (!card) return
-  const inputs = [...card.querySelectorAll('[data-action="update-proj-mini-progress"]')]
-  const values = inputs.map(i => Number(i.value) || 0)
-  const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0
-  const pctEl = card.querySelector('.home-proj-pct')
-  if (pctEl) pctEl.textContent = avg + '%'
-  const fillEl = card.querySelector('.home-proj-progress-fill')
-  if (fillEl) fillEl.style.width = avg + '%'
-}
-
-// ---------------------------------------------------------------------------
-// Event binding
+// Event binding (home-content)
 // ---------------------------------------------------------------------------
 
 function bindHomeEvents(container) {
@@ -518,31 +555,15 @@ function bindHomeEvents(container) {
   container.dataset.bound = '1'
 
   container.addEventListener('click', async e => {
-    // Cerrar resultados al clicar fuera
-    if (!e.target.closest('.home-proj-search-wrap')) {
-      container.querySelectorAll('.home-proj-search-results').forEach(r => { r.innerHTML = '' })
-    }
-
     const actionEl = e.target.closest('[data-action]')
     if (!actionEl) return
     const action = actionEl.dataset.action
-    const projectId = actionEl.dataset.projectId
 
     if (action === 'create-project') {
       await handleCreateProject()
-    } else if (action === 'complete-project') {
-      await handleCompleteProject(projectId)
-    } else if (action === 'delete-project') {
-      await handleDeleteProject(projectId)
-    } else if (action === 'add-mini-to-proj') {
-      await handleAddMiniToProj(actionEl.dataset.miniId, projectId)
-    } else if (action === 'add-paint-to-proj') {
-      await handleAddPaintToProj(actionEl.dataset.paintId, projectId)
-    } else if (action === 'remove-proj-mini') {
-      await handleRemoveProjMini(actionEl.dataset.pmId)
-    } else if (action === 'remove-proj-paint') {
-      await handleRemoveProjPaint(actionEl.dataset.ppId)
-    } else if (action === 'open-mini' || action === 'continue') {
+    } else if (action === 'edit-project') {
+      await abrirModalProyecto(actionEl.dataset.projectId)
+    } else if (action === 'open-mini') {
       const id = Number(actionEl.dataset.miniId)
       if (id) {
         const { abrirEdicion } = await import('./mini-modal.js')
@@ -552,27 +573,11 @@ function bindHomeEvents(container) {
       cambiarTab('coleccion')
     }
   })
-
-  container.addEventListener('input', e => {
-    if (e.target.classList.contains('home-proj-mini-search')) {
-      onProjMiniSearch(e.target.value, e.target.dataset.projectId)
-    } else if (e.target.classList.contains('home-proj-paint-search')) {
-      onProjPaintSearch(e.target.value, e.target.dataset.projectId)
-    }
-  })
-
-  container.addEventListener('change', e => {
-    if (e.target.dataset.action === 'update-proj-mini-progress') {
-      const val = Math.min(100, Math.max(0, Number(e.target.value) || 0))
-      e.target.value = val
-      const row = e.target.closest('.home-proj-mini-row')
-      const fill = row?.querySelector('.home-proj-mini-fill')
-      if (fill) fill.style.width = val + '%'
-      updateProjectProgressInDom(e.target.dataset.projectId)
-      db.from('minis').update({ paint_progress: val }).eq('id', Number(e.target.dataset.miniId))
-    }
-  })
 }
+
+// ---------------------------------------------------------------------------
+// Util
+// ---------------------------------------------------------------------------
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({

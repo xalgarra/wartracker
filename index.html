@@ -234,6 +234,32 @@
     </div>
   </div>
 
+  <!-- Modal: proyecto -->
+  <div class="modal-bg" id="modal-project-bg">
+    <div class="modal">
+      <div class="modal-eye">▸ proyecto</div>
+      <h2 id="modal-project-title">Proyecto</h2>
+      <input id="proj-edit-name" placeholder="Nombre del proyecto" maxlength="80">
+
+      <label class="field-label">Unidades</label>
+      <div id="proj-modal-units"></div>
+      <input type="search" id="proj-modal-unit-search" placeholder="Añadir unidad…" autocomplete="off">
+      <div id="proj-modal-unit-results" class="proj-modal-results"></div>
+
+      <label class="field-label">Pinturas</label>
+      <div id="proj-modal-paints"></div>
+      <input type="search" id="proj-modal-paint-search" placeholder="Añadir pintura…" autocomplete="off">
+      <div id="proj-modal-paint-results" class="proj-modal-results"></div>
+
+      <div class="modal-btns">
+        <button id="btn-eliminar-project" class="btn-danger" style="display:none">Eliminar</button>
+        <button id="btn-completar-project" class="btn-cancel" style="display:none">Completar ✓</button>
+        <button id="btn-cerrar-modal-project" class="btn-cancel">Cancelar</button>
+        <button id="btn-guardar-project" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="status-picker" class="status-picker"></div>
   <div id="toast-container"></div>
 
