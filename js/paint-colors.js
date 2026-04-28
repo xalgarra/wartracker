@@ -138,8 +138,6 @@ export const CITADEL_CATALOG = [
   { name: 'Dechala Lilac', type: 'layer', hex: "#b69fcc" },
   { name: 'Dorn Yellow', type: 'layer', hex: "#fff200" },
   { name: 'Fulgrim Pink', type: 'layer', hex: "#f4afcd" },
-  { name: 'Gauss Blaster Green', type: 'layer', hex: "#84c3aa" },
-  { name: 'Krieg Khaki', type: 'layer', hex: "#c0bd81" },
   { name: 'Lugganath Orange', type: 'layer', hex: "#f79e86" },
   { name: 'Aeldari Emerald', type: 'contrast', hex: "#00694a" },
   { name: 'Aethermatic Blue', type: 'contrast', hex: "#73c2c6" },
