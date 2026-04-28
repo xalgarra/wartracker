@@ -109,7 +109,14 @@ export async function guardarPintura() {
   if (state.paintEnEdicion) {
     ;({ error } = await db.from('paints').update(payload).eq('id', state.paintEnEdicion.id))
   } else {
-    ;({ error } = await db.from('paints').insert(payload))
+    const existente = state.pinturas.find(
+      p => p.brand.toLowerCase() === brand.toLowerCase() && p.name.toLowerCase() === name.toLowerCase()
+    )
+    if (existente) {
+      ;({ error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + (payload.quantity || 1) }).eq('id', existente.id))
+    } else {
+      ;({ error } = await db.from('paints').insert(payload))
+    }
   }
   if (error) { mostrarError('Error: ' + error.message); return }
 
