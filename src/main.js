@@ -131,7 +131,7 @@ document.getElementById('filtro-type')?.addEventListener('change', onFiltroType)
 document.getElementById('busqueda')?.addEventListener('input', e => onBusqueda(e.target.value))
 
 // Sort buttons
-document.querySelectorAll('.sort-btn').forEach(btn => {
+document.querySelectorAll('.sort-btn:not(.sort-paint-btn)').forEach(btn => {
   btn.addEventListener('click', () => onOrdenar(btn))
 })
 

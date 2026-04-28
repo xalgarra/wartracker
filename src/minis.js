@@ -117,7 +117,7 @@ export function onOrdenar(btn) {
     state.ordenar = key
     state.sortDir = key === 'reciente' ? 'desc' : 'asc'
   }
-  document.querySelectorAll('.sort-btn').forEach(b => {
+  document.querySelectorAll('.sort-btn:not(.sort-paint-btn)').forEach(b => {
     const active = b.dataset.sort === state.ordenar
     b.classList.toggle('active', active)
     b.textContent = active ? `${b.dataset.label} ${state.sortDir === 'asc' ? '↑' : '↓'}` : b.dataset.label
