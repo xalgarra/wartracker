@@ -4,6 +4,7 @@ import { STATUSES, STATUS_ORDER } from './constants.js'
 import { mostrarError } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
+import { getRecommendations, getEmptyState } from '../js/recommendations.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
@@ -70,7 +71,7 @@ export async function cargarHome() {
 
   const { data: minis, error } = await db
     .from('minis')
-    .select('id, name, factions, status, qty, models, photo_url, created_at, paint_progress')
+    .select('id, name, factions, status, qty, models, photo_url, created_at, paint_progress, hobby_blocker, assembly_risk')
     .neq('status', 'wishlist')
     .order('created_at', { ascending: false })
 
@@ -140,6 +141,7 @@ export async function cargarHome() {
 
   container.innerHTML = `
     ${renderProjects(_proyectos, minis)}
+    ${renderRecommendations(minis, _proyectos)}
     ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
     ${renderByGame(byGame)}
     ${renderQueue(inQueue)}
@@ -149,6 +151,64 @@ export async function cargarHome() {
   `
 
   bindHomeEvents(container)
+}
+
+// ---------------------------------------------------------------------------
+// Render: recomendaciones de siguiente paso
+// ---------------------------------------------------------------------------
+
+const ACTION_LABELS = {
+  assemble:              'montar',
+  prime:                 'imprimar',
+  paint_accessible_parts: 'zonas accesibles',
+  continue:              'continuar',
+  finish:                'terminar',
+  review_before_gluing:  'revisar montaje',
+}
+
+function renderRecommendations(minis, proyectos) {
+  const emptyState = getEmptyState(minis)
+
+  let bodyHtml
+  if (emptyState === 'all_painted') {
+    bodyHtml = '<div class="rec-empty">Todo está pintado 🎉</div>'
+  } else if (emptyState === 'only_wishlist') {
+    bodyHtml = '<div class="rec-empty">Tu colección activa está vacía. Mueve algo de wishlist a colección cuando lo tengas.</div>'
+  } else if (emptyState === 'empty') {
+    bodyHtml = '<div class="rec-empty">Añade alguna mini para empezar a planificar.</div>'
+  } else {
+    const recs = getRecommendations(minis, proyectos)
+    if (!recs.length) return ''
+    bodyHtml = recs.map(rec => {
+      const clickAttr = rec.type === 'mini'
+        ? `data-action="open-mini" data-mini-id="${rec.id}"`
+        : `data-action="edit-project" data-project-id="${rec.id}"`
+      const progressHtml = rec.progress != null
+        ? `<div class="rec-progress-bar"><div class="rec-progress-fill" style="width:${rec.progress}%"></div></div>`
+        : ''
+      return `
+        <div class="rec-card" ${clickAttr}>
+          <div class="rec-card-header">
+            <span class="rec-card-title">${escapeHtml(rec.title)}</span>
+            <span class="rec-action-badge rec-action-${rec.action}">${ACTION_LABELS[rec.action] || rec.action}</span>
+          </div>
+          <div class="rec-card-subtitle">${escapeHtml(rec.subtitle)}</div>
+          ${progressHtml}
+          <div class="rec-card-reason">${escapeHtml(rec.reason)}</div>
+        </div>
+      `
+    }).join('')
+  }
+
+  return `
+    <div class="home-block home-block--recs">
+      <div class="home-block-h">
+        <span>// siguiente paso</span>
+        <span class="rec-block-hint">sin presión diaria</span>
+      </div>
+      ${bodyHtml}
+    </div>
+  `
 }
 
 // ---------------------------------------------------------------------------
@@ -396,8 +456,13 @@ function bindHomeEvents(container) {
       await abrirModalProyecto(projectId)
     } else if (action === 'open-mini') {
       if (miniId) {
+        const id = Number(miniId)
+        if (!state.minisActuales.some(m => m.id === id)) {
+          const cached = _minis.find(m => m.id === id)
+          if (cached) state.minisActuales = [...state.minisActuales, cached]
+        }
         const { abrirEdicion } = await import('./mini-modal.js')
-        abrirEdicion(Number(miniId))
+        abrirEdicion(id)
       }
     } else if (action === 'goto-coleccion') {
       cambiarTab('coleccion')

@@ -156,6 +156,30 @@
       <label class="field-label" for="status">Estado</label>
       <select id="status"></select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
+
+      <details class="hobby-plan-section">
+        <summary class="hobby-plan-summary">Plan de hobby <span class="hobby-plan-optional">(opcional)</span></summary>
+        <div class="hobby-plan-fields">
+          <label class="field-label" for="hobby-blocker">Bloqueo actual</label>
+          <select id="hobby-blocker">
+            <option value="">Ninguno</option>
+            <option value="assembly">Montaje</option>
+            <option value="priming">Imprimación</option>
+            <option value="hard_to_reach">Difícil acceso</option>
+            <option value="motivation">Motivación</option>
+            <option value="decision">Decisión</option>
+          </select>
+          <label class="field-label" for="assembly-risk">Riesgo de sub-assembly</label>
+          <select id="assembly-risk">
+            <option value="">Sin definir</option>
+            <option value="low">Bajo</option>
+            <option value="medium">Medio</option>
+            <option value="high">Alto</option>
+          </select>
+          <p class="hobby-plan-hint">Marca alto si montar todo antes de pintar puede dificultar llegar a recovecos.</p>
+        </div>
+      </details>
+
       <div class="modal-btns">
         <button id="btn-eliminar" class="btn-danger" style="display:none">Eliminar</button>
         <button id="btn-cerrar-modal" class="btn-cancel">Cancelar</button>

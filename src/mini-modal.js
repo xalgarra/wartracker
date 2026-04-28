@@ -194,6 +194,8 @@ export async function abrirEdicion(id) {
   document.getElementById('models').value = mini.models || ''
   document.getElementById('status').value = mini.status
   document.getElementById('notes').value = mini.notes || ''
+  document.getElementById('hobby-blocker').value = mini.hobby_blocker || ''
+  document.getElementById('assembly-risk').value = mini.assembly_risk || ''
   resetPhotoModal(mini.photo_url || null)
 
   document.getElementById('modal-title').textContent = 'Editar miniatura'
@@ -213,6 +215,8 @@ export function cerrarModal() {
   document.getElementById('notes').value = ''
   document.getElementById('qty').value = 1
   document.getElementById('models').value = ''
+  document.getElementById('hobby-blocker').value = ''
+  document.getElementById('assembly-risk').value = ''
 }
 
 export async function guardarMini() {
@@ -235,7 +239,9 @@ export async function guardarMini() {
     qty: parseInt(document.getElementById('qty').value) || 1,
     models: modelsVal,
     status: document.getElementById('status').value,
-    notes: document.getElementById('notes').value
+    notes: document.getElementById('notes').value,
+    hobby_blocker: document.getElementById('hobby-blocker').value || null,
+    assembly_risk: document.getElementById('assembly-risk').value || null,
   }
 
   let error
