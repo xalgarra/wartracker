@@ -18,14 +18,14 @@ export async function cargarPinturas() {
 
 export function filtrarYRenderPinturas() {
   const busqueda = (document.getElementById('busqueda-paint')?.value || '').trim().toLowerCase()
-  const tipo = document.getElementById('filtro-paint-type')?.value || ''
+  const tipos = [...document.querySelectorAll('.paint-type-cb:checked')].map(cb => cb.value)
   const stock = document.getElementById('filtro-paint-stock')?.value || ''
 
   let filtered = state.pinturas
   if (busqueda) filtered = filtered.filter(p =>
     p.name.toLowerCase().includes(busqueda) || p.brand.toLowerCase().includes(busqueda)
   )
-  if (tipo) filtered = filtered.filter(p => p.type === tipo)
+  if (tipos.length) filtered = filtered.filter(p => tipos.includes(p.type))
   if (stock === '1') filtered = filtered.filter(p => p.in_stock)
   if (stock === '0') filtered = filtered.filter(p => !p.in_stock)
 

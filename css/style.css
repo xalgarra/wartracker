@@ -546,6 +546,67 @@ body.dark .filtros input[type="search"] {
   color: var(--text-3);
 }
 
+/* Dropdown checkbox tipo pintura */
+.filter-dropdown { position: relative; }
+.filter-dropdown-btn {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s;
+}
+.filter-dropdown-btn.active {
+  border-color: var(--accent, oklch(0.65 0.18 65));
+  color: var(--accent, oklch(0.65 0.18 65));
+}
+body.dark .filter-dropdown-btn {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-3);
+}
+body.dark .filter-dropdown-btn.active { color: oklch(0.78 0.18 65); border-color: oklch(0.5 0.15 65); }
+
+.filter-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 4px;
+  z-index: 50;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.filter-dropdown.open .filter-dropdown-panel { display: block; }
+body.dark .filter-dropdown-panel {
+  background: oklch(0.18 0.03 65);
+  border-color: oklch(0.28 0.04 65);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.filter-cb-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+.filter-cb-label:hover { background: var(--bg); }
+body.dark .filter-cb-label { color: var(--text-3); }
+body.dark .filter-cb-label:hover { background: oklch(0.22 0.04 65); }
+.filter-cb-label input[type="checkbox"] { accent-color: var(--accent, oklch(0.65 0.18 65)); }
+
 .filtros select:focus,
 .filtros input[type="search"]:focus {
   border-color: var(--accent);
@@ -1885,178 +1946,191 @@ body.dark .camera-result-name { font-weight: 400; }
   border-color: oklch(0.6 0.15 305);
 }
 
-/* ---------- Hero: selector de mini activa ---------- */
-.home-hero-selector {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.home-hero-sel-pill {
-  padding: 4px 10px;
-  background: oklch(0.18 0.05 305 / 0.6);
-  border: 1px solid oklch(0.4 0.1 305);
-  color: oklch(0.82 0.06 305);
-  font-family: var(--font-body);
-  font-size: 11px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.home-hero-sel-pill.active {
-  background: oklch(0.45 0.15 305);
-  border-color: oklch(0.55 0.18 305);
-  color: #fff;
+/* ---------- Proyectos activos (reemplaza hero de mini) ---------- */
+.home-proj-empty-msg {
+  font-size: 13px;
+  color: oklch(0.72 0.06 305);
+  padding: 8px 0 12px;
 }
 
-/* ---------- Hero: progreso ---------- */
-.home-hero-progress-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  margin-bottom: 14px;
+.home-proj-card {
+  background: oklch(0.17 0.06 305 / 0.55);
+  border: 1px solid oklch(0.38 0.1 305 / 0.6);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
 }
-.home-hero-progress-bar {
-  flex: 1;
-  height: 6px;
+
+.home-proj-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.home-proj-name { font-size: 15px; font-weight: 600; color: #fff; flex: 1; }
+.home-proj-card-actions { display: flex; align-items: center; gap: 8px; }
+.home-proj-pct {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: oklch(0.78 0.2 305);
+}
+.home-proj-delete-btn {
+  width: 22px; height: 22px;
+  background: none;
+  border: 1px solid oklch(0.38 0.06 305 / 0.6);
+  border-radius: 50%;
+  color: oklch(0.52 0.07 305);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.home-proj-delete-btn:hover { border-color: oklch(0.55 0.2 20); color: oklch(0.7 0.2 20); }
+
+.home-proj-progress-bar {
+  height: 4px;
   background: oklch(0.28 0.05 305 / 0.5);
   border-radius: 999px;
   overflow: hidden;
+  margin-bottom: 12px;
 }
-.home-hero-progress-fill {
+.home-proj-progress-fill {
   height: 100%;
   background: oklch(0.78 0.2 305);
   border-radius: 999px;
-  transition: width 0.3s ease;
-}
-.home-hero-progress-input {
-  width: 46px;
-  padding: 3px 6px;
-  background: oklch(0.18 0.05 305 / 0.6);
-  border: 1px solid oklch(0.42 0.1 305);
-  border-radius: 6px;
-  color: #fff;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  text-align: center;
-}
-.home-hero-progress-pct {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: oklch(0.72 0.08 305);
+  transition: width 0.3s;
 }
 
-/* ---------- Hero: pinturas usadas ---------- */
-.home-hero-section-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: oklch(0.68 0.08 305);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 8px;
-}
-.home-hero-paints { margin-bottom: 4px; }
-
-.home-hero-paint-row {
+/* Filas de unidades */
+.home-proj-mini-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 0;
+  gap: 7px;
+  padding: 3px 0;
 }
-.home-hero-paint-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  flex-shrink: 0;
+.home-proj-mini-name {
+  flex: 1; font-size: 12px; color: #fff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
 }
-.home-hero-paint-swatch-none {
-  background: oklch(0.28 0.03 305);
-  border: 1px solid oklch(0.38 0.05 305);
+.home-proj-mini-bar {
+  width: 52px; height: 4px;
+  background: oklch(0.28 0.05 305 / 0.5);
+  border-radius: 999px; overflow: hidden; flex-shrink: 0;
 }
-.home-hero-paint-name {
-  flex: 1;
-  font-size: 12px;
-  color: #fff;
+.home-proj-mini-fill {
+  height: 100%; background: oklch(0.65 0.18 305);
+  border-radius: 999px; transition: width 0.3s;
 }
-.home-hero-paint-brand {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: oklch(0.65 0.05 305);
+.home-proj-mini-pct {
+  width: 38px; padding: 2px 4px;
+  background: oklch(0.18 0.05 305 / 0.6);
+  border: 1px solid oklch(0.36 0.08 305);
+  border-radius: 4px; color: #fff;
+  font-family: var(--font-mono); font-size: 11px; text-align: center; flex-shrink: 0;
 }
-.home-hero-paint-remove {
-  background: none;
-  border: none;
-  color: oklch(0.55 0.08 305);
-  cursor: pointer;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  line-height: 1;
+.home-proj-mini-pct-label {
+  font-family: var(--font-mono); font-size: 11px;
+  color: oklch(0.65 0.07 305); flex-shrink: 0;
+}
+.home-proj-mini-remove {
+  background: none; border: none;
+  color: oklch(0.48 0.07 305); cursor: pointer;
+  font-size: 9px; padding: 2px; line-height: 1; flex-shrink: 0;
   transition: color 0.15s;
 }
-.home-hero-paint-remove:hover { color: #fff; }
+.home-proj-mini-remove:hover { color: #fff; }
+.home-proj-mini-empty { font-size: 11px; color: oklch(0.6 0.05 305); padding: 4px 0 8px; }
 
-/* Buscador añadir pintura */
-.home-hero-paint-add-wrap { position: relative; margin-top: 8px; }
-.home-hero-paint-search {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 7px 12px;
+/* Chips de pinturas */
+.home-proj-paints-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 4px; margin: 10px 0 8px;
+}
+.home-proj-paint-chip { display: flex; align-items: center; gap: 2px; }
+.home-proj-paint-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1px solid oklch(0.45 0.1 305 / 0.5);
+}
+.home-proj-paint-dot-none { background: oklch(0.28 0.03 305); }
+.home-proj-paint-remove {
+  background: none; border: none;
+  color: oklch(0.45 0.07 305); cursor: pointer;
+  font-size: 9px; padding: 1px 2px; line-height: 1;
+  transition: color 0.15s;
+}
+.home-proj-paint-remove:hover { color: #fff; }
+
+/* Buscadores de unidad y pintura */
+.home-proj-search-wrap { position: relative; margin-top: 6px; }
+.home-proj-search-input {
+  width: 100%; box-sizing: border-box;
+  padding: 6px 10px;
+  background: oklch(0.15 0.04 305 / 0.7);
+  border: 1px solid oklch(0.34 0.08 305 / 0.8);
+  border-radius: 6px; color: #fff;
+  font-size: 11px; font-family: var(--font-body);
+}
+.home-proj-search-input::placeholder { color: oklch(0.55 0.05 305); }
+.home-proj-search-input:focus { outline: none; border-color: oklch(0.55 0.15 305); }
+
+.home-proj-search-results {
+  background: oklch(0.17 0.06 305);
+  border: 1px solid oklch(0.35 0.1 305);
+  border-radius: 6px; margin-top: 3px;
+  overflow: hidden; max-height: 150px; overflow-y: auto;
+}
+.home-proj-search-result {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; cursor: pointer;
+  font-size: 12px; color: #fff; transition: background 0.12s;
+}
+.home-proj-search-result:hover { background: oklch(0.24 0.08 305); }
+.home-proj-result-meta {
+  font-size: 10px; color: oklch(0.62 0.05 305); font-family: var(--font-mono);
+}
+.home-proj-result-empty {
+  padding: 10px; text-align: center;
+  font-size: 11px; color: oklch(0.58 0.05 305);
+}
+
+/* Notas y botón completar */
+.home-proj-notes {
+  font-size: 11px; color: oklch(0.72 0.05 305);
+  font-style: italic; margin: 8px 0 6px;
+}
+.home-proj-complete-btn {
+  width: 100%; margin-top: 10px;
+  padding: 9px 14px;
+  background: oklch(0.22 0.08 142 / 0.35);
+  border: 1px solid oklch(0.45 0.18 142 / 0.5);
+  border-radius: 999px;
+  color: oklch(0.88 0.15 142);
+  font-size: 12px; font-family: var(--font-body); cursor: pointer;
+  transition: all 0.15s;
+}
+.home-proj-complete-btn:hover { background: oklch(0.28 0.1 142 / 0.5); }
+
+/* Formulario nuevo proyecto */
+.home-proj-new-row {
+  display: flex; gap: 8px; margin-top: 14px;
+}
+.home-proj-new-input {
+  flex: 1; padding: 8px 12px;
   background: oklch(0.18 0.05 305 / 0.6);
   border: 1px solid oklch(0.38 0.1 305 / 0.8);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 12px;
-  font-family: var(--font-body);
+  border-radius: 8px; color: #fff;
+  font-size: 13px; font-family: var(--font-body);
 }
-.home-hero-paint-search::placeholder { color: oklch(0.58 0.06 305); }
-.home-hero-paint-search:focus { outline: none; border-color: oklch(0.6 0.15 305); }
-
-.hero-paint-results {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0; right: 0;
-  background: oklch(0.17 0.06 305);
-  border: 1px solid oklch(0.38 0.1 305);
-  border-radius: 8px;
-  overflow: hidden;
-  z-index: 20;
-  max-height: 200px;
-  overflow-y: auto;
+.home-proj-new-input::placeholder { color: oklch(0.58 0.06 305); }
+.home-proj-new-input:focus { outline: none; border-color: oklch(0.6 0.15 305); }
+.home-proj-create-btn {
+  padding: 8px 16px;
+  background: oklch(0.45 0.15 305); border: none;
+  border-radius: 8px; color: #fff;
+  font-size: 13px; font-family: var(--font-body); font-weight: 500;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s;
 }
-.hero-paint-result {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-.hero-paint-result:hover { background: oklch(0.25 0.08 305); }
-.hero-paint-result-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-.hero-paint-result-swatch-none {
-  background: oklch(0.28 0.03 305);
-  border: 1px solid oklch(0.38 0.05 305);
-}
-.hero-paint-result span { font-size: 12px; color: #fff; flex: 1; min-width: 0; }
-.hero-paint-result-brand {
-  font-size: 10px;
-  color: oklch(0.62 0.05 305);
-  font-family: var(--font-mono);
-  flex: 0 0 auto;
-}
-.hero-paint-empty {
-  padding: 12px;
-  text-align: center;
-  font-size: 11px;
-  color: oklch(0.58 0.05 305);
-}
+.home-proj-create-btn:hover { background: oklch(0.55 0.18 305); }
 
 /* ---------- Resumen comprimido ---------- */
 .home-summary {

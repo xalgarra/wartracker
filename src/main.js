@@ -18,12 +18,15 @@ import { exportarJSON } from './export.js'
   document.getElementById('status').innerHTML =
     statusOpts + '<option disabled>──────────</option><option value="wishlist">Wishlist</option>'
 
-  const paintTypeOpts = PAINT_TYPES.map(t =>
-    `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
-  ).join('')
-  document.getElementById('filtro-paint-type').innerHTML =
-    '<option value="">Todos los tipos</option>' + paintTypeOpts
-  document.getElementById('paint-type').innerHTML = paintTypeOpts
+  document.getElementById('filtro-paint-type-panel').innerHTML =
+    PAINT_TYPES.map(t => `
+      <label class="filter-cb-label">
+        <input type="checkbox" class="paint-type-cb" value="${t}">
+        ${t.charAt(0).toUpperCase() + t.slice(1)}
+      </label>
+    `).join('')
+  document.getElementById('paint-type').innerHTML =
+    PAINT_TYPES.map(t => `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`).join('')
 
   document.getElementById('filtro-type').innerHTML =
     '<option value="">Todos los tipos</option>' +
@@ -152,9 +155,22 @@ document.getElementById('paint-name')?.addEventListener('input', onPaintNameInpu
 document.getElementById('paint-has-color')?.addEventListener('change', e => toggleColorPicker(e.target))
 document.getElementById('btn-color-search')?.addEventListener('click', buscarColorExterno)
 document.getElementById('busqueda-paint')?.addEventListener('input', filtrarYRenderPinturas)
-document.getElementById('filtro-paint-type')?.addEventListener('change', filtrarYRenderPinturas)
 document.getElementById('filtro-paint-stock')?.addEventListener('change', filtrarYRenderPinturas)
 
+// Dropdown tipo pintura con checkboxes
+document.getElementById('filtro-paint-type-btn')?.addEventListener('click', e => {
+  e.stopPropagation()
+  document.getElementById('filtro-paint-type-wrap').classList.toggle('open')
+})
+document.getElementById('filtro-paint-type-panel')?.addEventListener('change', () => {
+  const checked = [...document.querySelectorAll('.paint-type-cb:checked')].map(cb => cb.value)
+  const btn = document.getElementById('filtro-paint-type-btn')
+  btn.textContent = checked.length === 0 ? 'Tipo'
+    : checked.length <= 2 ? checked.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
+    : `${checked.length} tipos`
+  btn.classList.toggle('active', checked.length > 0)
+  filtrarYRenderPinturas()
+})
 // Catalog search (pinturas tab)
 document.getElementById('catalog-search')?.addEventListener('input', e => onCatalogSearch(e.target.value))
 document.getElementById('catalog-search')?.addEventListener('focus', e => onCatalogSearch(e.target.value))
@@ -162,6 +178,9 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.catalog-search-section')) {
     const r = document.getElementById('catalog-results')
     if (r) r.style.display = 'none'
+  }
+  if (!e.target.closest('#filtro-paint-type-wrap')) {
+    document.getElementById('filtro-paint-type-wrap')?.classList.remove('open')
   }
 })
 
