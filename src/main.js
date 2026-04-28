@@ -5,7 +5,7 @@ import { login, logout, toggleDarkMode, mostrarApp } from './auth.js'
 import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
-import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas } from './paints.js'
+import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas, setPaintSort } from './paints.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { exportarJSON } from './export.js'
@@ -184,6 +184,15 @@ document.getElementById('filtro-paint-type-panel')?.addEventListener('change', (
   btn.classList.toggle('active', checked.length > 0)
   filtrarYRenderPinturas()
 })
+// Paint sort
+document.querySelectorAll('.sort-paint-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-paint-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    setPaintSort(btn.dataset.sort)
+  })
+})
+
 // Catalog search (pinturas tab)
 document.getElementById('catalog-search')?.addEventListener('input', e => onCatalogSearch(e.target.value))
 document.getElementById('catalog-search')?.addEventListener('focus', e => onCatalogSearch(e.target.value))
