@@ -1300,8 +1300,11 @@ body.dark .catalog-results {
 }
 
 .catalog-result:last-child { border-bottom: none; }
-.catalog-result:hover:not(.owned) { background: var(--subtle); }
-.catalog-result.owned { opacity: 0.45; cursor: default; }
+.catalog-result:hover { background: var(--subtle); }
+.catalog-result.owned { background: oklch(0.96 0.025 145); }
+.catalog-result.owned:hover { background: oklch(0.92 0.04 145); }
+body.dark .catalog-result.owned { background: oklch(0.17 0.04 145); }
+body.dark .catalog-result.owned:hover { background: oklch(0.21 0.05 145); }
 
 .catalog-swatch {
   width: 22px; height: 22px;
@@ -1344,10 +1347,14 @@ body.dark .catalog-swatch { border-color: rgba(255,255,255,0.08); }
 }
 
 .catalog-owned-mark {
-  font-size: 11px;
-  color: var(--success);
+  font-size: 10px;
   flex-shrink: 0;
   font-family: var(--font-mono);
+  font-weight: 600;
+  background: var(--success);
+  color: #fff;
+  border-radius: 999px;
+  padding: 3px 9px;
 }
 
 .catalog-empty {
