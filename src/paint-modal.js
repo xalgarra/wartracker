@@ -110,7 +110,7 @@ export async function guardarPintura() {
     ;({ error } = await db.from('paints').update(payload).eq('id', state.paintEnEdicion.id))
   } else {
     const existente = state.pinturas.find(
-      p => p.brand.toLowerCase() === brand.toLowerCase() && p.name.toLowerCase() === name.toLowerCase()
+      p => p.brand.toLowerCase() === brand.toLowerCase() && p.name.toLowerCase() === name.toLowerCase() && p.type === type
     )
     if (existente) {
       ;({ error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + (payload.quantity || 1) }).eq('id', existente.id))

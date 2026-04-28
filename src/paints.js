@@ -62,9 +62,6 @@ export function onCatalogSearch(query) {
   const results = document.getElementById('catalog-results')
   if (!q || q.length < 2) { results.style.display = 'none'; results.innerHTML = ''; return }
 
-  const owned = new Set(
-    state.pinturas.filter(p => p.brand === 'Citadel').map(p => p.name.toLowerCase())
-  )
   const matches = CITADEL_CATALOG.filter(p => p.name.toLowerCase().includes(q)).slice(0, 12)
 
   if (!matches.length) {
@@ -74,8 +71,8 @@ export function onCatalogSearch(query) {
   }
 
   results.innerHTML = matches.map(p => {
-    const isOwned = owned.has(p.name.toLowerCase())
-    const existente = isOwned ? state.pinturas.find(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase()) : null
+    const isOwned = state.pinturas.some(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type)
+    const existente = isOwned ? state.pinturas.find(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type) : null
     const swatchClass = p.hex ? '' : ' catalog-swatch-none'
     const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
     const dataAttrs = `data-action="quick-add" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
@@ -96,7 +93,7 @@ export function onCatalogSearch(query) {
 }
 
 export async function quickAddPintura(name, type, hex) {
-  const existente = state.pinturas.find(p => p.brand === 'Citadel' && p.name.toLowerCase() === name.toLowerCase())
+  const existente = state.pinturas.find(p => p.brand === 'Citadel' && p.name.toLowerCase() === name.toLowerCase() && p.type === type)
   if (existente) {
     const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
     if (error) { mostrarError('Error: ' + error.message); return }
