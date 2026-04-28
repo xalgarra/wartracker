@@ -3,24 +3,10 @@ import { state } from './state.js'
 import { CITADEL_CATALOG } from '../js/paint-colors.js'
 import { PAINT_BRANDS } from './constants.js'
 import { mostrarError } from './toast.js'
+import { comparePaintColors } from './paint-sort.js'
 
 let paintSort = 'nombre'
 export function setPaintSort(sort) { paintSort = sort; filtrarYRenderPinturas() }
-
-function hexToHue(hex) {
-  if (!hex) return 361
-  const r = parseInt(hex.slice(1, 3), 16) / 255
-  const g = parseInt(hex.slice(3, 5), 16) / 255
-  const b = parseInt(hex.slice(5, 7), 16) / 255
-  const max = Math.max(r, g, b), min = Math.min(r, g, b)
-  if (max === min) return 360
-  const d = max - min
-  let h
-  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-  else if (max === g) h = ((b - r) / d + 2) / 6
-  else h = ((r - g) / d + 4) / 6
-  return h * 360
-}
 
 export async function cargarPinturas() {
   const { data, error } = await db.from('paints').select('*').order('brand').order('name')
@@ -48,7 +34,7 @@ export function filtrarYRenderPinturas() {
   if (stock === '0') filtered = filtered.filter(p => !p.in_stock)
 
   if (paintSort === 'color') {
-    filtered = [...filtered].sort((a, b) => hexToHue(a.color_hex) - hexToHue(b.color_hex))
+    filtered = [...filtered].sort(comparePaintColors)
   }
 
   const lista = document.getElementById('lista-pinturas')
