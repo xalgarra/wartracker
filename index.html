@@ -108,11 +108,14 @@
           <button class="filter-dropdown-btn" id="filtro-paint-type-btn">Tipo</button>
           <div class="filter-dropdown-panel" id="filtro-paint-type-panel"></div>
         </div>
-        <select id="filtro-paint-stock">
-          <option value="">Todas</option>
-          <option value="1">En stock</option>
-          <option value="0">Sin stock</option>
-        </select>
+        <div class="filter-dropdown" id="filtro-paint-stock-wrap">
+          <button class="filter-dropdown-btn" id="filtro-paint-stock-btn">Todas</button>
+          <div class="filter-dropdown-panel filter-dropdown-panel--right" id="filtro-paint-stock-panel">
+            <label class="filter-cb-label"><input type="radio" name="stock-filter" class="paint-stock-radio" value="" checked><span>Todas</span></label>
+            <label class="filter-cb-label"><input type="radio" name="stock-filter" class="paint-stock-radio" value="1"><span>En stock</span></label>
+            <label class="filter-cb-label"><input type="radio" name="stock-filter" class="paint-stock-radio" value="0"><span>Sin stock</span></label>
+          </div>
+        </div>
         <input type="search" id="busqueda-paint" placeholder="Buscar nombre o marca…">
       </div>
       <div class="paint-list" id="lista-pinturas"></div>

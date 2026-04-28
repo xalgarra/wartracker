@@ -589,6 +589,7 @@ body.dark .filter-dropdown-btn.active { color: oklch(0.78 0.18 65); border-color
   min-width: 140px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
+.filter-dropdown-panel--right { left: auto; right: 0; }
 .filter-dropdown.open .filter-dropdown-panel { display: block; }
 body.dark .filter-dropdown-panel {
   background: oklch(0.18 0.03 65);
@@ -610,7 +611,8 @@ body.dark .filter-dropdown-panel {
 .filter-cb-label:hover { background: var(--bg); }
 body.dark .filter-cb-label { color: var(--text-3); }
 body.dark .filter-cb-label:hover { background: oklch(0.22 0.04 65); }
-.filter-cb-label input[type="checkbox"] { accent-color: var(--accent, oklch(0.65 0.18 65)); }
+.filter-cb-label input[type="checkbox"],
+.filter-cb-label input[type="radio"] { accent-color: var(--accent, oklch(0.65 0.18 65)); }
 
 .filtros select:focus,
 .filtros input[type="search"]:focus {

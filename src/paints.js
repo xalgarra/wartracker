@@ -19,7 +19,7 @@ export async function cargarPinturas() {
 export function filtrarYRenderPinturas() {
   const busqueda = (document.getElementById('busqueda-paint')?.value || '').trim().toLowerCase()
   const tipos = [...document.querySelectorAll('.paint-type-cb:checked')].map(cb => cb.value)
-  const stock = document.getElementById('filtro-paint-stock')?.value || ''
+  const stock = document.querySelector('.paint-stock-radio:checked')?.value || ''
 
   let filtered = state.pinturas
   if (busqueda) filtered = filtered.filter(p =>

@@ -155,7 +155,20 @@ document.getElementById('paint-name')?.addEventListener('input', onPaintNameInpu
 document.getElementById('paint-has-color')?.addEventListener('change', e => toggleColorPicker(e.target))
 document.getElementById('btn-color-search')?.addEventListener('click', buscarColorExterno)
 document.getElementById('busqueda-paint')?.addEventListener('input', filtrarYRenderPinturas)
-document.getElementById('filtro-paint-stock')?.addEventListener('change', filtrarYRenderPinturas)
+document.getElementById('filtro-paint-stock-btn')?.addEventListener('click', e => {
+  e.stopPropagation()
+  document.getElementById('filtro-paint-stock-wrap').classList.toggle('open')
+})
+document.getElementById('filtro-paint-stock-panel')?.addEventListener('change', e => {
+  const radio = e.target.closest('.paint-stock-radio')
+  if (!radio) return
+  const labels = { '': 'Todas', '1': 'En stock', '0': 'Sin stock' }
+  const btn = document.getElementById('filtro-paint-stock-btn')
+  btn.textContent = labels[radio.value]
+  btn.classList.toggle('active', radio.value !== '')
+  document.getElementById('filtro-paint-stock-wrap').classList.remove('open')
+  filtrarYRenderPinturas()
+})
 
 // Dropdown tipo pintura con checkboxes
 document.getElementById('filtro-paint-type-btn')?.addEventListener('click', e => {
@@ -181,6 +194,9 @@ document.addEventListener('click', e => {
   }
   if (!e.target.closest('#filtro-paint-type-wrap')) {
     document.getElementById('filtro-paint-type-wrap')?.classList.remove('open')
+  }
+  if (!e.target.closest('#filtro-paint-stock-wrap')) {
+    document.getElementById('filtro-paint-stock-wrap')?.classList.remove('open')
   }
 })
 
