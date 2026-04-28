@@ -56,7 +56,8 @@ export async function guardarProyecto() {
 
   if (_pendingPhotoFile) {
     const path = `${_modalProjectId}.jpg`
-    await db.storage.from('project-photos').upload(path, _pendingPhotoFile, { upsert: true })
+    const { error: uploadError } = await db.storage.from('project-photos').upload(path, _pendingPhotoFile, { upsert: true })
+    if (uploadError) { mostrarError('Error subiendo foto: ' + uploadError.message); return }
     const { data: { publicUrl } } = db.storage.from('project-photos').getPublicUrl(path)
     payload.photo_url = publicUrl
   } else if (_pendingPhotoRemove) {
@@ -198,7 +199,7 @@ async function recargarModal() {
   if (!_modalProjectId) return
   const { data } = await db
     .from('projects')
-    .select('id, name, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .select('id, name, photo_url, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
     .eq('id', _modalProjectId)
     .single()
   if (!data) return
