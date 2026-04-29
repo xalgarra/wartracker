@@ -79,6 +79,7 @@
         <button class="sort-btn" data-sort="nombre"  data-label="Nombre">Nombre</button>
         <button class="sort-btn" data-sort="estado"  data-label="Estado">Estado</button>
         <button class="sort-btn" data-sort="juego"   data-label="Juego">Juego</button>
+        <button id="btn-army-import" class="btn-army-import">+ ejército</button>
       </div>
       <div class="lista" id="lista"></div>
     </div>
@@ -290,6 +291,21 @@
         <button id="btn-completar-project" class="btn-cancel" style="display:none">Completar ✓</button>
         <button id="btn-cerrar-modal-project" class="btn-cancel">Cancelar</button>
         <button id="btn-guardar-project" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: importar ejército -->
+  <div class="modal-bg" id="modal-army-bg">
+    <div class="modal modal--army">
+      <div class="modal-eye">▸ importar ejército</div>
+      <h2>Añadir ejército</h2>
+      <select id="army-game"></select>
+      <select id="army-faction" disabled></select>
+      <div id="army-unit-list" class="army-unit-list"></div>
+      <div class="modal-btns">
+        <button id="btn-cerrar-army" class="btn-cancel">Cancelar</button>
+        <button id="btn-army-guardar" class="btn-primary" disabled>Añadir</button>
       </div>
     </div>
   </div>

@@ -10,6 +10,7 @@ import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas, setPaintSort 
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { exportarJSON } from './export.js'
+import { abrirArmyImporter, cerrarArmyImporter, onArmyGameChange, onArmyFactionChange, guardarEjercito } from './army-importer.js'
 
 // Populate static selects from constants (single source of truth)
 ;(function populateSelects() {
@@ -122,6 +123,14 @@ document.getElementById('btn-fab')?.addEventListener('click', () => {
     abrirModal(abrirModalPintura)
   }
 })
+
+// Army importer
+document.getElementById('btn-army-import')?.addEventListener('click', abrirArmyImporter)
+document.getElementById('modal-army-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-army-bg') cerrarArmyImporter() })
+document.getElementById('btn-cerrar-army')?.addEventListener('click', cerrarArmyImporter)
+document.getElementById('army-game')?.addEventListener('change', onArmyGameChange)
+document.getElementById('army-faction')?.addEventListener('change', onArmyFactionChange)
+document.getElementById('btn-army-guardar')?.addEventListener('click', guardarEjercito)
 
 // Coleccion filters
 document.getElementById('filtro-game')?.addEventListener('change', actualizarFiltroFacciones)

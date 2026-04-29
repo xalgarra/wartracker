@@ -2355,6 +2355,130 @@ body.dark .camera-result-name { font-weight: 400; }
 .btn-rec-action:active { background: oklch(0.55 0.12 270 / 0.3); }
 .btn-rec-action:disabled { opacity: 0.45; cursor: not-allowed; }
 
+/* ── Army importer ── */
+.btn-army-import {
+  margin-left: auto;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn-army-import:hover { color: var(--text); border-color: var(--text-3); }
+
+.modal--army { max-height: 90vh; display: flex; flex-direction: column; }
+.modal--army h2 { flex-shrink: 0; }
+.modal--army select { flex-shrink: 0; }
+
+.army-unit-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 60px;
+}
+
+.army-loading, .army-empty {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.army-select-all-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.army-select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.army-units-counter { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+
+.army-unit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.army-unit-row:last-child { border-bottom: none; }
+.army-unit-row:not(.army-unit-row--owned):hover { background: var(--surface); }
+
+.army-unit-row input[type="checkbox"] { flex-shrink: 0; width: 15px; height: 15px; cursor: pointer; accent-color: oklch(0.65 0.15 270); }
+.army-unit-name { flex: 1; font-size: 13px; color: var(--text); line-height: 1.3; }
+.army-unit-type {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.army-unit-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.army-unit-qty {
+  width: 44px;
+  padding: 4px 6px;
+  font-size: 12px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+}
+.army-unit-status {
+  padding: 4px 6px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 100px;
+}
+
+.army-unit-row--owned { opacity: 0.45; cursor: default; }
+.army-unit-owned-mark { font-size: 11px; color: oklch(0.65 0.15 145); flex-shrink: 0; }
+
+.army-owned-header {
+  padding: 6px 10px 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
 /* Plan de hobby en modal */
 .hobby-plan-section {
   border: 1px solid var(--border);
