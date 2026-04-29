@@ -179,22 +179,21 @@ function renderRecommendations(minis, proyectos) {
   } else {
     const recs = getRecommendations(minis, proyectos)
     if (!recs.length) return ''
-    bodyHtml = recs.map(rec => {
-      const clickAttr = rec.type === 'mini'
-        ? `data-action="open-mini" data-mini-id="${rec.id}"`
-        : `data-action="edit-project" data-project-id="${rec.id}"`
+    bodyHtml = recs.map((rec, idx) => {
+      const isPrimary  = idx === 0
+      const clickAttr  = `data-action="open-mini" data-mini-id="${rec.id}"`
       const progressHtml = rec.progress != null
         ? `<div class="rec-progress-bar"><div class="rec-progress-fill" style="width:${rec.progress}%"></div></div>`
         : ''
       return `
-        <div class="rec-card" ${clickAttr}>
+        <div class="rec-card${isPrimary ? ' rec-card--primary' : ' rec-card--secondary'}" ${clickAttr}>
+          ${!isPrimary ? '<span class="rec-secondary-label">alternativa</span>' : ''}
           <div class="rec-card-header">
             <span class="rec-card-title">${escapeHtml(rec.title)}</span>
             <span class="rec-action-badge rec-action-${rec.action}">${ACTION_LABELS[rec.action] || rec.action}</span>
           </div>
           <div class="rec-card-subtitle">${escapeHtml(rec.subtitle)}</div>
           ${progressHtml}
-          <div class="rec-card-reason">${escapeHtml(rec.reason)}</div>
         </div>
       `
     }).join('')

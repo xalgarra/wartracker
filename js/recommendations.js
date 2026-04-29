@@ -1,145 +1,79 @@
 /**
  * Motor de recomendaciones de hobby — función pura, sin efectos laterales.
- * Recibe los datos ya cargados y devuelve máximo 3 recomendaciones priorizadas.
+ * Devuelve máximo 2 recomendaciones: 1 primaria + 1 secundaria opcional.
  *
  * Prioridades:
- * 1. Assembly risk alto (solo comprada/montada)
- * 2. Proyectos activos con minis pendientes
- * 3. Minis casi terminadas (>= 70%)
- * 4. Minis imprimadas o en pintura
- * 5. Minis compradas (backlog de montaje)
+ * 1. Terminar  — minis con progreso >= 70%
+ * 2. Continuar — imprimada o pintando
+ * 3. Revisar montaje — riesgo alto en fase temprana
+ * 4. Montar    — backlog comprada
  *
- * Reglas PM:
+ * Reglas:
+ * - Nunca recomendar minis de proyectos activos (ya aparecen arriba)
  * - Nunca recomendar minis ya pintadas
- * - Nunca duplicar una mini en el resultado
- * - Excluir minis que pertenezcan a proyectos activos de las recomendaciones individuales
- * - Max 3 resultados
+ * - Máximo 1 recomendación por tipo de acción
+ * - Máximo 2 recomendaciones en total
  */
 
-const MAX_RECS = 3
-
-const ACTION_REASONS = {
-  review_before_gluing: 'Evita recovecos y manchas antes de avanzar.',
-  continue:             'Buen punto de entrada, no necesita preparación extra.',
-  finish:               'Cerrar una mini da impulso para el resto.',
-  assemble:             'Montar es un primer paso sin necesitar mucho tiempo.',
-  prime:                'Lista para imprimar y empezar a pintar.',
-  paint_accessible_parts: 'Pinta lo que puedes alcanzar ahora, el resto después.',
-}
-
 export function getRecommendations(minis, projects) {
-  const recs = []
-  const seenMiniIds = new Set()
+  const seenMiniIds  = new Set()
+  const seenActions  = new Set()
+  const recs         = []
 
-  // IDs de minis en proyectos activos — excluidas de recomendaciones individuales
   const activeProjMiniIds = new Set(
     projects
       .filter(p => p.status === 'activo')
       .flatMap(p => (p.project_minis || []).map(pm => Number(pm.mini_id)))
   )
 
-  // Minis elegibles: no wishlist, no pintadas
-  const eligible = minis.filter(m => m.status !== 'wishlist' && m.status !== 'pintada')
+  const eligible = minis.filter(m =>
+    m.status !== 'wishlist' &&
+    m.status !== 'pintada' &&
+    !activeProjMiniIds.has(m.id)
+  )
 
-  // ── Prioridad 1: Assembly risk alto, solo en fases tempranas ──────────────
-  for (const m of eligible) {
-    if (recs.length >= MAX_RECS) break
-    if (seenMiniIds.has(m.id) || activeProjMiniIds.has(m.id)) continue
-    if (m.assembly_risk === 'high' && (m.status === 'comprada' || m.status === 'montada')) {
-      seenMiniIds.add(m.id)
-      recs.push({
-        type: 'mini',
-        id: m.id,
-        title: `Revisa el montaje de ${m.name}`,
-        subtitle: 'Puede tener zonas difíciles de pintar si está totalmente montada.',
-        progress: m.paint_progress || null,
-        action: 'review_before_gluing',
-        reason: ACTION_REASONS.review_before_gluing,
-      })
-    }
-  }
-
-  // ── Prioridad 2: Proyectos activos ────────────────────────────────────────
-  const projStats = projects
-    .filter(p => p.status === 'activo')
-    .map(p => {
-      const projMinis = (p.project_minis || [])
-        .map(pm => minis.find(m => m.id === Number(pm.mini_id)))
-        .filter(Boolean)
-      const unpainted = projMinis.filter(m => m.status !== 'pintada')
-      const avgProgress = projMinis.length
-        ? Math.round(projMinis.reduce((s, m) => s + (m.paint_progress || 0), 0) / projMinis.length)
-        : 0
-      return { project: p, remaining: unpainted.length, avgProgress }
-    })
-    .filter(ps => ps.remaining > 0)
-    .sort((a, b) => a.remaining - b.remaining || b.avgProgress - a.avgProgress)
-
-  for (const { project, remaining, avgProgress } of projStats) {
-    if (recs.length >= MAX_RECS) break
+  function tryAdd(mini, action, title, subtitle) {
+    if (recs.length >= 2)           return false
+    if (seenMiniIds.has(mini.id))   return false
+    if (seenActions.has(action))    return false
+    seenMiniIds.add(mini.id)
+    seenActions.add(action)
     recs.push({
-      type: 'project',
-      id: project.id,
-      title: `Avanza en ${project.name}`,
-      subtitle: `${remaining} mini${remaining !== 1 ? 's' : ''} pendiente${remaining !== 1 ? 's' : ''} en este proyecto.`,
-      progress: avgProgress,
-      action: 'continue',
-      reason: ACTION_REASONS.continue,
+      type: 'mini',
+      id: mini.id,
+      title,
+      subtitle,
+      progress: mini.paint_progress || null,
+      action,
     })
+    return true
   }
 
-  // ── Prioridad 3: Casi terminadas (>= 70%) ─────────────────────────────────
+  // ── 1. Terminar (>= 70%) ──────────────────────────────────────────────────
   const byProgress = [...eligible].sort((a, b) => (b.paint_progress || 0) - (a.paint_progress || 0))
   for (const m of byProgress) {
-    if (recs.length >= MAX_RECS) break
-    if (seenMiniIds.has(m.id) || activeProjMiniIds.has(m.id)) continue
-    if ((m.paint_progress || 0) >= 70) {
-      seenMiniIds.add(m.id)
-      recs.push({
-        type: 'mini',
-        id: m.id,
-        title: `Termina ${m.name}`,
-        subtitle: `Está al ${m.paint_progress}%, puede ser una victoria rápida.`,
-        progress: m.paint_progress,
-        action: 'finish',
-        reason: ACTION_REASONS.finish,
-      })
-    }
+    if ((m.paint_progress || 0) < 70) break
+    if (tryAdd(m, 'finish', `Termina ${m.name}`, `Al ${m.paint_progress}%, queda poco.`)) break
   }
 
-  // ── Prioridad 4: Imprimada o en pintura ───────────────────────────────────
+  // ── 2. Continuar (imprimada o pintando) ───────────────────────────────────
   for (const m of eligible) {
-    if (recs.length >= MAX_RECS) break
-    if (seenMiniIds.has(m.id) || activeProjMiniIds.has(m.id)) continue
     if (m.status === 'imprimada' || m.status === 'pintando') {
-      seenMiniIds.add(m.id)
-      recs.push({
-        type: 'mini',
-        id: m.id,
-        title: `Continúa con ${m.name}`,
-        subtitle: 'Ya está lista para avanzar sin preparar demasiado.',
-        progress: m.paint_progress || null,
-        action: 'continue',
-        reason: ACTION_REASONS.continue,
-      })
+      if (tryAdd(m, 'continue', `Continúa con ${m.name}`, 'Lista para pintar.')) break
     }
   }
 
-  // ── Prioridad 5: Backlog de montaje (comprada) ────────────────────────────
+  // ── 3. Revisar montaje (assembly risk alto, fase temprana) ────────────────
   for (const m of eligible) {
-    if (recs.length >= MAX_RECS) break
-    if (seenMiniIds.has(m.id) || activeProjMiniIds.has(m.id)) continue
+    if (m.assembly_risk === 'high' && (m.status === 'comprada' || m.status === 'montada')) {
+      if (tryAdd(m, 'review_before_gluing', `Revisa el montaje de ${m.name}`, 'Riesgo de recovecos difíciles de alcanzar después.')) break
+    }
+  }
+
+  // ── 4. Montar (backlog) ───────────────────────────────────────────────────
+  for (const m of eligible) {
     if (m.status === 'comprada') {
-      seenMiniIds.add(m.id)
-      recs.push({
-        type: 'mini',
-        id: m.id,
-        title: `Monta ${m.name}`,
-        subtitle: 'Paso pequeño para desbloquear pintura más adelante.',
-        progress: null,
-        action: 'assemble',
-        reason: ACTION_REASONS.assemble,
-      })
+      if (tryAdd(m, 'assemble', `Monta ${m.name}`, 'Primer paso para desbloquear pintura.')) break
     }
   }
 
