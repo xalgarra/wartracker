@@ -68,12 +68,16 @@ export async function onArmyFactionChange() {
   const units = _getUnitsForFaction(factionName, slug)
 
   const { data: owned } = await db.from('minis')
-    .select('name')
+    .select('name, qty')
     .contains('factions', [factionName])
 
-  const ownedNames = new Set((owned || []).map(m => m.name.toLowerCase()))
+  const ownedMap = {}
+  for (const m of owned || []) {
+    const key = m.name.toLowerCase()
+    ownedMap[key] = (ownedMap[key] || 0) + (m.qty || 1)
+  }
 
-  _renderUnitList(listEl, units, ownedNames)
+  _renderUnitList(listEl, units, ownedMap)
 }
 
 export async function guardarEjercito() {
@@ -123,46 +127,41 @@ function _getUnitsForFaction(factionName, gameSlug) {
   return units.sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
-function _renderUnitList(container, units, ownedNames) {
+function _renderUnitList(container, units, ownedMap) {
   if (!units.length) {
     container.innerHTML = '<div class="army-empty">No hay unidades en el catálogo para esta facción.</div>'
     _setGuardarBtn(0)
     return
   }
 
-  const available = units.filter(u => !ownedNames.has(u.name.toLowerCase()))
-  const owned     = units.filter(u =>  ownedNames.has(u.name.toLowerCase()))
-
-  const selectAllHtml = available.length ? `
+  const selectAllHtml = `
     <div class="army-select-all-row">
       <label class="army-select-all-label">
         <input type="checkbox" id="army-select-all">
         <span>Seleccionar todo</span>
       </label>
-      <span class="army-units-counter">${available.length} disponible${available.length !== 1 ? 's' : ''}</span>
-    </div>` : ''
+      <span class="army-units-counter">${units.length} unidad${units.length !== 1 ? 'es' : ''}</span>
+    </div>`
 
-  const availableHtml = available.map(u => `
-    <label class="army-unit-row">
-      <input type="checkbox" class="army-unit-cb" data-name="${escapeHtml(u.name)}">
-      <span class="army-unit-name">${escapeHtml(u.name)}</span>
-      ${u.type ? `<span class="army-unit-type">${escapeHtml(u.type)}</span>` : ''}
-      <span class="army-unit-controls">
-        <input type="number" class="army-unit-qty" value="1" min="1" max="99">
-        <select class="army-unit-status">${STATUS_OPTS}</select>
-      </span>
-    </label>`).join('')
-
-  const ownedHtml = owned.length ? `
-    <div class="army-owned-header">En colección (${owned.length})</div>
-    ${owned.map(u => `
-      <div class="army-unit-row army-unit-row--owned">
-        <span class="army-unit-owned-mark">✓</span>
+  const unitsHtml = units.map(u => {
+    const n = ownedMap[u.name.toLowerCase()] || 0
+    const ownedBadge = n > 0
+      ? `<span class="army-unit-owned-badge">×${n} ya tienes</span>`
+      : ''
+    return `
+      <label class="army-unit-row">
+        <input type="checkbox" class="army-unit-cb" data-name="${escapeHtml(u.name)}">
         <span class="army-unit-name">${escapeHtml(u.name)}</span>
         ${u.type ? `<span class="army-unit-type">${escapeHtml(u.type)}</span>` : ''}
-      </div>`).join('')}` : ''
+        ${ownedBadge}
+        <span class="army-unit-controls">
+          <input type="number" class="army-unit-qty" value="1" min="1" max="99">
+          <select class="army-unit-status">${STATUS_OPTS}</select>
+        </span>
+      </label>`
+  }).join('')
 
-  container.innerHTML = selectAllHtml + availableHtml + ownedHtml
+  container.innerHTML = selectAllHtml + unitsHtml
 
   // Select-all toggle
   const selectAll = document.getElementById('army-select-all')
