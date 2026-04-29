@@ -18,6 +18,7 @@ export async function abrirModalProyecto(projectId) {
 
   document.getElementById('modal-project-title').textContent = project ? 'Editar proyecto' : 'Nuevo proyecto'
   document.getElementById('proj-edit-name').value = project?.name || ''
+  document.getElementById('proj-recipe').value = project?.recipe || ''
   document.getElementById('btn-eliminar-project').style.display = project ? 'block' : 'none'
   document.getElementById('btn-completar-project').style.display = project ? 'block' : 'none'
   document.getElementById('proj-modal-unit-search').value = ''
@@ -52,7 +53,7 @@ export async function guardarProyecto() {
   if (!name) { mostrarError('El proyecto necesita un nombre'); return }
   if (!_modalProjectId) { await cerrarModalProyecto(); return }
 
-  const payload = { name }
+  const payload = { name, recipe: document.getElementById('proj-recipe').value || null }
 
   if (_pendingPhotoFile) {
     const path = `${_modalProjectId}.jpg`
@@ -199,7 +200,7 @@ async function recargarModal() {
   if (!_modalProjectId) return
   const { data } = await db
     .from('projects')
-    .select('id, name, photo_url, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .select('id, name, photo_url, notes, recipe, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
     .eq('id', _modalProjectId)
     .single()
   if (!data) return

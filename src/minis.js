@@ -3,6 +3,15 @@ import { state } from './state.js'
 import { STATUSES, STATUS_ORDER, UNIT_TYPES } from './constants.js'
 import { mostrarError } from './toast.js'
 
+let _viewMode = 'list'
+
+export function toggleViewMode(btn) {
+  _viewMode = _viewMode === 'list' ? 'gallery' : 'list'
+  btn.classList.toggle('active', _viewMode === 'gallery')
+  btn.title = _viewMode === 'list' ? 'Vista galería' : 'Vista lista'
+  renderLista()
+}
+
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 
 export function calcularPtsPorJuego(mini, juegosUnicos, factions, unitMap) {
@@ -45,6 +54,12 @@ export function renderCard(m) {
   const unitType = getTypeForMini(m)
   const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
   const thumbHTML = m.photo_url ? `<img class="card-thumb" src="${m.photo_url}" alt="">` : ''
+  const progress  = m.paint_progress || 0
+  const showBar   = progress > 0 || m.status === 'pintada'
+  const barWidth  = m.status === 'pintada' ? 100 : progress
+  const progressHtml = showBar
+    ? `<div class="card-progress"><div class="card-progress-fill card-progress-fill--${m.status}" style="width:${barWidth}%"></div></div>`
+    : ''
   return `
     <div class="card" data-mini-id="${m.id}">
       ${thumbHTML}
@@ -64,6 +79,7 @@ export function renderCard(m) {
             <span class="card-qty">${m.qty} ud.${modelsStr}</span>
           </div>
         </div>
+        ${progressHtml}
       </div>
     </div>
   `
@@ -96,7 +112,28 @@ export function renderLista() {
     lista.innerHTML = `<div class="empty">${state.minisActuales.length ? 'Sin resultados para esa búsqueda' : 'No hay minis con estos filtros'}</div>`
     return
   }
-  lista.innerHTML = minis.map(renderCard).join('')
+
+  if (_viewMode === 'gallery') {
+    lista.innerHTML = `<div class="gallery-grid">${minis.map(m => {
+      const progress = m.paint_progress || 0
+      const barHtml  = progress > 0 && m.status !== 'pintada'
+        ? `<div class="gallery-card-progress"><div class="gallery-card-progress-fill" style="width:${progress}%"></div></div>`
+        : ''
+      return `
+        <div class="gallery-card" data-mini-id="${m.id}">
+          ${m.photo_url
+            ? `<img class="gallery-card-img" src="${m.photo_url}" alt="" loading="lazy">`
+            : `<div class="gallery-card-img gallery-card-img--empty"><span>${(m.name || '?')[0].toUpperCase()}</span></div>`}
+          <div class="gallery-card-info">
+            <span class="gallery-card-name">${m.name}</span>
+            <span class="badge badge-status ${m.status}">${STATUS_LABEL[m.status] || m.status}</span>
+          </div>
+          ${barHtml}
+        </div>`
+    }).join('')}</div>`
+  } else {
+    lista.innerHTML = minis.map(renderCard).join('')
+  }
 }
 
 export function onBusqueda(val) {

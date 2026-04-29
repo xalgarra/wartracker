@@ -80,6 +80,7 @@
         <button class="sort-btn" data-sort="estado"  data-label="Estado">Estado</button>
         <button class="sort-btn" data-sort="juego"   data-label="Juego">Juego</button>
         <button id="btn-army-import" class="btn-army-import">+ ejército</button>
+        <button id="btn-view-toggle" class="btn-view-toggle" title="Vista galería">⊞</button>
       </div>
       <div class="lista" id="lista"></div>
     </div>
@@ -157,6 +158,17 @@
       <label class="field-label" for="status">Estado</label>
       <select id="status"></select>
       <textarea id="notes" placeholder="Notas (opcional)" rows="3"></textarea>
+
+      <div id="mini-paints-used" class="mini-paints-used" style="display:none"></div>
+
+      <div id="mini-gallery-section" class="mini-gallery-section" style="display:none">
+        <div class="field-label">Fotos de proceso</div>
+        <div id="mini-gallery-list" class="mini-gallery-list"></div>
+        <label class="btn-photo mini-gallery-add-btn" for="gallery-photo-input">
+          + Añadir foto
+          <input type="file" id="gallery-photo-input" accept="image/*" style="display:none">
+        </label>
+      </div>
 
       <details class="hobby-plan-section">
         <summary class="hobby-plan-summary">Plan de hobby <span class="hobby-plan-optional">(opcional)</span></summary>
@@ -275,6 +287,7 @@
         </div>
       </div>
       <input id="proj-edit-name" placeholder="Nombre del proyecto" maxlength="80">
+      <textarea id="proj-recipe" class="proj-recipe" placeholder="Proceso de pintado (opcional)&#10;1. Imprimación negra&#10;2. Base: Abaddon Black&#10;3. Wash: Agrax Earthshade…" rows="4"></textarea>
 
       <label class="field-label">Minis</label>
       <div id="proj-modal-units"></div>

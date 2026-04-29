@@ -4,6 +4,85 @@ import { actualizarFiltroFacciones } from './minis.js'
 import { cargarWishlist } from './wishlist.js'
 import { mostrarError } from './toast.js'
 import { cargarHome } from './home.js'
+import { escapeHtml } from './utils.js'
+
+// ── Gallery state ─────────────────────────────────────────────────────────────
+let _galleryPhotos    = []       // { id, url, label } — loaded from DB
+let _pendingGallery   = []       // { file, label, tempUrl } — not yet uploaded
+let _deletedGalleryIds = new Set()
+let _galleryEventsBound = false
+
+const GALLERY_LABELS     = ['Sin montar', 'Montada', 'En proceso', 'Terminada']
+const GALLERY_LABEL_OPTS = GALLERY_LABELS.map(l => `<option>${l}</option>`).join('')
+
+function _resetGallery() {
+  _galleryPhotos     = []
+  _pendingGallery    = []
+  _deletedGalleryIds = new Set()
+}
+
+function _renderGalleryList() {
+  const list = document.getElementById('mini-gallery-list')
+  if (!list) return
+
+  const existingHtml = _galleryPhotos
+    .filter(p => !_deletedGalleryIds.has(p.id))
+    .map(p => `
+      <div class="gallery-item">
+        <img class="gallery-item-thumb" src="${p.url}" alt="" loading="lazy">
+        <select class="gallery-item-label" data-photo-id="${p.id}">
+          ${GALLERY_LABELS.map(l => `<option${l === p.label ? ' selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <button class="gallery-item-remove" data-action="delete-gallery-photo" data-photo-id="${p.id}">✕</button>
+      </div>`).join('')
+
+  const pendingHtml = _pendingGallery.map((p, i) => `
+    <div class="gallery-item gallery-item--pending">
+      <img class="gallery-item-thumb" src="${p.tempUrl}" alt="">
+      <select class="gallery-item-label" data-pending-idx="${i}">
+        ${GALLERY_LABELS.map(l => `<option${l === p.label ? ' selected' : ''}>${l}</option>`).join('')}
+      </select>
+      <button class="gallery-item-remove" data-action="delete-pending-photo" data-pending-idx="${i}">✕</button>
+    </div>`).join('')
+
+  list.innerHTML = existingHtml + pendingHtml
+}
+
+function _ensureGalleryEvents() {
+  if (_galleryEventsBound) return
+  _galleryEventsBound = true
+
+  document.getElementById('mini-gallery-list')?.addEventListener('click', e => {
+    const delExisting = e.target.closest('[data-action="delete-gallery-photo"]')
+    if (delExisting) {
+      _deletedGalleryIds.add(delExisting.dataset.photoId)
+      _renderGalleryList()
+      return
+    }
+    const delPending = e.target.closest('[data-action="delete-pending-photo"]')
+    if (delPending) {
+      const idx = Number(delPending.dataset.pendingIdx)
+      URL.revokeObjectURL(_pendingGallery[idx]?.tempUrl)
+      _pendingGallery.splice(idx, 1)
+      _renderGalleryList()
+    }
+  })
+
+  document.getElementById('mini-gallery-list')?.addEventListener('change', e => {
+    const sel = e.target.closest('.gallery-item-label[data-pending-idx]')
+    if (sel) _pendingGallery[Number(sel.dataset.pendingIdx)].label = sel.value
+  })
+}
+
+export async function onGalleryPhotoSelected(input) {
+  const files = [...(input.files || [])]
+  input.value = ''
+  for (const file of files) {
+    const compressed = await compressImage(file)
+    _pendingGallery.push({ file: compressed, label: 'Sin montar', tempUrl: URL.createObjectURL(compressed) })
+  }
+  _renderGalleryList()
+}
 
 async function compressImage(file, maxWidth = 1200, quality = 0.82) {
   return new Promise(resolve => {
@@ -138,6 +217,8 @@ export async function abrirModal(abrirModalPintura) {
   state.miniEnEdicion = null
   document.getElementById('modal-title').textContent = 'Añadir miniatura'
   document.getElementById('btn-eliminar').style.display = 'none'
+  document.getElementById('mini-gallery-section').style.display = 'none'
+  document.getElementById('mini-paints-used').style.display = 'none'
 
   const lastGame = localStorage.getItem('wt_lastGame')
   const lastFaction = localStorage.getItem('wt_lastFaction')
@@ -200,11 +281,51 @@ export async function abrirEdicion(id) {
 
   document.getElementById('modal-title').textContent = 'Editar miniatura'
   document.getElementById('btn-eliminar').style.display = 'block'
+
+  // Galería de fotos de proceso
+  _resetGallery()
+  const { data: galleryData } = await db.from('mini_photos')
+    .select('id, url, label, position').eq('mini_id', id).order('position').order('created_at')
+  _galleryPhotos = galleryData || []
+  _renderGalleryList()
+  _ensureGalleryEvents()
+  document.getElementById('mini-gallery-section').style.display = 'block'
+
+  // Pinturas usadas (vía proyectos)
+  const { data: projData } = await db.from('project_minis')
+    .select('projects(id, name, status, project_paints(paints(id, name, brand, color_hex)))')
+    .eq('mini_id', id)
+  const activeProjs = (projData || [])
+    .map(pm => pm.projects).filter(p => p && (p.status === 'activo' || p.status === 'completado'))
+  const paintSection = document.getElementById('mini-paints-used')
+  if (activeProjs.length) {
+    const bodyHtml = activeProjs.map(p => {
+      const paints = (p.project_paints || []).filter(pp => pp.paints)
+      if (!paints.length) return ''
+      return `<div class="mini-paints-project">
+        <div class="mini-paints-proj-name">${escapeHtml(p.name)}</div>
+        <div class="mini-paints-chips">
+          ${paints.map(pp => `
+            <div class="mini-paint-chip" title="${escapeHtml(pp.paints.name)}">
+              <div class="paint-swatch ${pp.paints.color_hex ? '' : 'paint-swatch-none'}"
+                   style="${pp.paints.color_hex ? `background:${pp.paints.color_hex}` : ''}"></div>
+              <span class="mini-paint-chip-name">${escapeHtml(pp.paints.name)}</span>
+            </div>`).join('')}
+        </div>
+      </div>`
+    }).filter(Boolean).join('')
+    paintSection.innerHTML = `<div class="mini-paints-label">// pinturas usadas</div>${bodyHtml || '<div class="mini-paints-empty">Sin pinturas en los proyectos</div>'}`
+    paintSection.style.display = 'block'
+  } else {
+    paintSection.style.display = 'none'
+  }
+
   document.getElementById('modal-bg').classList.add('open')
 }
 
 export function cerrarModal() {
   state.miniEnEdicion = null
+  _resetGallery()
   document.getElementById('modal-bg').classList.remove('open')
   document.getElementById('modal-title').textContent = 'Añadir miniatura'
   document.getElementById('btn-eliminar').style.display = 'none'
@@ -258,6 +379,7 @@ export async function guardarMini() {
   if (error) { mostrarError('Error: ' + error.message); return }
 
   if (savedId) {
+    // Cover photo
     if (state.pendingPhotoFile) {
       const path = `${savedId}.jpg`
       await db.storage.from('mini-photos').upload(path, state.pendingPhotoFile, { upsert: true })
@@ -267,6 +389,36 @@ export async function guardarMini() {
       const path = state.miniEnEdicion.photo_url.split('/mini-photos/')[1]
       if (path) await db.storage.from('mini-photos').remove([path])
       await db.from('minis').update({ photo_url: null }).eq('id', savedId)
+    }
+
+    // Gallery photos — only when editing
+    if (state.miniEnEdicion) {
+      // Delete removed photos
+      for (const photoId of _deletedGalleryIds) {
+        const photo = _galleryPhotos.find(p => p.id === photoId)
+        if (photo?.url) {
+          const storagePath = photo.url.split('/mini-photos/')[1]
+          if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
+        }
+        await db.from('mini_photos').delete().eq('id', photoId)
+      }
+      // Update labels on existing photos
+      for (const photo of _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id))) {
+        const el = document.querySelector(`.gallery-item-label[data-photo-id="${photo.id}"]`)
+        if (el && el.value !== photo.label) {
+          await db.from('mini_photos').update({ label: el.value }).eq('id', photo.id)
+        }
+      }
+      // Upload new photos
+      const basePos = _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id)).length
+      for (let i = 0; i < _pendingGallery.length; i++) {
+        const pg   = _pendingGallery[i]
+        const path = `${savedId}/g_${Date.now()}_${i}.jpg`
+        const { error: upErr } = await db.storage.from('mini-photos').upload(path, pg.file)
+        if (upErr) continue
+        const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
+        await db.from('mini_photos').insert({ mini_id: savedId, url: publicUrl, label: pg.label, position: basePos + i })
+      }
     }
   }
 
@@ -284,6 +436,12 @@ export async function eliminarMini() {
   if (state.miniEnEdicion.photo_url) {
     const path = state.miniEnEdicion.photo_url.split('/mini-photos/')[1]
     if (path) await db.storage.from('mini-photos').remove([path])
+  }
+  // Delete gallery photos from storage
+  const { data: galleryToDelete } = await db.from('mini_photos').select('url').eq('mini_id', state.miniEnEdicion.id)
+  for (const p of galleryToDelete || []) {
+    const storagePath = p.url.split('/mini-photos/')[1]
+    if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
   }
   const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
   if (error) { mostrarError('Error: ' + error.message); return }

@@ -11,6 +11,8 @@ import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColor
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { exportarJSON } from './export.js'
 import { abrirArmyImporter, cerrarArmyImporter, onArmyGameChange, onArmyFactionChange, guardarEjercito } from './army-importer.js'
+import { toggleViewMode } from './minis.js'
+import { onGalleryPhotoSelected } from './mini-modal.js'
 
 // Populate static selects from constants (single source of truth)
 ;(function populateSelects() {
@@ -123,6 +125,10 @@ document.getElementById('btn-fab')?.addEventListener('click', () => {
     abrirModal(abrirModalPintura)
   }
 })
+
+// Gallery view toggle + gallery photo upload
+document.getElementById('btn-view-toggle')?.addEventListener('click', e => toggleViewMode(e.currentTarget))
+document.getElementById('gallery-photo-input')?.addEventListener('change', e => onGalleryPhotoSelected(e.target))
 
 // Army importer
 document.getElementById('btn-army-import')?.addEventListener('click', abrirArmyImporter)

@@ -99,7 +99,7 @@ export async function cargarHome() {
 
   const { data: proyectos } = await db
     .from('projects')
-    .select('id, name, photo_url, notes, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .select('id, name, photo_url, notes, recipe, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
     .eq('status', 'activo')
     .order('created_at', { ascending: false })
 
@@ -287,6 +287,7 @@ function renderProjectCard(project, allMinis) {
         ? `<div class="home-proj-units">${unitsHtml}</div>`
         : '<div class="home-proj-units-empty">Sin minis — toca para editar</div>'}
       ${paintsHtml ? `<div class="home-proj-paints-row">${paintsHtml}</div>` : ''}
+      ${project.recipe ? `<div class="home-proj-recipe-hint">// tiene receta de pintado</div>` : ''}
     </div>
   `
 }
