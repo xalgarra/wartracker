@@ -10,8 +10,6 @@ export const state = {
   miniEnEdicion: null,
   paintEnEdicion: null,
   tabActual: 'home',
-  pendingPhotoFile: null,
-  pendingPhotoRemove: false,
   filtroNombre: '',
   filtroType: '',
   ordenar: 'reciente',

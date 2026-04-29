@@ -1,7 +1,7 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { mostrarError } from './toast.js'
-import { escapeHtml, compressImage } from './utils.js'
+import { escapeHtml, compressImage, storagePathFrom } from './utils.js'
 import { cargarHome, getMinis, getProyectos, syncProyecto } from './home.js'
 
 let _modalProjectId = null
@@ -64,7 +64,7 @@ export async function guardarProyecto() {
   } else if (_pendingPhotoRemove) {
     const project = getProyectos().find(p => p.id === _modalProjectId)
     if (project?.photo_url) {
-      const path = project.photo_url.split('/project-photos/')[1]
+      const path = storagePathFrom(project.photo_url, 'project-photos')
       if (path) await db.storage.from('project-photos').remove([path])
     }
     payload.photo_url = null
@@ -92,7 +92,7 @@ export async function eliminarProyecto() {
   const project = getProyectos().find(p => p.id === _modalProjectId)
   if (!confirm(`¿Eliminar "${project?.name || 'este proyecto'}"?`)) return
   if (project?.photo_url) {
-    const path = project.photo_url.split('/project-photos/')[1]
+    const path = storagePathFrom(project.photo_url, 'project-photos')
     if (path) await db.storage.from('project-photos').remove([path])
   }
   await db.from('projects').delete().eq('id', _modalProjectId)

@@ -4,16 +4,19 @@ import { actualizarFiltroFacciones } from './minis.js'
 import { cargarWishlist } from './wishlist.js'
 import { mostrarError } from './toast.js'
 import { cargarHome } from './home.js'
-import { escapeHtml } from './utils.js'
+import { escapeHtml, compressImage, storagePathFrom } from './utils.js'
 
 // ── Gallery state ─────────────────────────────────────────────────────────────
-let _galleryPhotos    = []       // { id, url, label } — loaded from DB
-let _pendingGallery   = []       // { file, label, tempUrl } — not yet uploaded
+let _galleryPhotos     = []
+let _pendingGallery    = []
 let _deletedGalleryIds = new Set()
 let _galleryEventsBound = false
 
-const GALLERY_LABELS     = ['Sin montar', 'Montada', 'En proceso', 'Terminada']
-const GALLERY_LABEL_OPTS = GALLERY_LABELS.map(l => `<option>${l}</option>`).join('')
+// ── Cover photo state (module-local, not global) ───────────────────────────────
+let _pendingPhotoFile   = null
+let _pendingPhotoRemove = false
+
+const GALLERY_LABELS = ['Sin montar', 'Montada', 'En proceso', 'Terminada']
 
 function _resetGallery() {
   _galleryPhotos     = []
@@ -84,30 +87,12 @@ export async function onGalleryPhotoSelected(input) {
   _renderGalleryList()
 }
 
-async function compressImage(file, maxWidth = 1200, quality = 0.82) {
-  return new Promise(resolve => {
-    const url = URL.createObjectURL(file)
-    const img = new Image()
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      const scale = Math.min(1, maxWidth / img.width)
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.round(img.width * scale)
-      canvas.height = Math.round(img.height * scale)
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality)
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
-    img.src = url
-  })
-}
-
 export async function onPhotoSelected(input) {
   const file = input.files[0]
   if (!file) return
   const compressed = await compressImage(file)
-  state.pendingPhotoFile = compressed
-  state.pendingPhotoRemove = false
+  _pendingPhotoFile = compressed
+  _pendingPhotoRemove = false
   const preview = document.getElementById('photo-preview')
   preview.src = URL.createObjectURL(compressed)
   preview.style.display = 'block'
@@ -116,8 +101,8 @@ export async function onPhotoSelected(input) {
 }
 
 export function removePhoto() {
-  state.pendingPhotoFile = null
-  state.pendingPhotoRemove = true
+  _pendingPhotoFile = null
+  _pendingPhotoRemove = true
   document.getElementById('photo-preview').style.display = 'none'
   document.getElementById('photo-preview').src = ''
   document.getElementById('photo-input').value = ''
@@ -126,8 +111,8 @@ export function removePhoto() {
 }
 
 export function resetPhotoModal(photoUrl) {
-  state.pendingPhotoFile = null
-  state.pendingPhotoRemove = false
+  _pendingPhotoFile = null
+  _pendingPhotoRemove = false
   const preview = document.getElementById('photo-preview')
   document.getElementById('photo-input').value = ''
   if (photoUrl) {
@@ -152,32 +137,31 @@ export function actualizarFacciones() {
   actualizarUnidades()
 }
 
-export async function actualizarUnidades() {
+export function actualizarUnidades() {
   const faction = document.getElementById('faction').value
   const game = document.getElementById('game').value
 
-  const { data } = await db.from('units').select('name')
-    .eq('faction', faction).eq('game_slug', game).order('name')
+  const units = state.units
+    .filter(u => u.faction === faction && u.game_slug === game)
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
   document.getElementById('unit-select').innerHTML =
     '<option value="">— Selecciona unidad —</option>' +
-    (data || []).map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
+    units.map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
     '<option value="__custom__">Otro (personalizado)...</option>'
 
   onUnitChange()
 }
 
-export async function onUnitChange() {
+export function onUnitChange() {
   const val = document.getElementById('unit-select').value
   const customInput = document.getElementById('name-custom')
-
   customInput.style.display = val === '__custom__' ? 'block' : 'none'
   if (val === '__custom__') customInput.focus()
-
-  await actualizarFaccionesExtra(val)
+  actualizarFaccionesExtra(val)
 }
 
-export async function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = []) {
+export function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = []) {
   const container = document.getElementById('extra-factions-container')
   const primaryFaction = document.getElementById('faction').value
 
@@ -186,11 +170,9 @@ export async function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = [
     return
   }
 
-  const { data } = await db.from('units').select('name, faction, game_slug')
-    .eq('name', unitName)
-    .neq('faction', primaryFaction)
+  const matches = state.units.filter(u => u.name === unitName && u.faction !== primaryFaction)
 
-  if (!data || !data.length) {
+  if (!matches.length) {
     container.style.display = 'none'
     return
   }
@@ -201,7 +183,7 @@ export async function actualizarFaccionesExtra(unitName, faccionesYaMarcadas = [
   container.innerHTML = `
     <div class="extra-factions">
       <div class="extra-factions-label">Esta unidad también está disponible en:</div>
-      ${data.map(u => `
+      ${matches.map(u => `
         <label class="extra-faction-check">
           <input type="checkbox" value="${u.faction}" data-game="${u.game_slug}"
             ${faccionesYaMarcadas.includes(u.faction) ? 'checked' : ''}>
@@ -231,7 +213,7 @@ export async function abrirModal(abrirModalPintura) {
     if (lastFaction && filtradas.find(f => f.name === lastFaction)) {
       document.getElementById('faction').value = lastFaction
     }
-    await actualizarUnidades()
+    actualizarUnidades()
   }
 
   document.getElementById('status').value = 'comprada'
@@ -251,15 +233,16 @@ export async function abrirEdicion(id) {
   ).join('')
   document.getElementById('faction').value = mini.factions[0] || ''
 
-  const { data: unitsData } = await db.from('units').select('name')
-    .eq('faction', mini.factions[0]).eq('game_slug', mini.game).order('name')
+  const unitsData = state.units
+    .filter(u => u.faction === mini.factions[0] && u.game_slug === mini.game)
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 
   document.getElementById('unit-select').innerHTML =
     '<option value="">— Selecciona unidad —</option>' +
-    (unitsData || []).map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
+    unitsData.map(u => `<option value="${u.name}">${u.name}</option>`).join('') +
     '<option value="__custom__">Otro (personalizado)...</option>'
 
-  const enCatalogo = (unitsData || []).some(u => u.name === mini.name)
+  const enCatalogo = unitsData.some(u => u.name === mini.name)
   if (enCatalogo) {
     document.getElementById('unit-select').value = mini.name
     document.getElementById('name-custom').style.display = 'none'
@@ -269,7 +252,7 @@ export async function abrirEdicion(id) {
     document.getElementById('name-custom').style.display = 'block'
   }
 
-  await actualizarFaccionesExtra(enCatalogo ? mini.name : '__custom__', mini.factions.slice(1))
+  actualizarFaccionesExtra(enCatalogo ? mini.name : '__custom__', mini.factions.slice(1))
 
   document.getElementById('qty').value = mini.qty
   document.getElementById('models').value = mini.models || ''
@@ -282,19 +265,17 @@ export async function abrirEdicion(id) {
   document.getElementById('modal-title').textContent = 'Editar miniatura'
   document.getElementById('btn-eliminar').style.display = 'block'
 
-  // Galería de fotos de proceso
+  // Galería + pinturas usadas — queries paralelas
   _resetGallery()
-  const { data: galleryData } = await db.from('mini_photos')
-    .select('id, url, label, position').eq('mini_id', id).order('position').order('created_at')
+  const [{ data: galleryData }, { data: projData }] = await Promise.all([
+    db.from('mini_photos').select('id, url, label, position').eq('mini_id', id).order('position').order('created_at'),
+    db.from('project_minis').select('projects(id, name, status, project_paints(paints(id, name, brand, color_hex)))').eq('mini_id', id)
+  ])
   _galleryPhotos = galleryData || []
   _renderGalleryList()
   _ensureGalleryEvents()
   document.getElementById('mini-gallery-section').style.display = 'block'
 
-  // Pinturas usadas (vía proyectos)
-  const { data: projData } = await db.from('project_minis')
-    .select('projects(id, name, status, project_paints(paints(id, name, brand, color_hex)))')
-    .eq('mini_id', id)
   const activeProjs = (projData || [])
     .map(pm => pm.projects).filter(p => p && (p.status === 'activo' || p.status === 'completado'))
   const paintSection = document.getElementById('mini-paints-used')
@@ -341,92 +322,93 @@ export function cerrarModal() {
 }
 
 export async function guardarMini() {
-  const unitVal = document.getElementById('unit-select').value
-  const name = unitVal === '__custom__'
-    ? document.getElementById('name-custom').value.trim()
-    : unitVal
-  if (!name) { mostrarError('Selecciona una unidad'); return }
+  const btn = document.getElementById('btn-guardar-mini')
+  if (btn) btn.disabled = true
+  try {
+    const unitVal = document.getElementById('unit-select').value
+    const name = unitVal === '__custom__'
+      ? document.getElementById('name-custom').value.trim()
+      : unitVal
+    if (!name) { mostrarError('Selecciona una unidad'); return }
 
-  const primaryFaction = document.getElementById('faction').value
-  const game = document.getElementById('game').value
-  const extrasChecked = [...document.querySelectorAll('#extra-factions-container input[type="checkbox"]:checked')]
-  const minisFactions = [primaryFaction, ...extrasChecked.map(cb => cb.value)]
+    const primaryFaction = document.getElementById('faction').value
+    const game = document.getElementById('game').value
+    const extrasChecked = [...document.querySelectorAll('#extra-factions-container input[type="checkbox"]:checked')]
+    const minisFactions = [primaryFaction, ...extrasChecked.map(cb => cb.value)]
 
-  const modelsVal = parseInt(document.getElementById('models').value) || null
-  const payload = {
-    name,
-    factions: minisFactions,
-    game,
-    qty: parseInt(document.getElementById('qty').value) || 1,
-    models: modelsVal,
-    status: document.getElementById('status').value,
-    notes: document.getElementById('notes').value,
-    hobby_blocker: document.getElementById('hobby-blocker').value || null,
-    assembly_risk: document.getElementById('assembly-risk').value || null,
-  }
-
-  let error
-  let savedId = state.miniEnEdicion?.id
-
-  if (state.miniEnEdicion) {
-    ;({ error } = await db.from('minis').update(payload).eq('id', state.miniEnEdicion.id))
-  } else {
-    const { data: inserted, error: err } = await db.from('minis').insert(payload).select('id').single()
-    error = err
-    if (inserted) savedId = inserted.id
-  }
-
-  if (error) { mostrarError('Error: ' + error.message); return }
-
-  if (savedId) {
-    // Cover photo
-    if (state.pendingPhotoFile) {
-      const path = `${savedId}.jpg`
-      await db.storage.from('mini-photos').upload(path, state.pendingPhotoFile, { upsert: true })
-      const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
-      await db.from('minis').update({ photo_url: publicUrl }).eq('id', savedId)
-    } else if (state.pendingPhotoRemove && state.miniEnEdicion?.photo_url) {
-      const path = state.miniEnEdicion.photo_url.split('/mini-photos/')[1]
-      if (path) await db.storage.from('mini-photos').remove([path])
-      await db.from('minis').update({ photo_url: null }).eq('id', savedId)
+    const modelsVal = parseInt(document.getElementById('models').value) || null
+    const payload = {
+      name,
+      factions: minisFactions,
+      game,
+      qty: parseInt(document.getElementById('qty').value) || 1,
+      models: modelsVal,
+      status: document.getElementById('status').value,
+      notes: document.getElementById('notes').value,
+      hobby_blocker: document.getElementById('hobby-blocker').value || null,
+      assembly_risk: document.getElementById('assembly-risk').value || null,
     }
 
-    // Gallery photos — only when editing
+    let error
+    let savedId = state.miniEnEdicion?.id
+
     if (state.miniEnEdicion) {
-      // Delete removed photos
-      for (const photoId of _deletedGalleryIds) {
-        const photo = _galleryPhotos.find(p => p.id === photoId)
-        if (photo?.url) {
-          const storagePath = photo.url.split('/mini-photos/')[1]
-          if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
-        }
-        await db.from('mini_photos').delete().eq('id', photoId)
-      }
-      // Update labels on existing photos
-      for (const photo of _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id))) {
-        const el = document.querySelector(`.gallery-item-label[data-photo-id="${photo.id}"]`)
-        if (el && el.value !== photo.label) {
-          await db.from('mini_photos').update({ label: el.value }).eq('id', photo.id)
-        }
-      }
-      // Upload new photos
-      const basePos = _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id)).length
-      for (let i = 0; i < _pendingGallery.length; i++) {
-        const pg   = _pendingGallery[i]
-        const path = `${savedId}/g_${Date.now()}_${i}.jpg`
-        const { error: upErr } = await db.storage.from('mini-photos').upload(path, pg.file)
-        if (upErr) continue
+      ;({ error } = await db.from('minis').update(payload).eq('id', state.miniEnEdicion.id))
+    } else {
+      const { data: inserted, error: err } = await db.from('minis').insert(payload).select('id').single()
+      error = err
+      if (inserted) savedId = inserted.id
+    }
+
+    if (error) { mostrarError('Error: ' + error.message); return }
+
+    if (savedId) {
+      if (_pendingPhotoFile) {
+        const path = `${savedId}.jpg`
+        await db.storage.from('mini-photos').upload(path, _pendingPhotoFile, { upsert: true })
         const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
-        await db.from('mini_photos').insert({ mini_id: savedId, url: publicUrl, label: pg.label, position: basePos + i })
+        await db.from('minis').update({ photo_url: publicUrl }).eq('id', savedId)
+      } else if (_pendingPhotoRemove && state.miniEnEdicion?.photo_url) {
+        const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
+        if (path) await db.storage.from('mini-photos').remove([path])
+        await db.from('minis').update({ photo_url: null }).eq('id', savedId)
+      }
+
+      if (state.miniEnEdicion) {
+        for (const photoId of _deletedGalleryIds) {
+          const photo = _galleryPhotos.find(p => p.id === photoId)
+          if (photo?.url) {
+            const storagePath = storagePathFrom(photo.url, 'mini-photos')
+            if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
+          }
+          await db.from('mini_photos').delete().eq('id', photoId)
+        }
+        for (const photo of _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id))) {
+          const el = document.querySelector(`.gallery-item-label[data-photo-id="${photo.id}"]`)
+          if (el && el.value !== photo.label) {
+            await db.from('mini_photos').update({ label: el.value }).eq('id', photo.id)
+          }
+        }
+        const basePos = _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id)).length
+        for (let i = 0; i < _pendingGallery.length; i++) {
+          const pg   = _pendingGallery[i]
+          const path = `${savedId}/g_${Date.now()}_${i}.jpg`
+          const { error: upErr } = await db.storage.from('mini-photos').upload(path, pg.file)
+          if (upErr) { mostrarError(`Error subiendo foto ${i + 1}`); continue }
+          const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
+          await db.from('mini_photos').insert({ mini_id: savedId, url: publicUrl, label: pg.label, position: basePos + i })
+        }
       }
     }
-  }
 
-  localStorage.setItem('wt_lastGame', document.getElementById('game').value)
-  localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
-  cerrarModal()
-  if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
-  if (state.tabActual === 'home') cargarHome()
+    localStorage.setItem('wt_lastGame', document.getElementById('game').value)
+    localStorage.setItem('wt_lastFaction', document.getElementById('faction').value)
+    cerrarModal()
+    if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
+    if (state.tabActual === 'home') cargarHome()
+  } finally {
+    if (btn) btn.disabled = false
+  }
 }
 
 export async function eliminarMini() {
@@ -434,13 +416,12 @@ export async function eliminarMini() {
   if (!confirm(`¿Eliminar "${state.miniEnEdicion.name}"?`)) return
 
   if (state.miniEnEdicion.photo_url) {
-    const path = state.miniEnEdicion.photo_url.split('/mini-photos/')[1]
+    const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
     if (path) await db.storage.from('mini-photos').remove([path])
   }
-  // Delete gallery photos from storage
   const { data: galleryToDelete } = await db.from('mini_photos').select('url').eq('mini_id', state.miniEnEdicion.id)
   for (const p of galleryToDelete || []) {
-    const storagePath = p.url.split('/mini-photos/')[1]
+    const storagePath = storagePathFrom(p.url, 'mini-photos')
     if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
   }
   const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
