@@ -1,7 +1,7 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { STATUSES, STATUS_ORDER } from './constants.js'
-import { mostrarError } from './toast.js'
+import { mostrarError, mostrarExito } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
 import { getRecommendations, getEmptyState } from '../js/recommendations.js'
@@ -166,6 +166,13 @@ const ACTION_LABELS = {
   review_before_gluing:  'revisar montaje',
 }
 
+const REC_BTN_LABELS = {
+  finish:               'Terminar',
+  continue:             '+ progreso',
+  assemble:             'Montar',
+  review_before_gluing: 'Ver detalle',
+}
+
 function renderRecommendations(minis, proyectos) {
   const emptyState = getEmptyState(minis)
 
@@ -180,13 +187,13 @@ function renderRecommendations(minis, proyectos) {
     const recs = getRecommendations(minis, proyectos)
     if (!recs.length) return ''
     bodyHtml = recs.map((rec, idx) => {
-      const isPrimary  = idx === 0
-      const clickAttr  = `data-action="open-mini" data-mini-id="${rec.id}"`
+      const isPrimary    = idx === 0
       const progressHtml = rec.progress != null
         ? `<div class="rec-progress-bar"><div class="rec-progress-fill" style="width:${rec.progress}%"></div></div>`
         : ''
+      const btnLabel = REC_BTN_LABELS[rec.action] || rec.action
       return `
-        <div class="rec-card${isPrimary ? ' rec-card--primary' : ' rec-card--secondary'}" ${clickAttr}>
+        <div class="rec-card${isPrimary ? ' rec-card--primary' : ' rec-card--secondary'}">
           ${!isPrimary ? '<span class="rec-secondary-label">alternativa</span>' : ''}
           <div class="rec-card-header">
             <span class="rec-card-title">${escapeHtml(rec.title)}</span>
@@ -194,6 +201,7 @@ function renderRecommendations(minis, proyectos) {
           </div>
           <div class="rec-card-subtitle">${escapeHtml(rec.subtitle)}</div>
           ${progressHtml}
+          <button class="btn-rec-action" data-action="rec-action" data-rec-action="${rec.action}" data-mini-id="${rec.id}">${escapeHtml(btnLabel)}</button>
         </div>
       `
     }).join('')
@@ -436,6 +444,63 @@ function renderHistorial(proyectos) {
 }
 
 // ---------------------------------------------------------------------------
+// Acciones de recomendaciones
+// ---------------------------------------------------------------------------
+
+function refreshRecsSection() {
+  const container  = document.getElementById('home-content')
+  if (!container) return
+  const recsBlock = container.querySelector('.home-block--recs')
+  if (!recsBlock) return
+  const temp = document.createElement('div')
+  temp.innerHTML = renderRecommendations(_minis, _proyectos).trim()
+  const newBlock = temp.firstElementChild
+  if (newBlock) recsBlock.replaceWith(newBlock)
+  else recsBlock.remove()
+}
+
+async function handleRecAction(recAction, miniId, btn) {
+  btn.disabled = true
+  try {
+    if (recAction === 'review_before_gluing') {
+      const { abrirEdicion } = await import('./mini-modal.js')
+      abrirEdicion(miniId)
+      btn.disabled = false
+      return
+    }
+
+    if (recAction === 'finish') {
+      const { error } = await db.from('minis').update({ status: 'pintada', paint_progress: 100 }).eq('id', miniId)
+      if (error) throw error
+      const m = _minis.find(x => x.id === miniId)
+      if (m) { m.status = 'pintada'; m.paint_progress = 100 }
+      mostrarExito('Mini marcada como pintada ✓')
+
+    } else if (recAction === 'continue') {
+      const m     = _minis.find(x => x.id === miniId)
+      const next  = Math.min((m?.paint_progress || 0) + 10, 100)
+      const patch = next >= 100 ? { paint_progress: 100, status: 'pintada' } : { paint_progress: next }
+      const { error } = await db.from('minis').update(patch).eq('id', miniId)
+      if (error) throw error
+      if (m) Object.assign(m, patch)
+      mostrarExito(next >= 100 ? 'Mini completada ✓' : `Progreso: ${next}%`)
+
+    } else if (recAction === 'assemble') {
+      const { error } = await db.from('minis').update({ status: 'montada' }).eq('id', miniId)
+      if (error) throw error
+      const m = _minis.find(x => x.id === miniId)
+      if (m) m.status = 'montada'
+      mostrarExito('Estado actualizado a montada')
+    }
+
+    refreshRecsSection()
+  } catch {
+    mostrarError('Error al actualizar')
+    btn.disabled = false
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Event binding (home-content, delegación)
 // ---------------------------------------------------------------------------
 
@@ -448,7 +513,9 @@ function bindHomeEvents(container) {
     if (!actionEl) return
     const { action, projectId, miniId } = actionEl.dataset
 
-    if (action === 'create-project') {
+    if (action === 'rec-action') {
+      await handleRecAction(actionEl.dataset.recAction, Number(actionEl.dataset.miniId), actionEl)
+    } else if (action === 'create-project') {
       await handleCreateProject()
     } else if (action === 'edit-project') {
       const { abrirModalProyecto } = await import('./project-modal.js')
