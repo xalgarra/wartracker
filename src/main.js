@@ -9,6 +9,8 @@ import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPho
 import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas, setPaintSort } from './paints.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
+import { abrirModalReceta, cerrarModalReceta, guardarReceta, eliminarReceta, onRecipePhotoSelected } from './recipe-modal.js'
+import { cerrarModalSession, guardarSession } from './session-modal.js'
 import { exportarJSON } from './export.js'
 import { abrirArmyImporter, cerrarArmyImporter, onArmyGameChange, onArmyFactionChange, guardarEjercito } from './army-importer.js'
 import { toggleViewMode } from './minis.js'
@@ -89,6 +91,7 @@ document.getElementById('lista').addEventListener('click', e => {
   if (card) abrirEdicion(Number(card.dataset.miniId))
 })
 document.getElementById('lista-wishlist').addEventListener('click', e => {
+  if (e.target.closest('[data-wish-action]')) return
   const item = e.target.closest('[data-mini-id]')
   if (item) abrirEdicion(Number(item.dataset.miniId))
 })
@@ -116,10 +119,14 @@ document.getElementById('tab-stats')?.addEventListener('click', () => cambiarTab
 document.getElementById('tab-wishlist')?.addEventListener('click', () => cambiarTab('wishlist'))
 document.getElementById('tab-pinturas')?.addEventListener('click', () => cambiarTab('pinturas'))
 document.getElementById('tab-listas')?.addEventListener('click', () => cambiarTab('listas'))
+document.getElementById('tab-recetas')?.addEventListener('click', () => cambiarTab('recetas'))
+document.getElementById('tab-pareja')?.addEventListener('click',  () => cambiarTab('pareja'))
 
-// FAB — context-aware: opens paint modal when on pinturas tab
+// FAB — context-aware
 document.getElementById('btn-fab')?.addEventListener('click', () => {
-  if (state.tabActual === 'pinturas') {
+  if (state.tabActual === 'recetas') {
+    abrirModalReceta()
+  } else if (state.tabActual === 'pinturas') {
     abrirModalPintura()
   } else {
     abrirModal(abrirModalPintura)
@@ -233,6 +240,18 @@ document.addEventListener('click', e => {
     document.getElementById('filtro-paint-stock-wrap')?.classList.remove('open')
   }
 })
+
+// Session modal
+document.getElementById('modal-session-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-session-bg') cerrarModalSession() })
+document.getElementById('btn-cerrar-session')?.addEventListener('click', cerrarModalSession)
+document.getElementById('btn-guardar-session')?.addEventListener('click', guardarSession)
+
+// Recipe modal
+document.getElementById('modal-recipe-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-recipe-bg') cerrarModalReceta() })
+document.getElementById('btn-cerrar-modal-recipe')?.addEventListener('click', cerrarModalReceta)
+document.getElementById('btn-guardar-recipe')?.addEventListener('click', guardarReceta)
+document.getElementById('btn-eliminar-recipe')?.addEventListener('click', eliminarReceta)
+document.getElementById('recipe-photo-input')?.addEventListener('change', e => onRecipePhotoSelected(e.target))
 
 // Camera
 document.getElementById('btn-camera-catalog')?.addEventListener('click', () => abrirCamara('catalog'))

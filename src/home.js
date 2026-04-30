@@ -5,6 +5,7 @@ import { mostrarError, mostrarExito } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
 import { getRecommendations, getEmptyState } from '../js/recommendations.js'
+import { cargarSessions, renderSessionsBlock } from './sessions.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
@@ -97,20 +98,20 @@ export async function cargarHome() {
     if (data) state.pinturas = data
   }
 
-  const { data: proyectos } = await db
-    .from('projects')
-    .select('id, name, photo_url, notes, recipe, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
-    .eq('status', 'activo')
-    .order('created_at', { ascending: false })
+  const [{ data: proyectos }, { data: historial }] = await Promise.all([
+    db.from('projects')
+      .select('id, name, photo_url, notes, recipe, recipe_id, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex)), recipes(id, name)')
+      .eq('status', 'activo')
+      .order('created_at', { ascending: false }),
+    db.from('projects')
+      .select('id, name, photo_url, completed_at, project_minis(id)')
+      .eq('status', 'completado')
+      .order('completed_at', { ascending: false })
+      .limit(10),
+    cargarSessions()
+  ])
 
   _proyectos = proyectos || []
-
-  const { data: historial } = await db
-    .from('projects')
-    .select('id, name, photo_url, completed_at, project_minis(id)')
-    .eq('status', 'completado')
-    .order('completed_at', { ascending: false })
-    .limit(10)
 
   // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
@@ -148,6 +149,7 @@ export async function cargarHome() {
     ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
     ${renderLast(minis.slice(0, 3))}
     ${renderHistorial(historial || [])}
+    ${renderSessionsBlock()}
   `
 
   bindHomeEvents(container)
@@ -533,6 +535,9 @@ function bindHomeEvents(container) {
       }
     } else if (action === 'goto-coleccion') {
       cambiarTab('coleccion')
+    } else if (action === 'log-session') {
+      const { abrirModalSession } = await import('./session-modal.js')
+      abrirModalSession()
     }
   })
 }

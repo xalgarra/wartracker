@@ -52,6 +52,8 @@
         <button class="tab" id="tab-wishlist">Wishlist</button>
         <button class="tab" id="tab-pinturas">Pinturas</button>
         <button class="tab" id="tab-listas">Listas</button>
+        <button class="tab" id="tab-recetas">Recetas</button>
+        <button class="tab" id="tab-pareja">Pareja</button>
       </div>
     </div>
 
@@ -95,6 +97,14 @@
 
     <div id="vista-listas" style="display:none">
       <div id="listas-content"></div>
+    </div>
+
+    <div id="vista-recetas" style="display:none">
+      <div id="recetas-content"></div>
+    </div>
+
+    <div id="vista-pareja" style="display:none">
+      <div id="partner-content" class="home-container"></div>
     </div>
 
     <div id="vista-pinturas" style="display:none">
@@ -287,7 +297,20 @@
         </div>
       </div>
       <input id="proj-edit-name" placeholder="Nombre del proyecto" maxlength="80">
-      <textarea id="proj-recipe" class="proj-recipe" placeholder="Proceso de pintado (opcional)&#10;1. Imprimación negra&#10;2. Base: Abaddon Black&#10;3. Wash: Agrax Earthshade…" rows="4"></textarea>
+
+      <div class="proj-recipe-link">
+        <div class="field-label">Receta de referencia</div>
+        <div id="proj-recipe-link-display" style="display:none">
+          <span id="proj-recipe-link-name" class="proj-recipe-link-name"></span>
+          <button type="button" data-action="unlink-recipe" class="proj-recipe-unlink">Desvincular</button>
+        </div>
+        <div id="proj-recipe-search-wrap">
+          <input type="search" id="proj-recipe-search" placeholder="Buscar receta…" autocomplete="off">
+          <div id="proj-recipe-results" class="proj-modal-results"></div>
+        </div>
+      </div>
+
+      <textarea id="proj-recipe" class="proj-recipe" placeholder="Notas de proceso (opcional)&#10;1. Imprimación negra&#10;2. Base: Abaddon Black&#10;3. Wash: Agrax Earthshade…" rows="3"></textarea>
 
       <label class="field-label">Minis</label>
       <div id="proj-modal-units"></div>
@@ -304,6 +327,64 @@
         <button id="btn-completar-project" class="btn-cancel" style="display:none">Completar ✓</button>
         <button id="btn-cerrar-modal-project" class="btn-cancel">Cancelar</button>
         <button id="btn-guardar-project" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: receta de pintura -->
+  <div class="modal-bg" id="modal-recipe-bg">
+    <div class="modal">
+      <div class="modal-eye">▸ receta de pintura</div>
+      <h2 id="modal-recipe-title">Nueva receta</h2>
+
+      <input id="recipe-name" placeholder="Nombre de la receta" maxlength="80">
+
+      <div class="mini-gallery-section">
+        <div class="field-label">Fotos de referencia</div>
+        <div id="recipe-photo-list" class="recipe-photo-list"></div>
+        <label class="btn-photo mini-gallery-add-btn" for="recipe-photo-input">
+          + Añadir foto
+          <input type="file" id="recipe-photo-input" accept="image/*" multiple style="display:none">
+        </label>
+      </div>
+
+      <label class="field-label">Pinturas</label>
+      <div id="recipe-paints-list"></div>
+      <input type="search" id="recipe-paint-search" placeholder="Añadir pintura…" autocomplete="off">
+      <div id="recipe-paint-results" class="proj-modal-results"></div>
+
+      <div id="recipe-used-in" style="display:none">
+        <div class="field-label">// usado en</div>
+        <div id="recipe-used-in-list" class="recipe-used-in-list"></div>
+      </div>
+
+      <div class="modal-btns">
+        <button id="btn-eliminar-recipe" class="btn-danger" style="display:none">Eliminar</button>
+        <button id="btn-cerrar-modal-recipe" class="btn-cancel">Cancelar</button>
+        <button id="btn-guardar-recipe" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: sesión de hobby -->
+  <div class="modal-bg" id="modal-session-bg">
+    <div class="modal modal--session">
+      <div class="modal-eye">▸ sesión de hobby</div>
+      <h2>Registrar sesión</h2>
+      <label class="field-label" for="session-date">Fecha</label>
+      <input type="date" id="session-date">
+      <label class="field-label">Tiempo aproximado</label>
+      <div class="session-duration-row">
+        <input type="number" id="session-duration" min="5" step="5" placeholder="minutos">
+        <span class="session-duration-hint">min · opcional</span>
+      </div>
+      <label class="field-label">Minis trabajadas</label>
+      <div id="session-mini-list" class="session-mini-list"></div>
+      <label class="field-label" for="session-notes">Nota rápida</label>
+      <textarea id="session-notes" rows="2" placeholder="¿En qué trabajaste hoy?"></textarea>
+      <div class="modal-btns">
+        <button id="btn-cerrar-session" class="btn-cancel">Cancelar</button>
+        <button id="btn-guardar-session" class="btn-primary">Guardar sesión</button>
       </div>
     </div>
   </div>

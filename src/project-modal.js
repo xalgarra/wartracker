@@ -3,10 +3,12 @@ import { state } from './state.js'
 import { mostrarError } from './toast.js'
 import { escapeHtml, compressImage, storagePathFrom } from './utils.js'
 import { cargarHome, getMinis, getProyectos, syncProyecto } from './home.js'
+import { getRecipes } from './recipes.js'
 
-let _modalProjectId = null
+let _modalProjectId  = null
 let _pendingPhotoFile = null
 let _pendingPhotoRemove = false
+let _linkedRecipeId  = null
 
 // ---------------------------------------------------------------------------
 // Apertura / cierre
@@ -19,6 +21,8 @@ export async function abrirModalProyecto(projectId) {
   document.getElementById('modal-project-title').textContent = project ? 'Editar proyecto' : 'Nuevo proyecto'
   document.getElementById('proj-edit-name').value = project?.name || ''
   document.getElementById('proj-recipe').value = project?.recipe || ''
+  _linkedRecipeId = project?.recipe_id || null
+  renderRecipeLink(project?.recipes || null)
   document.getElementById('btn-eliminar-project').style.display = project ? 'block' : 'none'
   document.getElementById('btn-completar-project').style.display = project ? 'block' : 'none'
   document.getElementById('proj-modal-unit-search').value = ''
@@ -41,6 +45,7 @@ export async function abrirModalProyecto(projectId) {
 export async function cerrarModalProyecto() {
   document.getElementById('modal-project-bg').classList.remove('open')
   _modalProjectId = null
+  _linkedRecipeId = null
   await cargarHome()
 }
 
@@ -53,7 +58,7 @@ export async function guardarProyecto() {
   if (!name) { mostrarError('El proyecto necesita un nombre'); return }
   if (!_modalProjectId) { await cerrarModalProyecto(); return }
 
-  const payload = { name, recipe: document.getElementById('proj-recipe').value || null }
+  const payload = { name, recipe: document.getElementById('proj-recipe').value || null, recipe_id: _linkedRecipeId || null }
 
   if (_pendingPhotoFile) {
     const path = `${_modalProjectId}.jpg`
@@ -200,7 +205,7 @@ async function recargarModal() {
   if (!_modalProjectId) return
   const { data } = await db
     .from('projects')
-    .select('id, name, photo_url, notes, recipe, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex))')
+    .select('id, name, photo_url, notes, recipe, recipe_id, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex)), recipes(id, name)')
     .eq('id', _modalProjectId)
     .single()
   if (!data) return
@@ -261,6 +266,47 @@ function onModalPaintSearch(query) {
 }
 
 // ---------------------------------------------------------------------------
+// Receta vinculada al proyecto
+// ---------------------------------------------------------------------------
+
+function renderRecipeLink(recipe) {
+  const display = document.getElementById('proj-recipe-link-display')
+  const searchWrap = document.getElementById('proj-recipe-search-wrap')
+  const input = document.getElementById('proj-recipe-search')
+  if (_linkedRecipeId && recipe?.name) {
+    display.style.display = 'flex'
+    document.getElementById('proj-recipe-link-name').textContent = recipe.name
+    if (input) input.value = ''
+    document.getElementById('proj-recipe-results').innerHTML = ''
+    if (searchWrap) searchWrap.style.display = 'none'
+  } else {
+    display.style.display = 'none'
+    if (searchWrap) searchWrap.style.display = 'block'
+  }
+}
+
+async function onRecipeLinkSearch(query) {
+  const q = query.trim().toLowerCase()
+  const results = document.getElementById('proj-recipe-results')
+  if (!q) { results.innerHTML = ''; return }
+
+  let available = getRecipes()
+  if (!available.length) {
+    const { data } = await db.from('recipes').select('id, name').order('name')
+    available = data || []
+  }
+
+  const matches = available.filter(r => r.name.toLowerCase().includes(q)).slice(0, 5)
+  results.innerHTML = matches.length
+    ? matches.map(r => `
+        <div class="home-proj-search-result" data-action="link-recipe"
+             data-recipe-id="${r.id}" data-recipe-name="${escapeHtml(r.name)}">
+          <span>${escapeHtml(r.name)}</span>
+        </div>`).join('')
+    : '<div class="home-proj-result-empty">Sin resultados</div>'
+}
+
+// ---------------------------------------------------------------------------
 // Eventos internos del modal (se registran una sola vez)
 // ---------------------------------------------------------------------------
 
@@ -272,6 +318,9 @@ function bindModalEvents() {
   })
   document.getElementById('proj-modal-paint-search').addEventListener('input', e => {
     onModalPaintSearch(e.target.value)
+  })
+  document.getElementById('proj-recipe-search')?.addEventListener('input', e => {
+    onRecipeLinkSearch(e.target.value)
   })
 
   modal.addEventListener('click', async e => {
@@ -297,6 +346,12 @@ function bindModalEvents() {
     } else if (action === 'modal-remove-paint') {
       await db.from('project_paints').delete().eq('id', ppId)
       await recargarModal()
+    } else if (action === 'link-recipe') {
+      _linkedRecipeId = actionEl.dataset.recipeId
+      renderRecipeLink({ name: actionEl.dataset.recipeName })
+    } else if (action === 'unlink-recipe') {
+      _linkedRecipeId = null
+      renderRecipeLink(null)
     }
   })
 
