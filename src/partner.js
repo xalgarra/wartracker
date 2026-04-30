@@ -137,9 +137,9 @@ function _bindEvents(container) {
       if (!file) return
       const compressed = await compressImage(file)
       const path       = `${miniId}_${Date.now()}.jpg`
-      const { error: upErr } = await db.storage.from('minis').upload(path, compressed)
+      const { error: upErr } = await db.storage.from('mini-photos').upload(path, compressed)
       if (upErr) { mostrarError('Error subiendo foto'); return }
-      const { data: { publicUrl } } = db.storage.from('minis').getPublicUrl(path)
+      const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
       const { error: dbErr } = await db.from('minis').update({ photo_url: publicUrl }).eq('id', miniId)
       if (dbErr) { mostrarError('Error guardando foto'); return }
       const row = container.querySelector(`.partner-mini-row[data-mini-id="${miniId}"]`)

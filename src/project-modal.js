@@ -86,7 +86,7 @@ export async function completarProyecto() {
   const project = getProyectos().find(p => p.id === _modalProjectId)
   const miniIds = (project?.project_minis || []).map(pm => Number(pm.mini_id))
   await Promise.all([
-    miniIds.length ? db.from('minis').update({ status: 'pintada' }).in('id', miniIds) : Promise.resolve(),
+    miniIds.length ? db.from('minis').update({ status: 'pintada', paint_progress: 100 }).in('id', miniIds) : Promise.resolve(),
     db.from('projects').update({ status: 'completado', completed_at: new Date().toISOString() }).eq('id', _modalProjectId)
   ])
   await cerrarModalProyecto()

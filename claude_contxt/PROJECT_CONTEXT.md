@@ -12,17 +12,21 @@ Estado global: objeto `state` en `state.js`, importado por todos los módulos. S
 
 Event delegation: el HTML dinámico usa `data-action` / `data-mini-id`. Listeners en contenedores estáticos con `e.target.closest('[data-action]')`. Sin `window.*`.
 
-Módulos clave: `main.js` (listeners), `init.js` (cambiarTab + inicializar), `home.js` (dashboard, pestaña por defecto), `minis.js`, `mini-modal.js`, `paints.js`, `paint-modal.js`, `stats.js`, `wishlist.js`, `camera.js`, `export.js`, `toast.js`
+Módulos clave: `main.js` (listeners), `init.js` (cambiarTab + inicializar), `home.js` (dashboard, pestaña por defecto), `minis.js`, `mini-modal.js`, `paints.js`, `paint-modal.js`, `stats.js`, `wishlist.js`, `lists.js`, `recipes.js`, `recipe-modal.js`, `project-modal.js`, `sessions.js`, `session-modal.js`, `partner.js`, `camera.js`, `export.js`, `toast.js`
 
-Tabs: home → coleccion → stats → wishlist → pinturas. Cada una carga datos al activarse.
+Tabs: home → coleccion → stats → wishlist → pinturas → listas → recetas → pareja. Cada una carga datos al activarse.
 
 ---
 
 ## Base de datos
 
 - `units(name, faction, game_slug, points, type)` — catálogo. Lookup: `state.unitMap[name|faction|game_slug] → points`
-- `minis(name, factions[], status, qty, models, photo_url, created_at)` — colección
+- `minis(name, factions[], status, qty, models, photo_url, paint_progress, wishlist_priority, partner_bought, created_at)` — colección y wishlist
 - `paints(brand, name, type, color_hex, in_stock, quantity)` — pinturas
+- `projects`, `project_minis`, `project_paints` — proyectos de pintura activos/completados
+- `recipes`, `recipe_paints` — recetas de pintura reutilizables
+- `army_lists`, `army_list_units` — listas de ejército
+- `hobby_sessions`, `hobby_session_minis` — sesiones de hobby
 - RLS en todas las tablas. `units/factions/games` son read-only.
 
 Cross-game: `factions[]` array. `ptsPerGame()` itera todas las facciones y acumula pts por cada juego con entrada en unitMap (evita doble-conteo con `seen`).
@@ -39,3 +43,4 @@ SQL: cambios manuales en Supabase SQL Editor, guardados en `sql/NN_name.sql`.
 - Errores → `mostrarError()` de `toast.js`. Nunca `alert()`.
 - Tests: Vitest, mockear `db.js` con `vi.mock('../db.js', () => ({ db: {} }))`. Solo funciones puras exportadas.
 - Fotos: compresión Canvas API en cliente antes de subir (JPEG, 1200px, 0.82).
+- Fotos de minis: usar siempre bucket `mini-photos` (foto principal, galería y vista Pareja). Fotos de proyectos: bucket `project-photos`.

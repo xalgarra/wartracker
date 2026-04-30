@@ -12,7 +12,7 @@ Producción: https://xalgarra.github.io/wartracker
 - Estado global: objeto `state` en `state.js`, compartido entre módulos. Sin reactividad.
 - Flujo: cargar datos → modificar `state` → re-render manual.
 - Event delegation: `data-action` + `e.target.closest()`. Sin `window.*`.
-- Tabs: home → colección → stats → wishlist → pinturas. Cada vista carga al activarse.
+- Tabs: home → colección → stats → wishlist → pinturas → listas → recetas → pareja. Cada vista carga al activarse.
 
 ### Módulos clave
 - `main.js` → listeners globales
@@ -21,6 +21,8 @@ Producción: https://xalgarra.github.io/wartracker
 - `minis.js` / `mini-modal.js`
 - `paints.js` / `paint-modal.js`
 - `stats.js` · `wishlist.js`
+- `lists.js` · `recipes.js` / `recipe-modal.js`
+- `project-modal.js` · `sessions.js` / `session-modal.js` · `partner.js`
 - `camera.js` · `export.js` · `toast.js`
 
 ---
@@ -28,8 +30,12 @@ Producción: https://xalgarra.github.io/wartracker
 ## Base de datos
 
 - `units` → catálogo (lookup en `state.unitMap`)
-- `minis` → colección (multi-facción con `factions[]`)
+- `minis` → colección (multi-facción con `factions[]`, `paint_progress`, wishlist)
 - `paints` → inventario
+- `projects`, `project_minis`, `project_paints` → proyectos activos/completados
+- `recipes`, `recipe_paints` → recetas de pintura
+- `army_lists`, `army_list_units` → listas de ejército
+- `hobby_sessions`, `hobby_session_minis` → sesiones de hobby
 - RLS activo en todas las tablas
 
 ### Lógica clave
@@ -63,6 +69,8 @@ Producción: https://xalgarra.github.io/wartracker
 
 ### Fotos
 - Compresión en cliente (Canvas API, JPEG, máx 1200px, calidad 0.82)
+- Bucket de minis: `mini-photos` (foto principal, galería y subida desde Pareja)
+- Bucket de proyectos: `project-photos`
 
 ---
 

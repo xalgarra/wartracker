@@ -3,7 +3,7 @@
 ## Qué es
 
 App web personal para gestionar una colección de miniaturas de Warhammer (40K y Age of Sigmar).
-Permite llevar un registro de qué tienes, en qué estado de pintura están, cuántos puntos tienes por facción, qué quieres comprar (wishlist) y qué pinturas tienes en el taller.
+Permite llevar un registro de qué tienes, en qué estado de pintura están, cuántos puntos tienes por facción, qué quieres comprar (wishlist), qué pinturas tienes en el taller, proyectos activos, recetas, sesiones de hobby y listas de ejército.
 
 Accesible desde móvil y PC, con login personal, datos en la nube y modo oscuro.
 
@@ -134,15 +134,23 @@ src/
   paints.js      → cargarPinturas, filtros, búsqueda catálogo Citadel, quickAdd.
   paint-modal.js → Modal CRUD de pinturas (separado de paints.js para evitar
                    imports circulares).
+  lists.js       → Listas de ejército: overview, detalle, puntos y minis asignadas.
+  recipes.js     → Vista de recetas de pintura.
+  recipe-modal.js → Modal CRUD de recetas y pinturas usadas.
+  project-modal.js → Modal de proyectos, minis, pinturas, receta y completar proyecto.
+  sessions.js    → Bloque de sesiones de hobby en Home.
+  session-modal.js → Modal para registrar sesiones de hobby.
+  partner.js     → Vista Pareja: progreso rápido, fotos y wishlist comprada.
   camera.js      → Overlay de cámara, captura, llamada a Edge Function,
                    confirmación del resultado.
   export.js      → exportarJSON: descarga backup con minis y pinturas.
   toast.js       → mostrarToast, mostrarError, mostrarExito.
 
   __tests__/
-    stats.test.js  → 8 tests para calcularGlobales
-    minis.test.js  → 16 tests para getTypeForMini, calcularPtsPorJuego, filtros
-    home.test.js   → 10 tests para pickHero, modelsFor
+    stats.test.js  → tests para calcularGlobales
+    minis.test.js  → tests para getTypeForMini, calcularPtsPorJuego, filtros
+    home.test.js   → tests para pickHero, modelsFor
+    lists.test.js  → tests para cálculos de puntos de listas
 ```
 
 ### Patrón de estado compartido
@@ -200,6 +208,11 @@ En el Dashboard, la función `ptsPerGame()` itera todas las facciones de una min
 | status | text | comprada/montada/imprimada/pintando/pintada/wishlist |
 | notes | text | notas libres |
 | photo_url | text | URL en Supabase Storage |
+| paint_progress | int | progreso 0-100 |
+| hobby_blocker | text | motivo de bloqueo opcional |
+| assembly_risk | text | riesgo de montaje/sub-assembly |
+| wishlist_priority | int | prioridad 0-3 para wishlist |
+| partner_bought | boolean | marcado como comprado en vista Pareja |
 | user_id | uuid | propietario (RLS) |
 | created_at | timestamptz | fecha de creación (auto) |
 
@@ -214,6 +227,19 @@ En el Dashboard, la función `ptsPerGame()` itera todas las facciones de una min
 | in_stock | boolean | si quedan en el taller |
 | quantity | int | número de potes (default 1) |
 | user_id | uuid | propietario (RLS) |
+
+**`projects` / `project_minis` / `project_paints`** — proyectos de pintura activos o completados. Al completar un proyecto, sus minis pasan a `status = 'pintada'` y `paint_progress = 100`.
+
+**`recipes` / `recipe_paints`** — recetas reutilizables con foto y pinturas asociadas.
+
+**`army_lists` / `army_list_units`** — listas de ejército con objetivo de puntos y minis asignadas.
+
+**`hobby_sessions` / `hobby_session_minis`** — diario de sesiones de hobby y minis trabajadas.
+
+### Storage
+
+- `mini-photos` → fotos principales de minis, galería y subidas desde la vista Pareja.
+- `project-photos` → fotos de portada de proyectos.
 
 ### Seguridad (RLS)
 
@@ -240,7 +266,7 @@ wartracker/
     camera.js
     export.js              ← backup JSON
     toast.js               ← notificaciones
-    __tests__/             ← Vitest: 34 tests
+    __tests__/             ← Vitest: tests unitarios de funciones puras
       stats.test.js, minis.test.js, home.test.js
 
   css/
@@ -264,6 +290,15 @@ wartracker/
     16_paints.sql          ← tabla paints
     17_paints_quantity.sql ← columna quantity
     18_diagnostico_pts.sql ← queries de diagnóstico (solo SELECT, no modifica)
+    19_army_lists.sql      ← listas de ejército
+    20_paint_progress.sql  ← progreso de pintura por mini
+    21_projects.sql        ← proyectos, minis y pinturas
+    22_mini_photos.sql     ← galería de fotos de minis
+    22_project_photo.sql   ← foto y fecha de completado de proyectos
+    23_projects_recipe.sql ← receta inline / referencia en proyectos
+    24_hobby_fields.sql    ← campos de bloqueo y montaje
+    25_recipes.sql         ← recetas reutilizables
+    26_hobby_sessions.sql  ← sesiones de hobby y campos de pareja
 
   design_handoff/          ← specs de diseño para Claude Code
     README.md, source/home.js, source/home.css, screenshots/
@@ -285,7 +320,7 @@ wartracker/
 npm run dev      # servidor local en http://localhost:5173/wartracker/
                  # (o Ctrl+Shift+B en VS Code)
 
-npm test         # ejecuta los 34 tests con Vitest
+npm test         # ejecuta los tests con Vitest
 npm run test:watch  # modo watch para TDD
 
 # Subir cambios → el deploy a GitHub Pages es automático:

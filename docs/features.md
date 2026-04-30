@@ -24,11 +24,11 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 
 ## Navegación
 
-- **6 tabs**: Inicio, Colección, Estadísticas, Wishlist, Pinturas, Listas
+- **8 tabs**: Inicio, Colección, Estadísticas, Wishlist, Pinturas, Listas, Recetas, Pareja
 - Tabs en barra horizontal con scroll horizontal y gradiente visual en el borde derecho
 - Tab activo resaltado visualmente
 - Cada tab carga datos al activarse (lazy loading)
-- FAB (+) contextual: abre modal de mini o de pintura según el tab activo
+- FAB (+) contextual: abre modal de mini, pintura o receta según el tab activo
 - Header fijo con logo, estado online, botones de tema, exportar y cerrar sesión
 
 ---
@@ -113,8 +113,9 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 ## Tab: Wishlist
 
 - Lista de minis con status "wishlist" separada de la colección principal
-- Ordenadas alfabéticamente por nombre
+- Ordenadas por prioridad y luego alfabéticamente por nombre
 - Cada ítem: nombre, facción, juego, notas, puntos si están en el catálogo
+- Prioridad 0-3 estrellas y marca de "comprado" para la vista Pareja
 - Clicable para abrir el modal de edición (se puede mover a colección cambiando el estado)
 - Vacío con mensaje de ayuda
 
@@ -143,6 +144,37 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 ### Ordenación
 - Nombre (por defecto, alfabético)
 - Color (por tono HSL 0°–360°; sin color → al final)
+
+---
+
+## Tab: Listas
+
+- Gestión de listas de ejército por juego.
+- Crear lista con nombre, juego y puntos objetivo opcionales.
+- Vista detalle con puntos totales, puntos pintados y barra contra objetivo.
+- Añadir minis disponibles de la colección a la lista.
+- Quitar minis de la lista y volver al resumen.
+
+---
+
+## Tab: Recetas
+
+- Biblioteca de recetas de pintura reutilizables.
+- Crear, editar y eliminar recetas.
+- Foto de referencia de la receta.
+- Añadir pinturas usadas en la receta con swatches de color.
+- Muestra si una receta está vinculada a proyectos.
+
+---
+
+## Tab: Pareja
+
+- Vista simplificada para ayudar a actualizar progreso y gestionar regalos.
+- Muestra minis en proceso (pintando / imprimada / montada) con campo de % de progreso.
+- Si el progreso llega a 100%, la mini pasa a "pintada".
+- Permite subir foto de una mini usando el bucket `mini-photos`.
+- Muestra wishlist separando pendientes y compradas.
+- Permite marcar/desmarcar una wishlist como comprada.
 
 ---
 
@@ -190,7 +222,7 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 - Búsqueda de pinturas para añadir: excluye pinturas ya en el proyecto
 - Los resultados de búsqueda muestran facción y marca respectivamente
 - Añadir / eliminar minis y pinturas sin recargar la página (recarga solo el modal)
-- Botón **Completar ✓**: marca todas las minis del proyecto como "pintada" y cierra el proyecto (pasa a historial)
+- Botón **Completar ✓**: marca todas las minis del proyecto como "pintada", pone `paint_progress = 100` y cierra el proyecto (pasa a historial)
 - Botón **Eliminar**: elimina el proyecto (con confirmación)
 - Guardar: guarda nombre y foto
 - Al cerrar, recarga el home
@@ -240,7 +272,7 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 ### Tablas principales
 | Tabla | Descripción |
 |-------|-------------|
-| `minis` | Colección del usuario. Campos: id, name, factions (array), status, qty, models, photo_url, notes, paint_progress, created_at |
+| `minis` | Colección y wishlist del usuario. Campos: id, name, factions (array), status, qty, models, photo_url, notes, paint_progress, wishlist_priority, partner_bought, created_at |
 | `paints` | Inventario de pinturas. Campos: id, brand, name, type, color_hex, quantity, in_stock |
 | `units` | Catálogo de unidades (lookup). Campos: name, faction, game_slug, points, type |
 | `factions` | Catálogo de facciones. Campos: name, game_slug |
@@ -248,11 +280,17 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 | `projects` | Proyectos de pintura. Campos: id, name, photo_url, status (activo/completado), completed_at, created_at |
 | `project_minis` | Relación proyecto ↔ mini. Campos: id, project_id, mini_id, notes |
 | `project_paints` | Relación proyecto ↔ pintura. Campos: id, project_id, paint_id |
+| `recipes` | Recetas de pintura. Campos: id, name, photo_url |
+| `recipe_paints` | Relación receta ↔ pintura. Campos: id, recipe_id, paint_id |
+| `army_lists` | Listas de ejército. Campos: id, name, game, faction, target_points |
+| `army_list_units` | Relación lista ↔ mini. Campos: id, list_id, mini_id, qty |
+| `hobby_sessions` | Diario de sesiones. Campos: id, date, duration_min, notes |
+| `hobby_session_minis` | Relación sesión ↔ mini. Campos: id, session_id, mini_id |
 
 ### Storage
 | Bucket | Uso |
 |--------|-----|
-| `mini-photos` | Fotos de miniaturas (4 policies: read público, write autenticado) |
+| `mini-photos` | Fotos de miniaturas: portada, galería y subida desde Pareja (4 policies: read público, write autenticado) |
 | `project-photos` | Fotos de proyectos (4 policies: read público, write autenticado) |
 
 ### RLS
