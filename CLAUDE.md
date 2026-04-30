@@ -33,7 +33,7 @@ Producción: https://xalgarra.github.io/wartracker
 - `minis` → colección (multi-facción con `factions[]`, `paint_progress`, wishlist)
 - `paints` → inventario
 - `projects`, `project_minis`, `project_paints` → proyectos activos/completados
-- `recipes`, `recipe_paints` → recetas de pintura
+- `recipes`, `recipe_photos`, `recipe_paints`, `recipe_steps` → recetas de pintura
 - `army_lists`, `army_list_units` → listas de ejército
 - `hobby_sessions`, `hobby_session_minis` → sesiones de hobby
 - RLS activo en todas las tablas

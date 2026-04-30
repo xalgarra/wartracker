@@ -12,15 +12,29 @@ export async function cargarRecetas() {
   if (!container) return
   container.innerHTML = '<div class="empty">Cargando…</div>'
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from('recipes')
     .select(`
       id, name,
       recipe_photos(id, url, position),
       recipe_paints(id, paint_id, paints(id, name, color_hex)),
+      recipe_steps(id, position, technique, instruction),
       projects(id, name)
     `)
     .order('created_at', { ascending: false })
+
+  if (error && error.message?.includes('recipe_steps')) {
+    ;({ data, error } = await db
+      .from('recipes')
+      .select(`
+        id, name,
+        recipe_photos(id, url, position),
+        recipe_paints(id, paint_id, paints(id, name, color_hex)),
+        projects(id, name)
+      `)
+      .order('created_at', { ascending: false }))
+    data = (data || []).map(r => ({ ...r, recipe_steps: [] }))
+  }
 
   if (error) {
     mostrarError('Error cargando recetas')
@@ -51,6 +65,7 @@ function renderRecipeCard(recipe) {
   const photos = (recipe.recipe_photos || []).sort((a, b) => a.position - b.position)
   const thumb = photos[0]
   const paints = recipe.recipe_paints || []
+  const steps = recipe.recipe_steps || []
   const projects = recipe.projects || []
 
   const thumbHtml = thumb
@@ -68,6 +83,7 @@ function renderRecipeCard(recipe) {
       ${thumbHtml}
       <div class="recipe-card-body">
         <div class="recipe-card-name">${escapeHtml(recipe.name)}</div>
+        <div class="recipe-card-meta">${steps.length} paso${steps.length !== 1 ? 's' : ''}</div>
         ${paintsHtml ? `<div class="recipe-card-paints">${paintsHtml}</div>` : ''}
         ${projects.length ? `<div class="recipe-card-used">// ${projects.length} proyecto${projects.length !== 1 ? 's' : ''}</div>` : ''}
       </div>

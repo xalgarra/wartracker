@@ -136,7 +136,7 @@ src/
                    imports circulares).
   lists.js       → Listas de ejército: overview, detalle, puntos y minis asignadas.
   recipes.js     → Vista de recetas de pintura.
-  recipe-modal.js → Modal CRUD de recetas y pinturas usadas.
+  recipe-modal.js → Modal CRUD de recetas, fotos, pinturas usadas y pasos.
   project-modal.js → Modal de proyectos, minis, pinturas, receta y completar proyecto.
   sessions.js    → Bloque de sesiones de hobby en Home.
   session-modal.js → Modal para registrar sesiones de hobby.
@@ -230,7 +230,7 @@ En el Dashboard, la función `ptsPerGame()` itera todas las facciones de una min
 
 **`projects` / `project_minis` / `project_paints`** — proyectos de pintura activos o completados. Al completar un proyecto, sus minis pasan a `status = 'pintada'` y `paint_progress = 100`.
 
-**`recipes` / `recipe_paints`** — recetas reutilizables con foto y pinturas asociadas.
+**`recipes` / `recipe_photos` / `recipe_paints` / `recipe_steps`** — recetas reutilizables con fotos, pinturas asociadas y pasos ordenados por técnica.
 
 **`army_lists` / `army_list_units`** — listas de ejército con objetivo de puntos y minis asignadas.
 
@@ -299,6 +299,7 @@ wartracker/
     24_hobby_fields.sql    ← campos de bloqueo y montaje
     25_recipes.sql         ← recetas reutilizables
     26_hobby_sessions.sql  ← sesiones de hobby y campos de pareja
+    27_recipe_steps.sql    ← pasos estructurados de recetas
 
   design_handoff/          ← specs de diseño para Claude Code
     README.md, source/home.js, source/home.css, screenshots/

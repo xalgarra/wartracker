@@ -24,7 +24,7 @@ Tabs: home → coleccion → stats → wishlist → pinturas → listas → rece
 - `minis(name, factions[], status, qty, models, photo_url, paint_progress, wishlist_priority, partner_bought, created_at)` — colección y wishlist
 - `paints(brand, name, type, color_hex, in_stock, quantity)` — pinturas
 - `projects`, `project_minis`, `project_paints` — proyectos de pintura activos/completados
-- `recipes`, `recipe_paints` — recetas de pintura reutilizables
+- `recipes`, `recipe_photos`, `recipe_paints`, `recipe_steps` — recetas de pintura reutilizables con fotos, pinturas y pasos
 - `army_lists`, `army_list_units` — listas de ejército
 - `hobby_sessions`, `hobby_session_minis` — sesiones de hobby
 - RLS en todas las tablas. `units/factions/games` son read-only.

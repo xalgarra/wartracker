@@ -2997,6 +2997,40 @@ body:not(.dark) .list-add-item { border-color: #e6e4df; }
   display: block;
 }
 
+.recipe-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.recipe-step-row {
+  display: grid;
+  grid-template-columns: 24px minmax(92px, 120px) 1fr 28px;
+  gap: 6px;
+  align-items: center;
+}
+.recipe-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+}
+.recipe-step-technique,
+.recipe-step-instruction {
+  min-width: 0;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--border-1);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 0 8px;
+}
+.recipe-step-add {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
 /* Recipe link inside project modal */
 .proj-recipe-link-display {
   display: none;
@@ -3035,6 +3069,8 @@ body:not(.dark) .list-add-item { border-color: #e6e4df; }
 body:not(.dark) .recipe-card { background: #fff; border-color: #e6e4df; }
 body:not(.dark) .recipe-card-thumb--empty { background: #f5f3ef; }
 body:not(.dark) .recipe-card-name { color: #1c1a16; }
+body:not(.dark) .recipe-step-technique,
+body:not(.dark) .recipe-step-instruction { background: #fff; border-color: #e6e4df; color: #1c1a16; }
 body:not(.dark) .proj-recipe-link-display { background: #f5f3ef; border-color: #e6e4df; }
 body:not(.dark) .proj-recipe-link-name { color: #1c1a16; }
 body:not(.dark) .list-add-item:hover { background: rgba(176,141,91,.07); border-color: #b08d5b; }

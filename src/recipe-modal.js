@@ -11,6 +11,19 @@ let _deletedPhotoIds = new Set()
 let _recipePaints  = []         // { id, paint_id, paints: {...} } — from DB
 let _pendingPaints = []         // { paint: {...} } — not yet saved
 let _removedPaintIds = new Set()
+let _steps         = []         // { id, position, technique, instruction } — from DB
+
+const STEP_TECHNIQUES = [
+  'base',
+  'pincel seco',
+  'shade',
+  'contrast',
+  'lavado',
+  'luz',
+  'detalle',
+  'glaze',
+  'technical',
+]
 
 function _reset() {
   _recipeId       = null
@@ -20,6 +33,7 @@ function _reset() {
   _recipePaints   = []
   _pendingPaints  = []
   _removedPaintIds = new Set()
+  _steps          = []
 }
 
 // ---------------------------------------------------------------------------
@@ -40,9 +54,11 @@ export async function abrirModalReceta(recipeId) {
   if (recipe) {
     _photos = (recipe.recipe_photos || []).sort((a, b) => a.position - b.position)
     _recipePaints = recipe.recipe_paints || []
+    _steps = (recipe.recipe_steps || []).sort((a, b) => a.position - b.position)
   }
   _renderPhotos()
   _renderPaints()
+  _renderSteps()
 
   const usedIn = document.getElementById('recipe-used-in')
   const projects = recipe?.projects || []
@@ -61,6 +77,39 @@ export async function abrirModalReceta(recipeId) {
   }
 
   document.getElementById('modal-recipe-bg').classList.add('open')
+}
+
+function _renderSteps() {
+  const list = document.getElementById('recipe-steps-list')
+  if (!list) return
+
+  if (!_steps.length) {
+    list.innerHTML = '<div class="proj-modal-empty">Sin pasos añadidos</div>'
+    return
+  }
+
+  list.innerHTML = _steps.map((step, idx) => `
+    <div class="recipe-step-row" data-step-idx="${idx}">
+      <span class="recipe-step-num">${idx + 1}</span>
+      <select class="recipe-step-technique">
+        <option value="">Técnica</option>
+        ${STEP_TECHNIQUES.map(t => `<option value="${t}"${step.technique === t ? ' selected' : ''}>${t}</option>`).join('')}
+      </select>
+      <input class="recipe-step-instruction" type="text" maxlength="180"
+             placeholder="Instrucción" value="${escapeHtml(step.instruction || '')}">
+      <button class="proj-modal-remove" data-action="del-recipe-step" data-step-idx="${idx}">✕</button>
+    </div>
+  `).join('')
+}
+
+function _syncStepsFromDom() {
+  const rows = [...document.querySelectorAll('#recipe-steps-list .recipe-step-row')]
+  _steps = rows.map((row, idx) => ({
+    id: _steps[Number(row.dataset.stepIdx)]?.id || null,
+    position: idx,
+    technique: row.querySelector('.recipe-step-technique')?.value || '',
+    instruction: row.querySelector('.recipe-step-instruction')?.value.trim() || '',
+  })).filter(step => step.technique || step.instruction)
 }
 
 export function cerrarModalReceta() {
@@ -153,6 +202,11 @@ function _bindModalEvents() {
   const modal = document.querySelector('#modal-recipe-bg .modal')
 
   document.getElementById('recipe-paint-search')?.addEventListener('input', e => _onPaintSearch(e.target.value))
+  document.getElementById('btn-add-recipe-step')?.addEventListener('click', () => {
+    _syncStepsFromDom()
+    _steps.push({ id: null, position: _steps.length, technique: '', instruction: '' })
+    _renderSteps()
+  })
 
   modal.addEventListener('click', e => {
     const el = e.target.closest('[data-action]')
@@ -184,6 +238,10 @@ function _bindModalEvents() {
     } else if (action === 'del-pending-paint') {
       _pendingPaints.splice(Number(el.dataset.idx), 1)
       _renderPaints()
+    } else if (action === 'del-recipe-step') {
+      _syncStepsFromDom()
+      _steps.splice(Number(el.dataset.stepIdx), 1)
+      _renderSteps()
     }
   })
 }
@@ -253,6 +311,22 @@ export async function guardarReceta() {
     // Insert pending paints
     for (const pp of _pendingPaints) {
       await db.from('recipe_paints').insert({ recipe_id: savedId, paint_id: pp.paint.id })
+    }
+
+    _syncStepsFromDom()
+    const { error: delStepsError } = await db.from('recipe_steps').delete().eq('recipe_id', savedId)
+    if (delStepsError) { mostrarError('Error guardando pasos. Ejecuta sql/27_recipe_steps.sql'); return }
+    const stepsToInsert = _steps
+      .map((step, idx) => ({
+        recipe_id: savedId,
+        position: idx,
+        technique: step.technique || null,
+        instruction: step.instruction,
+      }))
+      .filter(step => step.instruction)
+    if (stepsToInsert.length) {
+      const { error: stepErr } = await db.from('recipe_steps').insert(stepsToInsert)
+      if (stepErr) { mostrarError('Error guardando pasos. Ejecuta sql/27_recipe_steps.sql'); return }
     }
 
     cerrarModalReceta()

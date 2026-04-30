@@ -280,7 +280,8 @@ WarTracker es una app web mobile-first para coleccionistas de miniaturas de warg
 | `projects` | Proyectos de pintura. Campos: id, name, photo_url, status (activo/completado), completed_at, created_at |
 | `project_minis` | Relación proyecto ↔ mini. Campos: id, project_id, mini_id, notes |
 | `project_paints` | Relación proyecto ↔ pintura. Campos: id, project_id, paint_id |
-| `recipes` | Recetas de pintura. Campos: id, name, photo_url |
+| `recipes` | Recetas de pintura. Campos: id, name, notes |
+| `recipe_steps` | Pasos ordenados de receta. Campos: id, recipe_id, position, technique, instruction |
 | `recipe_paints` | Relación receta ↔ pintura. Campos: id, recipe_id, paint_id |
 | `army_lists` | Listas de ejército. Campos: id, name, game, faction, target_points |
 | `army_list_units` | Relación lista ↔ mini. Campos: id, list_id, mini_id, qty |
