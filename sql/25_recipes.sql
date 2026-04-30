@@ -45,3 +45,16 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS recipe_id uuid REFERENCES recipes(
 CREATE INDEX IF NOT EXISTS recipe_photos_recipe_id_idx ON recipe_photos(recipe_id);
 CREATE INDEX IF NOT EXISTS recipe_paints_recipe_id_idx ON recipe_paints(recipe_id);
 CREATE INDEX IF NOT EXISTS projects_recipe_id_idx      ON projects(recipe_id);
+
+-- Storage policies para recipe-photos (bucket publico)
+CREATE POLICY "Public read recipe-photos" ON storage.objects
+  FOR SELECT USING (bucket_id = 'recipe-photos');
+
+CREATE POLICY "Authenticated upload recipe-photos" ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'recipe-photos');
+
+CREATE POLICY "Authenticated update recipe-photos" ON storage.objects
+  FOR UPDATE TO authenticated USING (bucket_id = 'recipe-photos');
+
+CREATE POLICY "Authenticated delete recipe-photos" ON storage.objects
+  FOR DELETE TO authenticated USING (bucket_id = 'recipe-photos');

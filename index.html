@@ -100,6 +100,16 @@
     </div>
 
     <div id="vista-recetas" style="display:none">
+      <div class="recipe-import-bar">
+        <div>
+          <div class="recipe-import-title">Importar recetas preparadas</div>
+          <div class="recipe-import-meta">Selecciona los archivos de la carpeta <code>recetas</code></div>
+        </div>
+        <label class="btn-secondary recipe-import-btn" for="recipe-import-files">Seleccionar fotos</label>
+        <input id="recipe-import-files" type="file" accept="image/*" multiple webkitdirectory style="display:none">
+        <button id="btn-import-recipes" class="btn-primary" disabled>Importar</button>
+      </div>
+      <div id="recipe-import-status" class="recipe-import-status"></div>
       <div id="recetas-content"></div>
     </div>
 
