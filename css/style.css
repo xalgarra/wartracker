@@ -1737,8 +1737,6 @@ body.dark .camera-result-name { font-weight: 400; }
   .recipe-step-row .proj-modal-remove {
     grid-area: remove;
     justify-self: end;
-    width: 28px;
-    height: 28px;
   }
 
   .filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -3068,14 +3066,14 @@ body:not(.dark) .list-add-item { border-color: #e6e4df; }
 .recipe-steps-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin: 2px 0 8px;
   min-width: 0;
 }
 .recipe-step-row {
   display: grid;
   grid-template-columns: 24px minmax(112px, 140px) minmax(0, 1fr) 28px;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   min-width: 0;
 }
@@ -3090,22 +3088,52 @@ body:not(.dark) .list-add-item { border-color: #e6e4df; }
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  height: 34px;
-  border-radius: 6px;
+  height: 36px;
+  border-radius: 4px;
   border: 1px solid var(--border-1);
   background: var(--surface-2);
   color: var(--text-primary);
   font-size: 13px;
-  padding: 0 8px;
+  padding: 0 10px;
   margin: 0;
 }
 .recipe-step-instruction {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.recipe-step-row .proj-modal-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 4px;
+}
+.recipe-step-row .proj-modal-remove:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
 .recipe-step-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  margin-bottom: 12px;
+  min-height: 34px;
+  margin: 2px 0 14px;
+  padding: 8px 12px;
+  border: 1px dashed var(--border-1);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+.recipe-step-add:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 /* Recipe link inside project modal */
