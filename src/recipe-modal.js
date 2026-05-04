@@ -12,6 +12,9 @@ let _recipePaints  = []         // { id, paint_id, paints: {...} } — from DB
 let _pendingPaints = []         // { paint: {...} } — not yet saved
 let _removedPaintIds = new Set()
 let _steps         = []         // { id, position, technique, instruction } — from DB
+let _pdfUrl        = null       // existing pdf_url from DB
+let _pdfFile       = null       // pending File to upload
+let _pdfRemoved    = false      // user clicked remove on existing PDF
 
 const STEP_TECHNIQUES = [
   'base',
@@ -34,6 +37,9 @@ function _reset() {
   _pendingPaints  = []
   _removedPaintIds = new Set()
   _steps          = []
+  _pdfUrl         = null
+  _pdfFile        = null
+  _pdfRemoved     = false
 }
 
 // ---------------------------------------------------------------------------
@@ -55,8 +61,10 @@ export async function abrirModalReceta(recipeId) {
     _photos = (recipe.recipe_photos || []).sort((a, b) => a.position - b.position)
     _recipePaints = recipe.recipe_paints || []
     _steps = (recipe.recipe_steps || []).sort((a, b) => a.position - b.position)
+    _pdfUrl = recipe.pdf_url || null
   }
   _renderPhotos()
+  _renderPdf()
   _renderPaints()
   _renderSteps()
 
@@ -130,17 +138,48 @@ function _renderPhotos() {
     .filter(p => !_deletedPhotoIds.has(p.id))
     .map(p => `
       <div class="recipe-photo-item">
-        <img class="recipe-photo-thumb" src="${p.url}" alt="" loading="lazy">
+        <img class="recipe-photo-thumb" src="${p.url}" alt="" loading="lazy" data-action="view-photo" data-url="${p.url}">
         <button class="gallery-item-remove" data-action="del-recipe-photo" data-photo-id="${p.id}">✕</button>
       </div>`).join('')
 
   const pendHtml = _pendingPhotos.map((p, i) => `
     <div class="recipe-photo-item recipe-photo-item--pending">
-      <img class="recipe-photo-thumb" src="${p.tempUrl}" alt="">
+      <img class="recipe-photo-thumb" src="${p.tempUrl}" alt="" data-action="view-photo" data-url="${p.tempUrl}">
       <button class="gallery-item-remove" data-action="del-pending-photo" data-idx="${i}">✕</button>
     </div>`).join('')
 
   list.innerHTML = existHtml + pendHtml
+}
+
+function _renderPdf() {
+  const display = document.getElementById('recipe-pdf-display')
+  const label   = document.getElementById('recipe-pdf-upload-label')
+  if (!display) return
+
+  if (_pdfFile) {
+    display.innerHTML = `<div class="recipe-pdf-row">
+      <span class="recipe-pdf-name">${escapeHtml(_pdfFile.name)}</span>
+      <button class="proj-modal-remove" data-action="del-pdf">✕</button>
+    </div>`
+    if (label) label.style.display = 'none'
+  } else if (_pdfUrl && !_pdfRemoved) {
+    display.innerHTML = `<div class="recipe-pdf-row">
+      <a class="recipe-pdf-link" href="${_pdfUrl}" target="_blank" rel="noopener">Ver PDF</a>
+      <button class="proj-modal-remove" data-action="del-pdf">✕</button>
+    </div>`
+    if (label) label.style.display = 'none'
+  } else {
+    display.innerHTML = ''
+    if (label) label.style.display = ''
+  }
+}
+
+function openLightbox(url) {
+  const lb  = document.getElementById('photo-lightbox')
+  const img = document.getElementById('photo-lightbox-img')
+  if (!lb || !img) return
+  img.src = url
+  lb.classList.add('open')
 }
 
 function _renderPaints() {
@@ -201,6 +240,21 @@ function _onPaintSearch(query) {
 function _bindModalEvents() {
   const modal = document.querySelector('#modal-recipe-bg .modal')
 
+  document.getElementById('photo-lightbox')?.addEventListener('click', () => {
+    document.getElementById('photo-lightbox').classList.remove('open')
+  })
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('photo-lightbox')?.classList.remove('open')
+  })
+  document.getElementById('recipe-pdf-input')?.addEventListener('change', e => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    _pdfFile = file
+    _pdfRemoved = false
+    _renderPdf()
+  })
+
   document.getElementById('recipe-paint-search')?.addEventListener('input', e => _onPaintSearch(e.target.value))
   document.getElementById('btn-add-recipe-step')?.addEventListener('click', () => {
     _syncStepsFromDom()
@@ -242,6 +296,12 @@ function _bindModalEvents() {
       _syncStepsFromDom()
       _steps.splice(Number(el.dataset.stepIdx), 1)
       _renderSteps()
+    } else if (action === 'view-photo') {
+      openLightbox(el.dataset.url)
+    } else if (action === 'del-pdf') {
+      _pdfFile = null
+      _pdfRemoved = true
+      _renderPdf()
     }
   })
 }
@@ -280,6 +340,22 @@ export async function guardarReceta() {
       const { data, error } = await db.from('recipes').insert({ name }).select('id').single()
       if (error) { mostrarError('Error guardando receta'); return }
       savedId = data.id
+    }
+
+    // PDF: upload new / remove existing
+    if (_pdfFile) {
+      const pdfPath = `${savedId}/recipe.pdf`
+      await db.storage.from('recipe-photos').remove([pdfPath])
+      const { error: pdfErr } = await db.storage.from('recipe-photos').upload(pdfPath, _pdfFile, { upsert: true, contentType: 'application/pdf' })
+      if (pdfErr) { mostrarError('Error subiendo PDF'); }
+      else {
+        const { data: { publicUrl } } = db.storage.from('recipe-photos').getPublicUrl(pdfPath)
+        await db.from('recipes').update({ pdf_url: publicUrl }).eq('id', savedId)
+      }
+    } else if (_pdfRemoved && _pdfUrl) {
+      const pdfPath = storagePathFrom(_pdfUrl, 'recipe-photos')
+      if (pdfPath) await db.storage.from('recipe-photos').remove([pdfPath])
+      await db.from('recipes').update({ pdf_url: null }).eq('id', savedId)
     }
 
     // Delete removed photos from storage + DB

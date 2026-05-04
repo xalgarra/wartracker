@@ -21,7 +21,7 @@ export async function cargarRecetas() {
   let { data, error } = await db
     .from('recipes')
     .select(`
-      id, name,
+      id, name, pdf_url,
       recipe_photos(id, url, position),
       recipe_paints(id, paint_id, paints(id, name, color_hex)),
       recipe_steps(id, position, technique, instruction),

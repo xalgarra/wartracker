@@ -358,6 +358,15 @@
         </label>
       </div>
 
+      <div class="mini-gallery-section">
+        <div class="field-label">PDF de referencia</div>
+        <div id="recipe-pdf-display"></div>
+        <label class="btn-photo mini-gallery-add-btn" id="recipe-pdf-upload-label" for="recipe-pdf-input">
+          + Subir PDF
+          <input type="file" id="recipe-pdf-input" accept=".pdf" style="display:none">
+        </label>
+      </div>
+
       <label class="field-label">Pinturas</label>
       <div id="recipe-paints-list"></div>
       <input type="search" id="recipe-paint-search" placeholder="Añadir pintura…" autocomplete="off">
@@ -420,6 +429,8 @@
 
   <div id="status-picker" class="status-picker"></div>
   <div id="toast-container"></div>
+
+  <div id="photo-lightbox"><img id="photo-lightbox-img" src="" alt=""></div>
 
   <script type="module" src="/src/main.js"></script>
 </body>
