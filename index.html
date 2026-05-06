@@ -106,6 +106,13 @@
     </div>
 
     <div id="vista-recetas" style="display:none">
+      <div class="recipes-filter-bar">
+        <div class="recipes-filter-search">
+          <input type="search" id="recipes-paint-filter" placeholder="Filtrar por pintura usada…" autocomplete="off">
+          <div id="recipes-paint-filter-results" class="recipes-filter-results"></div>
+        </div>
+        <div id="recipes-active-filter" class="recipes-active-filter" style="display:none"></div>
+      </div>
       <div id="recetas-content"></div>
     </div>
 
@@ -118,9 +125,33 @@
         <div class="catalog-search-row">
           <input type="search" id="catalog-search" placeholder="Añadir del catálogo Citadel…" autocomplete="off">
           <button class="btn-camera" id="btn-camera-catalog" title="Escanear pote con cámara">📷</button>
+          <button class="btn-camera btn-color-search" id="btn-color-search-open" title="Buscar pintura por color">🎨</button>
         </div>
         <div class="catalog-results" id="catalog-results"></div>
       </div>
+
+      <!-- Panel: buscar pintura por color -->
+      <div class="color-search-panel" id="color-search-panel" style="display:none">
+        <div class="color-search-header">
+          <span class="color-search-title">Buscar por color</span>
+          <button class="color-search-close" id="btn-color-search-close" title="Cerrar">✕</button>
+        </div>
+        <div class="color-search-controls">
+          <label class="color-search-picker-label">
+            <span class="color-search-picker-swatch" id="color-search-swatch"></span>
+            <input type="color" id="color-search-picker" value="#888888">
+            <span>Color objetivo</span>
+          </label>
+          <input type="text" id="color-search-hex" maxlength="7" placeholder="#aabbcc" class="color-search-hex">
+          <label class="color-search-stock">
+            <input type="checkbox" id="color-search-instock" checked>
+            <span>Solo en stock</span>
+          </label>
+        </div>
+        <div class="color-search-context" id="color-search-context"></div>
+        <div class="color-search-results" id="color-search-results"></div>
+      </div>
+
       <div class="filtros filtros-pinturas">
         <div class="filter-dropdown" id="filtro-paint-type-wrap">
           <button class="filter-dropdown-btn" id="filtro-paint-type-btn">Tipo</button>
@@ -245,6 +276,7 @@
         <input type="checkbox" id="paint-in-stock" checked>
         <span>En stock</span>
       </label>
+      <button type="button" id="btn-paint-find-similar" class="btn-secondary btn-paint-find-similar" style="display:none">🎨 Buscar sustituto en mi rack</button>
       <div class="modal-btns">
         <button id="btn-eliminar-paint" class="btn-danger" style="display:none">Eliminar</button>
         <button id="btn-cerrar-modal-paint" class="btn-cancel">Cancelar</button>

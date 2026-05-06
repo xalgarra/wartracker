@@ -147,6 +147,7 @@ export async function cargarHome() {
     ${renderQueue(inQueue)}
     ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
     ${renderLast(minis.slice(0, 3))}
+    ${renderSchemes(minis)}
     ${renderHistorial(historial || [])}
     ${renderSessionsBlock()}
   `
@@ -409,6 +410,31 @@ function renderLast(items) {
           <div class="home-last-row" data-action="open-mini" data-mini-id="${m.id}">
             <span class="home-last-name">${escapeHtml(m.name)}</span>
             <span class="home-last-meta">${escapeHtml((m.factions || [])[0] || '-')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `
+}
+
+function renderSchemes(minis) {
+  const schemes = minis
+    .filter(m => m.status === 'pintada' && m.photo_url)
+    .slice(0, 12)
+  if (!schemes.length) return ''
+  return `
+    <div class="home-block home-block--schemes">
+      <div class="home-block-h">
+        <span>// schemes que funcionaron</span>
+        <span class="home-block-hint">${schemes.length}${schemes.length === 12 ? '+' : ''} acabad${schemes.length === 1 ? 'o' : 'os'}</span>
+      </div>
+      <div class="schemes-grid">
+        ${schemes.map(m => `
+          <div class="scheme-tile" data-action="open-mini" data-mini-id="${m.id}">
+            <img class="scheme-tile-img" src="${m.photo_url}" alt="" loading="lazy">
+            <div class="scheme-tile-overlay">
+              <span class="scheme-tile-name">${escapeHtml(m.name)}</span>
+            </div>
           </div>
         `).join('')}
       </div>

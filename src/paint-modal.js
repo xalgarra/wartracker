@@ -8,6 +8,7 @@ export function abrirModalPintura() {
   state.paintEnEdicion = null
   document.getElementById('modal-paint-title').textContent = 'Añadir pintura'
   document.getElementById('btn-eliminar-paint').style.display = 'none'
+  document.getElementById('btn-paint-find-similar').style.display = 'none'
   document.getElementById('paint-brand').value = ''
   document.getElementById('paint-name').value = ''
   document.getElementById('paint-type').value = 'base'
@@ -34,7 +35,28 @@ export function abrirEdicionPintura(id) {
   if (hasColor) document.getElementById('paint-color-hex').value = paint.color_hex
   document.getElementById('paint-qty').value = paint.quantity || 1
   document.getElementById('paint-in-stock').checked = paint.in_stock
+
+  const findSimilarBtn = document.getElementById('btn-paint-find-similar')
+  if (hasColor) {
+    findSimilarBtn.textContent = paint.in_stock ? '🎨 Buscar similares' : '🎨 Buscar sustituto en mi rack'
+    findSimilarBtn.style.display = 'block'
+  } else {
+    findSimilarBtn.style.display = 'none'
+  }
+
   document.getElementById('modal-paint-bg').classList.add('open')
+}
+
+export async function buscarSimilares() {
+  const paint = state.paintEnEdicion
+  if (!paint?.color_hex) return
+  cerrarModalPintura()
+  const { abrirColorSearch } = await import('./paint-color-search.js')
+  abrirColorSearch(paint.color_hex, {
+    label: paint.in_stock ? `Similares a ${paint.name}` : `Sustituto de ${paint.name} (sin stock)`,
+    excludeId: paint.id,
+    onlyInStock: !paint.in_stock,  // si está sin stock, solo mostramos opciones que sí tienes
+  })
 }
 
 export function cerrarModalPintura() {

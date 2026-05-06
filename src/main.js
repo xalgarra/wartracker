@@ -7,7 +7,7 @@ import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
 import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas, setPaintSort } from './paints.js'
-import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura } from './paint-modal.js'
+import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura, buscarSimilares } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { abrirModalReceta, cerrarModalReceta, guardarReceta, eliminarReceta, onRecipePhotoSelected } from './recipe-modal.js'
 import { cerrarModalSession, guardarSession } from './session-modal.js'
@@ -219,6 +219,7 @@ document.getElementById('paint-brand')?.addEventListener('input', onPaintBrandIn
 document.getElementById('paint-name')?.addEventListener('input', onPaintNameInput)
 document.getElementById('paint-has-color')?.addEventListener('change', e => toggleColorPicker(e.target))
 document.getElementById('btn-color-search')?.addEventListener('click', buscarColorExterno)
+document.getElementById('btn-paint-find-similar')?.addEventListener('click', buscarSimilares)
 document.getElementById('busqueda-paint')?.addEventListener('input', filtrarYRenderPinturas)
 document.getElementById('filtro-paint-stock-btn')?.addEventListener('click', e => {
   e.stopPropagation()
@@ -256,6 +257,12 @@ document.querySelectorAll('.sort-paint-btn').forEach(btn => {
     btn.classList.add('active')
     setPaintSort(btn.dataset.sort)
   })
+})
+
+// Color search (pinturas tab) — buscar pintura por color
+document.getElementById('btn-color-search-open')?.addEventListener('click', async () => {
+  const { abrirColorSearch } = await import('./paint-color-search.js')
+  abrirColorSearch()
 })
 
 // Catalog search (pinturas tab)
