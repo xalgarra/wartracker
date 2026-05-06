@@ -655,3 +655,79 @@ body.dark .field-label::before { content: '// '; text-transform: none; }
 }
 
 [data-action="status-quick"]:hover { opacity: 0.75; }
+
+/* ====================================================================
+   PWA — banner offline persistente + update prompt
+   ==================================================================== */
+
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(90deg, oklch(0.45 0.13 50) 0%, oklch(0.5 0.14 40) 100%);
+  z-index: 100;
+  padding: 0 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  height: calc(30px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+body.is-offline .offline-banner { display: flex; }
+body.is-offline { padding-top: calc(30px + env(safe-area-inset-top, 0px)); }
+
+.offline-banner-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  animation: offline-pulse 2.4s ease-in-out infinite;
+}
+@keyframes offline-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); opacity: 1; }
+  50%      { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); opacity: 0.6; }
+}
+
+.pwa-update-prompt {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 105;
+  max-width: 320px;
+  padding: 14px 16px;
+  background: var(--surface-1, #1a1814);
+  color: var(--text-1, #f0eee8);
+  border: 1px solid var(--border-1, rgba(255,255,255,0.08));
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pwa-prompt-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pwa-prompt-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.pwa-update-prompt-info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.pwa-update-prompt-info strong { font-size: 14px; }
+.pwa-update-prompt-info span   { color: var(--muted, #9b948a); font-size: 12px; }
+.pwa-update-prompt-actions     { display: flex; gap: 8px; justify-content: flex-end; }
+.pwa-update-prompt-actions button { padding: 6px 12px; font-size: 12.5px; }
+
+@media (max-width: 540px) {
+  .pwa-update-prompt {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}

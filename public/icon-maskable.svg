@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="oklch(0.18 0.02 40)"/>
+  <path d="M120 180 L172 360 L228 244 L256 304 L284 244 L340 360 L392 180"
+        stroke="oklch(0.62 0.16 30)" stroke-width="30" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="396" r="12" fill="oklch(0.62 0.16 30)"/>
+</svg>

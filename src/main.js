@@ -294,6 +294,9 @@ document.getElementById('btn-cerrar-camara')?.addEventListener('click', cerrarCa
 document.getElementById('btn-reintentar-camara')?.addEventListener('click', reintentarCamara)
 document.getElementById('btn-confirmar-camara')?.addEventListener('click', confirmarPoteCamara)
 
+// PWA: registra service worker + banner offline + update prompt
+import('./pwa.js').then(m => m.initPWA()).catch(() => {})
+
 // Bootstrap: restore session on load
 db.auth.getSession().then(({ data: { session } }) => {
   if (session) mostrarApp()
