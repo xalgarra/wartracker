@@ -703,9 +703,9 @@ body.is-offline { padding-top: calc(30px + env(safe-area-inset-top, 0px)); }
   z-index: 105;
   max-width: 320px;
   padding: 14px 16px;
-  background: var(--surface-1, #1a1814);
-  color: var(--text-1, #f0eee8);
-  border: 1px solid var(--border-1, rgba(255,255,255,0.08));
+  background: var(--surface-modal);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   display: flex;
@@ -719,7 +719,7 @@ body.is-offline { padding-top: calc(30px + env(safe-area-inset-top, 0px)); }
 }
 .pwa-update-prompt-info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
 .pwa-update-prompt-info strong { font-size: 14px; }
-.pwa-update-prompt-info span   { color: var(--muted, #9b948a); font-size: 12px; }
+.pwa-update-prompt-info span   { color: var(--text-3); font-size: 12px; }
 .pwa-update-prompt-actions     { display: flex; gap: 8px; justify-content: flex-end; }
 .pwa-update-prompt-actions button { padding: 6px 12px; font-size: 12.5px; }
 

@@ -272,10 +272,10 @@ body:not(.dark) .list-add-item:hover { background: rgba(176,141,91,.07); border-
 .recipes-filter-search input[type="search"] {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--border-1);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--surface-1);
-  color: var(--text-1);
+  background: var(--surface);
+  color: var(--text);
   font-size: 13.5px;
 }
 
@@ -285,35 +285,43 @@ body:not(.dark) .list-add-item:hover { background: rgba(176,141,91,.07); border-
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--surface-1);
-  border: 1px solid var(--border-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  z-index: 10;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  z-index: 30;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   overflow: hidden;
+}
+body.dark .recipes-filter-results {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 .recipes-filter-result {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 9px 12px;
   cursor: pointer;
   font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
-.recipes-filter-result:hover { background: var(--surface-2, rgba(0,0,0,0.04)); }
-.recipes-filter-result .paint-swatch { width: 18px; height: 18px; border-radius: 4px; }
+.recipes-filter-result:last-child { border-bottom: none; }
+.recipes-filter-result:hover { background: var(--subtle); }
+.recipes-filter-result .paint-swatch { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
 .recipes-filter-result-brand {
   margin-left: auto;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .recipes-filter-empty {
   padding: 10px 12px;
-  color: var(--muted);
+  color: var(--text-3);
   font-size: 13px;
   font-style: italic;
+  background: var(--surface);
 }
 
 .recipes-active-filter {
@@ -321,27 +329,27 @@ body:not(.dark) .list-add-item:hover { background: rgba(176,141,91,.07); border-
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--text-2);
 }
-.recipes-active-filter-label { text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+.recipes-active-filter-label { text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: var(--text-3); }
 .recipes-active-filter-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 4px 10px;
-  background: var(--surface-2, rgba(0,0,0,0.05));
-  border: 1px solid var(--border-1);
+  background: var(--subtle);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--text-1);
+  color: var(--text);
 }
 .recipes-active-filter-chip .paint-swatch { width: 14px; height: 14px; border-radius: 3px; }
 .recipes-active-filter-chip button {
   background: transparent;
   border: none;
-  color: var(--muted);
+  color: var(--text-3);
   cursor: pointer;
   padding: 0 0 0 4px;
   font-size: 12px;
 }
-.recipes-active-filter-chip button:hover { color: var(--text-1); }
+.recipes-active-filter-chip button:hover { color: var(--text); }
 
