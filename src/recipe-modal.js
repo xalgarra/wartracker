@@ -358,40 +358,40 @@ export async function guardarReceta() {
       await db.from('recipes').update({ pdf_url: null }).eq('id', savedId)
     }
 
-    // Delete removed photos from storage + DB
-    for (const photoId of _deletedPhotoIds) {
+    // Borrar fotos: storage + DB en paralelo
+    const photoDeleteOps = [..._deletedPhotoIds].map(photoId => {
       const photo = _photos.find(p => p.id === photoId)
-      if (photo?.url) {
-        const path = storagePathFrom(photo.url, 'recipe-photos')
-        if (path) await db.storage.from('recipe-photos').remove([path])
-      }
-      await db.from('recipe_photos').delete().eq('id', photoId)
-    }
+      const path  = photo?.url ? storagePathFrom(photo.url, 'recipe-photos') : null
+      return Promise.all([
+        path ? db.storage.from('recipe-photos').remove([path]) : Promise.resolve(),
+        db.from('recipe_photos').delete().eq('id', photoId),
+      ])
+    })
 
-    // Upload pending photos
+    // Subir fotos pendientes en paralelo
     const basePos = _photos.filter(p => !_deletedPhotoIds.has(p.id)).length
-    for (let i = 0; i < _pendingPhotos.length; i++) {
-      const pp   = _pendingPhotos[i]
-      const path = `${savedId}/p_${Date.now()}_${i}.jpg`
+    const ts = Date.now()
+    const photoUploadOps = _pendingPhotos.map(async (pp, i) => {
+      const path = `${savedId}/p_${ts}_${i}.jpg`
       const { error: upErr } = await db.storage.from('recipe-photos').upload(path, pp.file)
-      if (upErr) { mostrarError(`Error subiendo foto ${i + 1}`); continue }
+      if (upErr) { mostrarError(`Error subiendo foto ${i + 1}`); return }
       const { data: { publicUrl } } = db.storage.from('recipe-photos').getPublicUrl(path)
       await db.from('recipe_photos').insert({ recipe_id: savedId, url: publicUrl, position: basePos + i })
-    }
+    })
 
-    // Remove unlinked paints
-    for (const rpId of _removedPaintIds) {
-      await db.from('recipe_paints').delete().eq('id', rpId)
-    }
+    // Pinturas: quitar y añadir en paralelo
+    const paintDeleteOps = [..._removedPaintIds].map(rpId =>
+      db.from('recipe_paints').delete().eq('id', rpId)
+    )
+    const paintInsertOps = _pendingPaints.map(pp =>
+      db.from('recipe_paints').insert({ recipe_id: savedId, paint_id: pp.paint.id })
+    )
 
-    // Insert pending paints
-    for (const pp of _pendingPaints) {
-      await db.from('recipe_paints').insert({ recipe_id: savedId, paint_id: pp.paint.id })
-    }
+    await Promise.all([...photoDeleteOps, ...photoUploadOps, ...paintDeleteOps, ...paintInsertOps])
 
     _syncStepsFromDom()
     const { error: delStepsError } = await db.from('recipe_steps').delete().eq('recipe_id', savedId)
-    if (delStepsError) { mostrarError('Error guardando pasos. Ejecuta sql/27_recipe_steps.sql'); return }
+    if (delStepsError) { mostrarError('Error guardando pasos'); return }
     const stepsToInsert = _steps
       .map((step, idx) => ({
         recipe_id: savedId,
@@ -402,7 +402,7 @@ export async function guardarReceta() {
       .filter(step => step.instruction)
     if (stepsToInsert.length) {
       const { error: stepErr } = await db.from('recipe_steps').insert(stepsToInsert)
-      if (stepErr) { mostrarError('Error guardando pasos. Ejecuta sql/27_recipe_steps.sql'); return }
+      if (stepErr) { mostrarError('Error guardando pasos'); return }
     }
 
     cerrarModalReceta()

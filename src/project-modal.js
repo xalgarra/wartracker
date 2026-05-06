@@ -1,5 +1,5 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, invalidateMinis, invalidateProyectos } from './state.js'
 import { mostrarError } from './toast.js'
 import { escapeHtml, compressImage, storagePathFrom } from './utils.js'
 import { cargarHome, getMinis, getProyectos, syncProyecto } from './home.js'
@@ -89,6 +89,8 @@ export async function completarProyecto() {
     miniIds.length ? db.from('minis').update({ status: 'pintada', paint_progress: 100 }).in('id', miniIds) : Promise.resolve(),
     db.from('projects').update({ status: 'completado', completed_at: new Date().toISOString() }).eq('id', _modalProjectId)
   ])
+  invalidateMinis()
+  invalidateProyectos()
   await cerrarModalProyecto()
 }
 
@@ -101,6 +103,7 @@ export async function eliminarProyecto() {
     if (path) await db.storage.from('project-photos').remove([path])
   }
   await db.from('projects').delete().eq('id', _modalProjectId)
+  invalidateProyectos()
   await cerrarModalProyecto()
 }
 

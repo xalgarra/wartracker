@@ -1,9 +1,7 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, ensureMinisFull } from './state.js'
 import { mostrarError, mostrarExito } from './toast.js'
 
-// Cache de minis de la colección para el panel "añadir"
-let _minis = []
 // Anti-doble-click: set de mini IDs en proceso de añadir
 const _adding = new Set()
 
@@ -129,8 +127,9 @@ async function renderDetalle(lista) {
 
   if (error) { mostrarError('Error cargando unidades'); return }
 
-  const total = calcularPtsLista(entries, _minis, lista.game, state.unitMap, state.factions)
-  const pintados = calcularPtsPintadosLista(entries, _minis, lista.game, state.unitMap, state.factions)
+  const minis = await ensureMinisFull()
+  const total = calcularPtsLista(entries, minis, lista.game, state.unitMap, state.factions)
+  const pintados = calcularPtsPintadosLista(entries, minis, lista.game, state.unitMap, state.factions)
   const pct = pctPintado(total, pintados)
 
   const targetBar = lista.target_points
@@ -140,7 +139,7 @@ async function renderDetalle(lista) {
 
   // Minis disponibles: misma facción/juego, no en lista aún
   const inListIds = new Set(entries.map(e => e.mini_id))
-  const available = _minis.filter(m => {
+  const available = minis.filter(m => {
     if (inListIds.has(m.id)) return false
     const matchGame = (m.factions || []).some(f => {
       const fc = state.factions.find(x => x.name === f)
@@ -189,7 +188,7 @@ async function renderDetalle(lista) {
 }
 
 function renderEntryRow(entry, gameSlug) {
-  const mini = _minis.find(m => m.id === entry.mini_id)
+  const mini = (state.minisFull || []).find(m => m.id === entry.mini_id)
   if (!mini) return ''
   const pts = getPtsForGame(mini, gameSlug, state.unitMap, state.factions)
   const painted = mini.status === 'pintada' ? '🎨' : ''
@@ -278,12 +277,7 @@ async function handleEliminarLista(id) {
 }
 
 async function abrirLista(id) {
-  // Pre-load minis si no están en cache
-  if (!_minis.length) {
-    const { data, error } = await db.from('minis').select('*').neq('status', 'wishlist')
-    if (error) { mostrarError('Error cargando colección'); return }
-    _minis = data || []
-  }
+  await ensureMinisFull()
   const lista = state.listsActuales.find(l => l.id === id)
   if (!lista) return
   state.listaEnDetalle = lista

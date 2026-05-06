@@ -1,5 +1,5 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, invalidateMinis } from './state.js'
 import { actualizarFiltroFacciones } from './minis.js'
 import { cargarWishlist } from './wishlist.js'
 import { mostrarError } from './toast.js'
@@ -361,6 +361,7 @@ export async function guardarMini() {
     }
 
     if (error) { mostrarError('Error: ' + error.message); return }
+    invalidateMinis()
 
     if (savedId) {
       if (_pendingPhotoFile) {
@@ -375,29 +376,38 @@ export async function guardarMini() {
       }
 
       if (state.miniEnEdicion) {
-        for (const photoId of _deletedGalleryIds) {
+        // Borrar fotos: storage + DB en paralelo
+        const deleteOps = [..._deletedGalleryIds].map(photoId => {
           const photo = _galleryPhotos.find(p => p.id === photoId)
-          if (photo?.url) {
-            const storagePath = storagePathFrom(photo.url, 'mini-photos')
-            if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
-          }
-          await db.from('mini_photos').delete().eq('id', photoId)
-        }
-        for (const photo of _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id))) {
-          const el = document.querySelector(`.gallery-item-label[data-photo-id="${photo.id}"]`)
-          if (el && el.value !== photo.label) {
-            await db.from('mini_photos').update({ label: el.value }).eq('id', photo.id)
-          }
-        }
+          const storagePath = photo?.url ? storagePathFrom(photo.url, 'mini-photos') : null
+          return Promise.all([
+            storagePath ? db.storage.from('mini-photos').remove([storagePath]) : Promise.resolve(),
+            db.from('mini_photos').delete().eq('id', photoId),
+          ])
+        })
+
+        // Actualizar etiquetas modificadas en paralelo
+        const labelOps = _galleryPhotos
+          .filter(p => !_deletedGalleryIds.has(p.id))
+          .map(photo => {
+            const el = document.querySelector(`.gallery-item-label[data-photo-id="${photo.id}"]`)
+            if (!el || el.value === photo.label) return null
+            return db.from('mini_photos').update({ label: el.value }).eq('id', photo.id)
+          })
+          .filter(Boolean)
+
+        // Subir fotos pendientes en paralelo
         const basePos = _galleryPhotos.filter(p => !_deletedGalleryIds.has(p.id)).length
-        for (let i = 0; i < _pendingGallery.length; i++) {
-          const pg   = _pendingGallery[i]
-          const path = `${savedId}/g_${Date.now()}_${i}.jpg`
+        const ts = Date.now()
+        const uploadOps = _pendingGallery.map(async (pg, i) => {
+          const path = `${savedId}/g_${ts}_${i}.jpg`
           const { error: upErr } = await db.storage.from('mini-photos').upload(path, pg.file)
-          if (upErr) { mostrarError(`Error subiendo foto ${i + 1}`); continue }
+          if (upErr) { mostrarError(`Error subiendo foto ${i + 1}`); return }
           const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
           await db.from('mini_photos').insert({ mini_id: savedId, url: publicUrl, label: pg.label, position: basePos + i })
-        }
+        })
+
+        await Promise.all([...deleteOps, ...labelOps, ...uploadOps])
       }
     }
 
@@ -426,6 +436,7 @@ export async function eliminarMini() {
   }
   const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
   if (error) { mostrarError('Error: ' + error.message); return }
+  invalidateMinis()
 
   cerrarModal()
   if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }

@@ -1,4 +1,5 @@
 import { db } from './db.js'
+import { invalidateMinis } from './state.js'
 import { STATUSES } from './constants.js'
 import { escapeHtml, compressImage } from './utils.js'
 import { mostrarError, mostrarExito } from './toast.js'
@@ -120,6 +121,7 @@ function _bindEvents(container) {
       const patch  = val >= 100 ? { paint_progress: 100, status: 'pintada' } : { paint_progress: val }
       const { error } = await db.from('minis').update(patch).eq('id', miniId)
       if (error) { mostrarError('Error actualizando progreso'); return }
+      invalidateMinis()
       if (val >= 100) {
         mostrarExito('¡Mini pintada! ✓')
         const idx = _inProgress.findIndex(x => x.id === miniId)

@@ -4,23 +4,22 @@ import { STATUSES, STATUS_ORDER } from './constants.js'
 import { mostrarError, mostrarExito } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
-import { getRecommendations, getEmptyState } from '../js/recommendations.js'
+import { getRecommendations, getEmptyState } from './recommendations.js'
 import { cargarSessions, renderSessionsBlock } from './sessions.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
 const IN_PROGRESS_STATUSES = ['pintando', 'imprimada', 'montada']
 
-// Caché de módulo — accesible desde project-modal.js vía getters
-let _minis = []
-let _proyectos = []
-
-export const getMinis     = () => _minis
-export const getProyectos = () => _proyectos
+// Las caches viven en state.js (state.minisFull, state.proyectosActivos).
+// Mantenemos estos getters para los consumidores externos (project-modal, etc).
+export const getMinis     = () => state.minisFull || []
+export const getProyectos = () => state.proyectosActivos || []
 export function syncProyecto(proj) {
-  const idx = _proyectos.findIndex(p => p.id === proj.id)
-  if (idx >= 0) _proyectos[idx] = proj
-  else _proyectos.unshift(proj)
+  if (!state.proyectosActivos) state.proyectosActivos = []
+  const idx = state.proyectosActivos.findIndex(p => p.id === proj.id)
+  if (idx >= 0) state.proyectosActivos[idx] = proj
+  else state.proyectosActivos.unshift(proj)
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +90,7 @@ export async function cargarHome() {
     return
   }
 
-  _minis = minis
+  state.minisFull = minis
 
   if (!state.pinturas.length) {
     const { data } = await db.from('paints').select('*').order('brand').order('name')
@@ -111,7 +110,7 @@ export async function cargarHome() {
     cargarSessions()
   ])
 
-  _proyectos = proyectos || []
+  state.proyectosActivos = proyectos || []
 
   // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
@@ -141,8 +140,8 @@ export async function cargarHome() {
     .slice(0, 3)
 
   container.innerHTML = `
-    ${renderProjects(_proyectos, minis)}
-    ${renderRecommendations(minis, _proyectos)}
+    ${renderProjects(state.proyectosActivos, minis)}
+    ${renderRecommendations(minis, state.proyectosActivos)}
     ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
     ${renderByGame(byGame)}
     ${renderQueue(inQueue)}
@@ -456,7 +455,7 @@ function refreshRecsSection() {
   const recsBlock = container.querySelector('.home-block--recs')
   if (!recsBlock) return
   const temp = document.createElement('div')
-  temp.innerHTML = renderRecommendations(_minis, _proyectos).trim()
+  temp.innerHTML = renderRecommendations(state.minisFull || [], state.proyectosActivos || []).trim()
   const newBlock = temp.firstElementChild
   if (newBlock) recsBlock.replaceWith(newBlock)
   else recsBlock.remove()
@@ -472,15 +471,16 @@ async function handleRecAction(recAction, miniId, btn) {
       return
     }
 
+    const minisFull = state.minisFull || []
     if (recAction === 'finish') {
       const { error } = await db.from('minis').update({ status: 'pintada', paint_progress: 100 }).eq('id', miniId)
       if (error) throw error
-      const m = _minis.find(x => x.id === miniId)
+      const m = minisFull.find(x => x.id === miniId)
       if (m) { m.status = 'pintada'; m.paint_progress = 100 }
       mostrarExito('Mini marcada como pintada ✓')
 
     } else if (recAction === 'continue') {
-      const m     = _minis.find(x => x.id === miniId)
+      const m     = minisFull.find(x => x.id === miniId)
       const next  = Math.min((m?.paint_progress || 0) + 10, 100)
       const patch = next >= 100 ? { paint_progress: 100, status: 'pintada' } : { paint_progress: next }
       const { error } = await db.from('minis').update(patch).eq('id', miniId)
@@ -491,7 +491,7 @@ async function handleRecAction(recAction, miniId, btn) {
     } else if (recAction === 'assemble') {
       const { error } = await db.from('minis').update({ status: 'montada' }).eq('id', miniId)
       if (error) throw error
-      const m = _minis.find(x => x.id === miniId)
+      const m = minisFull.find(x => x.id === miniId)
       if (m) m.status = 'montada'
       mostrarExito('Estado actualizado a montada')
     }
@@ -527,7 +527,7 @@ function bindHomeEvents(container) {
       if (miniId) {
         const id = Number(miniId)
         if (!state.minisActuales.some(m => m.id === id)) {
-          const cached = _minis.find(m => m.id === id)
+          const cached = (state.minisFull || []).find(m => m.id === id)
           if (cached) state.minisActuales = [...state.minisActuales, cached]
         }
         const { abrirEdicion } = await import('./mini-modal.js')
@@ -549,7 +549,8 @@ async function handleCreateProject() {
   const { data, error } = await db.from('projects').insert({ name }).select().single()
   if (error) { mostrarError('Error creando proyecto: ' + error.message); return }
   if (input) input.value = ''
-  _proyectos.unshift({ ...data, project_minis: [], project_paints: [] })
+  if (!state.proyectosActivos) state.proyectosActivos = []
+  state.proyectosActivos.unshift({ ...data, project_minis: [], project_paints: [] })
   const { abrirModalProyecto } = await import('./project-modal.js')
   await abrirModalProyecto(data.id)
 }

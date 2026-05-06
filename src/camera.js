@@ -1,22 +1,26 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { CITADEL_CATALOG } from '../js/paint-colors.js'
+import { CITADEL_CATALOG } from './paint-colors.js'
 import { cargarPinturas } from './paints.js'
 import { toggleColorPicker } from './paint-modal.js'
 import { mostrarError } from './toast.js'
 
+let _stream = null
+let _pendingPaint = null
+let _context = 'catalog'
+
 export async function abrirCamara(context = 'catalog') {
-  state.cameraContext = context
+  _context = context
   const overlay = document.getElementById('camera-overlay')
   overlay.classList.add('open')
   document.getElementById('camera-result').style.display = 'none'
   document.getElementById('camera-scanning').style.display = 'none'
 
   try {
-    state.cameraStream = await navigator.mediaDevices.getUserMedia({
+    _stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
     })
-    document.getElementById('camera-video').srcObject = state.cameraStream
+    document.getElementById('camera-video').srcObject = _stream
   } catch (e) {
     mostrarError('No se puede acceder a la cámara: ' + e.message)
     cerrarCamara()
@@ -24,9 +28,9 @@ export async function abrirCamara(context = 'catalog') {
 }
 
 export function cerrarCamara() {
-  if (state.cameraStream) { state.cameraStream.getTracks().forEach(t => t.stop()); state.cameraStream = null }
+  if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null }
   document.getElementById('camera-overlay').classList.remove('open')
-  state.cameraPendingPaint = null
+  _pendingPaint = null
 }
 
 export async function capturarPote() {
@@ -68,13 +72,13 @@ export async function capturarPote() {
       || CITADEL_CATALOG.find(p => words.length > 0 && words.every(w => p.name.toLowerCase().includes(w)))
       || CITADEL_CATALOG.find(p => words.some(w => p.name.toLowerCase().includes(w)))
 
-    state.cameraPendingPaint = found || { name: rawName.substring(0, 60), type: 'base', hex: null }
+    _pendingPaint = found || { name: rawName.substring(0, 60), type: 'base', hex: null }
 
-    document.getElementById('camera-result-name').textContent = state.cameraPendingPaint.name
-    document.getElementById('camera-result-type').textContent = state.cameraPendingPaint.type
+    document.getElementById('camera-result-name').textContent = _pendingPaint.name
+    document.getElementById('camera-result-type').textContent = _pendingPaint.type
     const swatch = document.getElementById('camera-result-swatch')
-    swatch.style.background = state.cameraPendingPaint.hex || 'var(--subtle)'
-    swatch.style.border = state.cameraPendingPaint.hex ? '2px solid rgba(0,0,0,0.1)' : '2px dashed var(--border)'
+    swatch.style.background = _pendingPaint.hex || 'var(--subtle)'
+    swatch.style.border = _pendingPaint.hex ? '2px solid rgba(0,0,0,0.1)' : '2px dashed var(--border)'
 
     document.getElementById('camera-scanning').style.display = 'none'
     document.getElementById('camera-result').style.display = 'block'
@@ -86,14 +90,14 @@ export async function capturarPote() {
 
 export function reintentarCamara() {
   document.getElementById('camera-result').style.display = 'none'
-  state.cameraPendingPaint = null
+  _pendingPaint = null
 }
 
 export async function confirmarPoteCamara() {
-  if (!state.cameraPendingPaint) return
-  const p = state.cameraPendingPaint
+  if (!_pendingPaint) return
+  const p = _pendingPaint
 
-  if (state.cameraContext === 'modal') {
+  if (_context === 'modal') {
     document.getElementById('paint-brand').value = 'Citadel'
     document.getElementById('paint-name').value = p.name
     document.getElementById('paint-type').value = p.type || 'base'

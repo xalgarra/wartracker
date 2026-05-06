@@ -40,34 +40,27 @@ export async function inicializar() {
   await cargarHome()
 }
 
-export function cambiarTab(tab) {
-  state.tabActual = tab
-  document.getElementById('vista-home').style.display      = tab === 'home'      ? 'block' : 'none'
-  document.getElementById('vista-coleccion').style.display = tab === 'coleccion' ? 'block' : 'none'
-  document.getElementById('vista-stats').style.display     = tab === 'stats'     ? 'block' : 'none'
-  document.getElementById('vista-wishlist').style.display  = tab === 'wishlist'  ? 'block' : 'none'
-  document.getElementById('vista-pinturas').style.display  = tab === 'pinturas'  ? 'block' : 'none'
-  document.getElementById('vista-listas').style.display    = tab === 'listas'    ? 'block' : 'none'
-  document.getElementById('vista-recetas').style.display   = tab === 'recetas'   ? 'block' : 'none'
-  document.getElementById('vista-pareja').style.display    = tab === 'pareja'    ? 'block' : 'none'
-  document.getElementById('tab-home').classList.toggle('active', tab === 'home')
-  document.getElementById('tab-coleccion').classList.toggle('active', tab === 'coleccion')
-  document.getElementById('tab-stats').classList.toggle('active', tab === 'stats')
-  document.getElementById('tab-wishlist').classList.toggle('active', tab === 'wishlist')
-  document.getElementById('tab-pinturas').classList.toggle('active', tab === 'pinturas')
-  document.getElementById('tab-listas').classList.toggle('active', tab === 'listas')
-  document.getElementById('tab-recetas').classList.toggle('active', tab === 'recetas')
-  document.getElementById('tab-pareja').classList.toggle('active', tab === 'pareja')
-  if (tab === 'home') cargarHome()
-  if (tab === 'stats') cargarStats()
-  if (tab === 'wishlist') cargarWishlist()
-  if (tab === 'pinturas') cargarPinturas()
-  if (tab === 'recetas') cargarRecetas()
-  if (tab === 'pareja')  cargarPartner()
-  if (tab === 'listas') {
-    cargarLists().then(() => {
+const TABS = [
+  { id: 'home',      load: cargarHome },
+  { id: 'coleccion', load: null },
+  { id: 'stats',     load: cargarStats },
+  { id: 'wishlist',  load: cargarWishlist },
+  { id: 'pinturas',  load: cargarPinturas },
+  { id: 'listas',    load: () => cargarLists().then(() => {
       const el = document.getElementById('listas-content')
       if (el) bindListsEvents(el)
     })
+  },
+  { id: 'recetas',   load: cargarRecetas },
+  { id: 'pareja',    load: cargarPartner },
+]
+
+export function cambiarTab(tab) {
+  state.tabActual = tab
+  for (const t of TABS) {
+    document.getElementById(`vista-${t.id}`).style.display = t.id === tab ? 'block' : 'none'
+    document.getElementById(`tab-${t.id}`).classList.toggle('active', t.id === tab)
   }
+  const active = TABS.find(t => t.id === tab)
+  if (active?.load) active.load()
 }

@@ -1,5 +1,5 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, invalidateMinis, ensureMinisFull } from './state.js'
 import { STATUSES, STATUS_ORDER, UNIT_TYPES } from './constants.js'
 import { mostrarError } from './toast.js'
 
@@ -163,26 +163,25 @@ export function onOrdenar(btn) {
 }
 
 export async function cargarMinis() {
-  const filtroGame = document.getElementById('filtro-game').value
+  const minis = await ensureMinisFull()
+  if (!Array.isArray(minis)) { mostrarError('Error al cargar la colección'); return }
+
+  const filtroGame    = document.getElementById('filtro-game').value
   const filtroFaction = document.getElementById('filtro-faction').value
-  const filtroStatus = document.getElementById('filtro-status').value
+  const filtroStatus  = document.getElementById('filtro-status').value
 
-  let query = db.from('minis').select('*').order('created_at', { ascending: false })
-    .neq('status', 'wishlist')
-
+  let filtered = minis
   if (filtroFaction) {
-    query = query.contains('factions', [filtroFaction])
+    filtered = filtered.filter(m => (m.factions || []).includes(filtroFaction))
   } else if (filtroGame) {
-    const faccionesDelJuego = state.factions.filter(f => f.game_slug === filtroGame).map(f => f.name)
-    query = query.overlaps('factions', faccionesDelJuego)
+    const faccionesDelJuego = new Set(
+      state.factions.filter(f => f.game_slug === filtroGame).map(f => f.name)
+    )
+    filtered = filtered.filter(m => (m.factions || []).some(f => faccionesDelJuego.has(f)))
   }
+  if (filtroStatus) filtered = filtered.filter(m => m.status === filtroStatus)
 
-  if (filtroStatus) query = query.eq('status', filtroStatus)
-
-  const { data, error } = await query
-  if (error) { mostrarError('Error al cargar la colección'); return }
-
-  state.minisActuales = data || []
+  state.minisActuales = filtered
 
   const tipos = [...new Set(state.minisActuales.map(m => getTypeForMini(m)).filter(Boolean))].sort()
   const sel = document.getElementById('filtro-type')
@@ -197,16 +196,13 @@ export async function cargarMinis() {
 
 export async function actualizarFiltroFacciones() {
   const gameSlug = document.getElementById('filtro-game').value
+  const minis = await ensureMinisFull()
 
-  const { data } = await db.from('minis').select('factions').neq('status', 'wishlist')
-
-  let todas = (data || []).flatMap(m => m.factions || [])
-
+  let todas = minis.flatMap(m => m.factions || [])
   if (gameSlug) {
     const faccionesDelJuego = new Set(state.factions.filter(f => f.game_slug === gameSlug).map(f => f.name))
     todas = todas.filter(f => faccionesDelJuego.has(f))
   }
-
   const unicas = [...new Set(todas)].sort()
 
   document.getElementById('filtro-faction').innerHTML =
@@ -219,6 +215,7 @@ export async function actualizarFiltroFacciones() {
 export async function cambiarStatusRapido(miniId, nuevoStatus) {
   const { error } = await db.from('minis').update({ status: nuevoStatus }).eq('id', miniId)
   if (error) { mostrarError('Error al actualizar estado'); return }
+  invalidateMinis()
   const mini = state.minisActuales.find(m => m.id === miniId)
   if (mini) { mini.status = nuevoStatus; renderLista() }
 }

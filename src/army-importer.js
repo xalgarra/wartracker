@@ -1,5 +1,5 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, invalidateMinis } from './state.js'
 import { STATUSES } from './constants.js'
 import { mostrarError, mostrarExito } from './toast.js'
 import { cargarMinis } from './minis.js'
@@ -104,6 +104,7 @@ export async function guardarEjercito() {
     btn.disabled = false
     return
   }
+  invalidateMinis()
 
   mostrarExito(`${toInsert.length} unidad${toInsert.length !== 1 ? 'es' : ''} añadida${toInsert.length !== 1 ? 's' : ''}`)
   cerrarArmyImporter()

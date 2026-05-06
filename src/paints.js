@@ -1,6 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { CITADEL_CATALOG } from '../js/paint-colors.js'
+import { CITADEL_CATALOG } from './paint-colors.js'
 import { PAINT_BRANDS } from './constants.js'
 import { mostrarError } from './toast.js'
 import { comparePaintColors } from './paint-sort.js'
