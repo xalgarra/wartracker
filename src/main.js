@@ -137,6 +137,39 @@ document.getElementById('btn-fab')?.addEventListener('click', () => {
 document.getElementById('btn-view-toggle')?.addEventListener('click', e => toggleViewMode(e.currentTarget))
 document.getElementById('gallery-photo-input')?.addEventListener('change', e => onGalleryPhotoSelected(e.target))
 
+// List importer (BattleScribe / NewRecruit / texto pegado)
+;(function bindListImporter() {
+  const bg = document.getElementById('modal-list-import-bg')
+  if (!bg) return
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open') })
+  document.getElementById('btn-cerrar-list-import')?.addEventListener('click', async () => {
+    const { cerrarListImporter } = await import('./list-importer.js')
+    cerrarListImporter()
+  })
+  document.getElementById('list-import-game')?.addEventListener('change', async () => {
+    const { onImportGameChange } = await import('./list-importer.js')
+    onImportGameChange()
+  })
+  document.getElementById('list-import-name')?.addEventListener('input', async () => {
+    const { updateSaveLabel } = await import('./list-importer.js')
+    updateSaveLabel()
+  })
+  document.getElementById('btn-list-import-process')?.addEventListener('click', async () => {
+    const { onImportProcess } = await import('./list-importer.js')
+    onImportProcess()
+  })
+  document.getElementById('btn-list-import-save')?.addEventListener('click', async () => {
+    const { guardarListaImportada } = await import('./list-importer.js')
+    guardarListaImportada()
+  })
+  document.getElementById('list-import-preview')?.addEventListener('click', async e => {
+    const cb = e.target.closest('[data-action="toggle-row"]')
+    if (!cb) return
+    const { onPreviewToggle } = await import('./list-importer.js')
+    onPreviewToggle(Number(cb.dataset.idx))
+  })
+})()
+
 // Army importer
 document.getElementById('btn-army-import')?.addEventListener('click', abrirArmyImporter)
 document.getElementById('modal-army-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-army-bg') cerrarArmyImporter() })

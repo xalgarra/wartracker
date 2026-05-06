@@ -1,0 +1,238 @@
+/* ====================================================================
+   TOKENS — LIGHT (Variante A · Minimal refinado)
+   ==================================================================== */
+:root {
+  --bg:            #fafaf8;
+  --surface:       #ffffff;
+  --surface-modal: #ffffff;
+  --subtle:        #f3f2ee;
+
+  --text:   #1a1a1c;
+  --text-2: #555550;
+  --text-3: #888884;
+  --text-4: #aaa8a3;
+
+  --border:   #ececea;
+  --border-2: #d8d8d4;
+
+  --accent:  #1a1a1c;
+  --success: oklch(0.5 0.15 145);
+
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Logo */
+  --logo-glyph-w:      8px;
+  --logo-glyph-h:      8px;
+  --logo-glyph-bg:     oklch(0.55 0.14 30);
+  --logo-glyph-shadow: none;
+  --logo-text-case:    normal;
+  --logo-text-spacing: -0.02em;
+  --logo-text-size:    17px;
+  --logo-text-weight:  700;
+  --logo-status-show:  0;
+
+  /* Tabs */
+  --tab-color:        #888884;
+  --tab-active-color: #1a1a1c;
+  --tab-active-bg:    transparent;
+  --tab-active-bdb:   2px solid #1a1a1c;
+  --tab-radius:       0px;
+  --tab-padding:      10px 14px;
+
+  /* Cards */
+  --card-bg:       #ffffff;
+  --card-radius:   12px;
+  --card-padding:  12px;
+  --card-hover-bg: #fafaf8;
+  --list-gap:      8px;
+  --list-padding:  12px 16px;
+
+  /* Inputs / modal */
+  --input-bg:           #ffffff;
+  --input-border:       1px solid #ececea;
+  --input-focus-border: #1a1a1c;
+  --input-radius:       10px;
+  --input-color:        #1a1a1c;
+  --modal-bg:           #ffffff;
+  --modal-radius:       18px;
+  --modal-border-top:   none;
+
+  /* Botones */
+  --btn-primary-bg:     #1a1a1c;
+  --btn-primary-color:  #ffffff;
+  --btn-cancel-bg:      #f3f2ee;
+  --btn-cancel-color:   #1a1a1c;
+  --btn-cancel-border:  none;
+  --btn-danger-bg:      #fee2e2;
+  --btn-danger-color:   #991b1b;
+
+  /* FAB */
+  --fab-bg:    #1a1a1c;
+  --fab-color: #ffffff;
+  --fab-extra-shadow: none;
+
+  /* Status */
+  --s-comprada-bg:    #f3f2ee;                --s-comprada-text:  #6a6a64;
+  --s-montada-bg:     oklch(0.95 0.04 60);    --s-montada-text:   oklch(0.45 0.1 60);
+  --s-imprimada-bg:   oklch(0.95 0.03 240);   --s-imprimada-text: oklch(0.45 0.1 240);
+  --s-pintando-bg:    oklch(0.94 0.04 305);   --s-pintando-text:  oklch(0.45 0.12 305);
+  --s-pintada-bg:     oklch(0.94 0.05 145);   --s-pintada-text:   oklch(0.4 0.13 145);
+  --s-pintada-shadow: none;
+  --s-wishlist-bg:    oklch(0.95 0.03 270);   --s-wishlist-text:  oklch(0.4 0.1 270);
+
+  /* Juegos */
+  --g-40k-bg:  oklch(0.95 0.03 30);   --g-40k-text: oklch(0.4 0.1 30);
+  --g-aos-bg:  oklch(0.95 0.03 195);  --g-aos-text: oklch(0.4 0.08 195);
+
+  /* Tipo */
+  --tag-type-bg:   #f3f2ee;
+  --tag-type-text: #6a6a64;
+  --tag-radius:    4px;
+
+  /* Stats */
+  --stats-bg:     #ffffff;
+  --stats-border: 1px solid #ececea;
+  --stats-radius: 14px;
+  --stats-pct:    oklch(0.5 0.15 145);
+
+  /* Progreso */
+  --prog-h:         5px;
+  --prog-bg:        #f3f2ee;
+  --prog-comprada:  #c8c6c0;
+  --prog-montada:   oklch(0.7 0.13 60);
+  --prog-imprimada: oklch(0.65 0.12 240);
+  --prog-pintando:  oklch(0.6 0.15 305);
+  --prog-pintada:   oklch(0.55 0.15 145);
+  --dot-comprada:   #c8c6c0;
+  --dot-montada:    oklch(0.7 0.13 60);
+  --dot-imprimada:  oklch(0.65 0.12 240);
+  --dot-pintando:   oklch(0.6 0.15 305);
+  --dot-pintada:    oklch(0.55 0.15 145);
+
+  /* Pinturas */
+  --paint-type-bg:   #f3f2ee;
+  --paint-type-text: #6a6a64;
+  --sin-stock-bg:    #f3f2ee;
+  --sin-stock-text:  #888884;
+}
+
+/* ====================================================================
+   TOKENS — DARK (Variante C · Oscuro atmosférico)
+   ==================================================================== */
+body.dark {
+  --bg:            #14110d;
+  --surface:       #1a160f;
+  --surface-modal: #1a160f;
+  --subtle:        #2a251c;
+
+  --text:   #e8e4dc;
+  --text-2: #c8bfa8;
+  --text-3: #a09684;
+  --text-4: #7a7060;
+
+  --border:   #2a251c;
+  --border-2: #4a4030;
+
+  --accent:  oklch(0.80 0.17 65);
+  --success: oklch(0.65 0.16 145);
+
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+
+  --logo-glyph-w:      18px;
+  --logo-glyph-h:      18px;
+  --logo-glyph-bg:     oklch(0.80 0.17 65);
+  --logo-glyph-shadow: 0 0 10px oklch(0.80 0.17 65 / 0.6);
+  --logo-text-case:    uppercase;
+  --logo-text-spacing: 0.04em;
+  --logo-text-size:    14px;
+  --logo-text-weight:  600;
+  --logo-status-show:  1;
+
+  --tab-color:        #a09684;
+  --tab-active-color: #14110d;
+  --tab-active-bg:    oklch(0.80 0.17 65);
+  --tab-active-bdb:   2px solid transparent;
+  --tab-radius:       999px;
+  --tab-padding:      6px 14px;
+
+  --card-bg:       transparent;
+  --card-radius:   0px;
+  --card-padding:  12px 18px;
+  --card-hover-bg: #1a160f;
+  --list-gap:      0px;
+  --list-padding:  0px;
+
+  --input-bg:           #1a160f;
+  --input-border:       1px solid #2a251c;
+  --input-focus-border: oklch(0.80 0.17 65);
+  --input-radius:       3px;
+  --input-color:        #e8e4dc;
+  --modal-bg:           #1a160f;
+  --modal-radius:       4px;
+  --modal-border-top:   1px solid oklch(0.80 0.17 65 / 0.5);
+
+  --btn-primary-bg:    oklch(0.80 0.17 65);
+  --btn-primary-color: #14110d;
+  --btn-cancel-bg:     transparent;
+  --btn-cancel-color:  #a09684;
+  --btn-cancel-border: 1px solid #2a251c;
+  --btn-danger-bg:     #2e0f0f;
+  --btn-danger-color:  #fca5a5;
+
+  --fab-bg:          oklch(0.80 0.17 65);
+  --fab-color:       #14110d;
+  --fab-extra-shadow: 0 0 20px oklch(0.80 0.17 65 / 0.4);
+
+  --s-comprada-bg:    #2a251c;               --s-comprada-text:  #a09684;
+  --s-montada-bg:     oklch(0.32 0.08 60);   --s-montada-text:   oklch(0.82 0.13 60);
+  --s-imprimada-bg:   oklch(0.3 0.08 240);   --s-imprimada-text: oklch(0.82 0.12 240);
+  --s-pintando-bg:    oklch(0.32 0.1 305);   --s-pintando-text:  oklch(0.84 0.13 305);
+  --s-pintada-bg:     oklch(0.42 0.15 145);  --s-pintada-text:   oklch(0.96 0.08 145);
+  --s-pintada-shadow: 0 0 10px oklch(0.5 0.15 145 / 0.35);
+  --s-wishlist-bg:    oklch(0.28 0.06 270);  --s-wishlist-text:  oklch(0.82 0.1 270);
+
+  --g-40k-bg:  oklch(0.28 0.08 30);   --g-40k-text: oklch(0.82 0.14 30);
+  --g-aos-bg:  oklch(0.26 0.06 195);  --g-aos-text: oklch(0.82 0.12 195);
+
+  --tag-type-bg:   #2a251c;
+  --tag-type-text: #c8bfa8;
+  --tag-radius:    999px;
+
+  --stats-bg:     #1a160f;
+  --stats-border: 1px solid #2a251c;
+  --stats-radius: 4px;
+  --stats-pct:    oklch(0.7 0.15 145);
+
+  --prog-h:         4px;
+  --prog-bg:        #14110d;
+  --prog-comprada:  #4a4030;
+  --prog-montada:   oklch(0.6 0.13 60);
+  --prog-imprimada: oklch(0.6 0.12 240);
+  --prog-pintando:  oklch(0.6 0.15 305);
+  --prog-pintada:   oklch(0.65 0.16 145);
+  --dot-comprada:   #4a4030;
+  --dot-montada:    oklch(0.6 0.13 60);
+  --dot-imprimada:  oklch(0.6 0.12 240);
+  --dot-pintando:   oklch(0.6 0.15 305);
+  --dot-pintada:    oklch(0.65 0.16 145);
+
+  --paint-type-bg:   oklch(0.28 0.08 60);
+  --paint-type-text: oklch(0.78 0.13 60);
+  --sin-stock-bg:    #2a251c;
+  --sin-stock-text:  #7a7060;
+}
+
+/* ====================================================================
+   BASE
+   ==================================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
+  -webkit-font-smoothing: antialiased;
+}
+

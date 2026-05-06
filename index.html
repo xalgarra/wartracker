@@ -402,6 +402,35 @@
     </div>
   </div>
 
+  <!-- Modal: importar lista de ejército -->
+  <div class="modal-bg" id="modal-list-import-bg">
+    <div class="modal modal--list-import">
+      <div class="modal-eye">▸ importar lista</div>
+      <h2>Importar lista</h2>
+
+      <div class="list-import-tip">
+        <span>Pega texto exportado desde:</span>
+        <a href="https://battlescribe.net" target="_blank" rel="noopener" class="list-import-link">BattleScribe</a>
+        <a href="https://newrecruit.eu" target="_blank" rel="noopener" class="list-import-link">NewRecruit</a>
+        <a href="https://www.gw-listbuilder.com" target="_blank" rel="noopener" class="list-import-link">GW List Builder</a>
+      </div>
+
+      <input id="list-import-name" placeholder="Nombre de la lista" maxlength="60">
+      <select id="list-import-game"></select>
+      <select id="list-import-faction" disabled></select>
+      <input id="list-import-target" type="number" min="0" step="50" placeholder="Pts objetivo (opcional)">
+      <textarea id="list-import-text" rows="8" placeholder="Pega aquí el texto de la lista…&#10;&#10;Ej:&#10;5x Boyz&#10;Warboss&#10;Battlewagon (115 pts)"></textarea>
+      <button id="btn-list-import-process" class="btn-secondary">Procesar texto</button>
+
+      <div id="list-import-preview" class="list-import-preview"></div>
+
+      <div class="modal-btns">
+        <button id="btn-cerrar-list-import" class="btn-cancel">Cancelar</button>
+        <button id="btn-list-import-save" class="btn-primary" disabled>Crear lista</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: importar ejército -->
   <div class="modal-bg" id="modal-army-bg">
     <div class="modal modal--army">

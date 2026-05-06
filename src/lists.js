@@ -91,7 +91,14 @@ function renderOverview() {
             ${state.games.map(g => `<option value="${g.slug}">${g.name}</option>`).join('')}
           </select>
           <input id="list-target" type="number" min="0" step="50" placeholder="Pts objetivo (opcional)" />
-          <button data-action="crear-lista" class="btn-primary">Crear</button>
+          <button data-action="crear-lista" class="btn-primary">Crear vacía</button>
+          <button data-action="abrir-importer" class="btn-secondary">Importar de texto…</button>
+        </div>
+        <div class="lists-builder-hints">
+          <span>Editores recomendados:</span>
+          <a href="https://battlescribe.net" target="_blank" rel="noopener">BattleScribe</a>
+          <a href="https://newrecruit.eu" target="_blank" rel="noopener">NewRecruit</a>
+          <a href="https://www.gw-listbuilder.com" target="_blank" rel="noopener">GW List Builder</a>
         </div>
       </div>
     </div>
@@ -227,6 +234,10 @@ export function bindListsEvents(container) {
     if (!action) return
 
     if (action === 'crear-lista') return handleCrearLista()
+    if (action === 'abrir-importer') {
+      const { abrirListImporter } = await import('./list-importer.js')
+      return abrirListImporter()
+    }
     if (action === 'abrir-lista') {
       const id = e.target.closest('[data-list-id]')?.dataset?.listId
       if (id) return abrirLista(id)
