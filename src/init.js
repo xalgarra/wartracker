@@ -1,7 +1,7 @@
 import { db } from './db.js'
 import { state } from './state.js'
 import { actualizarFacciones } from './mini-modal.js'
-import { actualizarFiltroFacciones } from './minis.js'
+import { actualizarFiltroFacciones, cargarMinis } from './minis.js'
 import { cargarStats } from './stats.js'
 import { cargarWishlist } from './wishlist.js'
 import { cargarPinturas } from './paints.js'
@@ -42,7 +42,7 @@ export async function inicializar() {
 
 const TABS = [
   { id: 'home',      load: cargarHome },
-  { id: 'coleccion', load: null },
+  { id: 'coleccion', load: cargarMinis },
   { id: 'stats',     load: cargarStats },
   { id: 'wishlist',  load: cargarWishlist },
   { id: 'pinturas',  load: cargarPinturas },
