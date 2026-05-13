@@ -1,0 +1,283 @@
+/* ====================================================================
+   Quick Add — bottom sheet de 3 pasos (pick / mini-search / mini-confirm)
+==================================================================== */
+
+.qa-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.qa-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.qa-sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 22px 22px 0 0;
+  padding: 14px 18px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 85vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.2s ease-out;
+}
+
+.qa-backdrop.open .qa-sheet {
+  transform: translateY(0);
+}
+
+.qa-grabber {
+  width: 36px; height: 4px;
+  background: var(--border-2);
+  border-radius: 999px;
+  margin: 0 auto 6px;
+  flex-shrink: 0;
+}
+
+.qa-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+body.dark .qa-title { font-weight: 600; }
+
+.qa-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ── Paso 1: opciones ───────────────────────────────────────── */
+.qa-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--subtle);
+  border-radius: 14px;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s, transform 0.1s;
+}
+.qa-option:active { transform: scale(0.98); }
+
+.qa-option-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.qa-option-body { flex: 1; }
+.qa-option-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.qa-option-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.qa-option-chev { color: var(--text-4); font-size: 20px; }
+
+/* ── Paso 2: búsqueda ───────────────────────────────────────── */
+.qa-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--subtle);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.qa-search-icon { font-size: 16px; color: var(--text-3); flex-shrink: 0; }
+
+.qa-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+.qa-search-input::placeholder { color: var(--text-3); }
+
+.qa-result-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.qa-result {
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.qa-result:last-child { border-bottom: none; }
+.qa-result:hover { background: var(--subtle); border-radius: 8px; }
+
+.qa-result-body { flex: 1; min-width: 0; }
+.qa-result-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.qa-result-meta { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.qa-result-pts  { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+
+.qa-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-4);
+}
+
+/* ── Paso 3: confirmar ──────────────────────────────────────── */
+.qa-confirm-card {
+  background: var(--subtle);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.qa-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.qa-field:last-child { border-bottom: none; }
+.qa-field-label { font-size: 12px; color: var(--text-3); font-weight: 500; }
+.qa-field-value { font-size: 14px; color: var(--text); font-weight: 500; }
+
+.qa-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.qa-stepper-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+.qa-stepper-btn:active { background: var(--border); }
+
+.qa-stepper-val {
+  width: 44px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+.qa-status-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.qa-status-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -4px;
+  padding: 0 4px 4px;
+}
+.qa-status-row::-webkit-scrollbar { display: none; }
+
+.qa-status-chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.12s;
+}
+
+.qa-status-chip.active {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border-color: var(--btn-primary-bg);
+}
+body.dark .qa-status-chip.active {
+  background: oklch(0.80 0.17 65);
+  color: #14110d;
+  border-color: oklch(0.80 0.17 65);
+}
+
+/* ── Botones ────────────────────────────────────────────────── */
+.qa-primary-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.1s;
+}
+body.dark .qa-primary-btn {
+  background: oklch(0.80 0.17 65);
+  color: #14110d;
+}
+.qa-primary-btn:active { transform: scale(0.99); opacity: 0.9; }
+.qa-primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.qa-link-btn {
+  width: 100%;
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: color 0.12s;
+}
+.qa-link-btn:hover { color: var(--text-2); }

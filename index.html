@@ -50,9 +50,10 @@
       </div>
     </div>
 
-    <div class="tabs-outer">
+    <!-- Tabs originales ocultos — conservados para compatibilidad con cambiarTab() -->
+    <div class="tabs-outer" style="display:none">
       <div class="tabs">
-        <button class="tab active" id="tab-home">Inicio</button>
+        <button class="tab active" id="tab-hoy">Hoy</button>
         <button class="tab" id="tab-coleccion">Colección</button>
         <button class="tab" id="tab-stats">Estadísticas</button>
         <button class="tab" id="tab-wishlist">Wishlist</button>
@@ -60,13 +61,19 @@
         <button class="tab" id="tab-listas">Listas</button>
         <button class="tab" id="tab-recetas">Recetas</button>
         <button class="tab" id="tab-pareja">Pareja</button>
+        <button class="tab" id="tab-mas" style="display:none">Más</button>
       </div>
     </div>
 
-    <button class="fab" id="btn-fab">+</button>
+    <!-- Vista detalle mini (overlay fixed) -->
+    <div id="vista-mini-detail" style="display:none"></div>
 
-    <div id="vista-home">
+    <div id="vista-hoy">
       <div id="home-content" class="home-container"></div>
+    </div>
+
+    <div id="vista-mas" style="display:none">
+      <div class="mas-container" id="mas-content"></div>
     </div>
 
     <div id="vista-coleccion" style="display:none">
@@ -119,6 +126,27 @@
     <div id="vista-pareja" style="display:none">
       <div id="partner-content" class="home-container"></div>
     </div>
+
+    <!-- Bottom nav (4 tabs + FAB central) -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bottom-nav-item active" data-tab="hoy" id="bnav-hoy">
+        <span class="bottom-nav-glyph">◐</span>
+        Hoy
+      </button>
+      <button class="bottom-nav-item" data-tab="coleccion" id="bnav-coleccion">
+        <span class="bottom-nav-glyph">▣</span>
+        Colección
+      </button>
+      <button class="bottom-nav-fab" id="btn-fab">+</button>
+      <button class="bottom-nav-item" data-tab="pinturas" id="bnav-pinturas">
+        <span class="bottom-nav-glyph">◯</span>
+        Pinturas
+      </button>
+      <button class="bottom-nav-item" data-tab="mas" id="bnav-mas">
+        <span class="bottom-nav-glyph">⋯</span>
+        Más
+      </button>
+    </nav>
 
     <div id="vista-pinturas" style="display:none">
       <div class="catalog-search-section">
@@ -481,6 +509,14 @@
         <button id="btn-cerrar-army" class="btn-cancel">Cancelar</button>
         <button id="btn-army-guardar" class="btn-primary" disabled>Añadir</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Quick Add bottom sheet -->
+  <div class="qa-backdrop" id="qa-backdrop">
+    <div class="qa-sheet" id="qa-sheet">
+      <div class="qa-grabber"></div>
+      <div id="qa-content"></div>
     </div>
   </div>
 

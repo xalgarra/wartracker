@@ -4,12 +4,19 @@ import { STATUSES, STATUS_ORDER } from './constants.js'
 import { mostrarError, mostrarExito } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
-import { getRecommendations, getEmptyState } from './recommendations.js'
 import { cargarSessions, renderSessionsBlock } from './sessions.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
 const IN_PROGRESS_STATUSES = ['pintando', 'imprimada', 'montada']
+
+const PROGRESS_COLOR = {
+  comprada:  '#c8c6c0',
+  montada:   'oklch(0.7 0.13 60)',
+  imprimada: 'oklch(0.65 0.12 240)',
+  pintando:  'oklch(0.6 0.15 305)',
+  pintada:   'oklch(0.55 0.15 145)',
+}
 
 // Las caches viven en state.js (state.minisFull, state.proyectosActivos).
 // Mantenemos estos getters para los consumidores externos (project-modal, etc).
@@ -97,20 +104,9 @@ export async function cargarHome() {
     if (data) state.pinturas = data
   }
 
-  const [{ data: proyectos }, { data: historial }] = await Promise.all([
-    db.from('projects')
-      .select('id, name, photo_url, notes, recipe, recipe_id, status, project_minis(id, mini_id, notes), project_paints(id, paint_id, paints(name, brand, color_hex)), recipes(id, name)')
-      .eq('status', 'activo')
-      .order('created_at', { ascending: false }),
-    db.from('projects')
-      .select('id, name, photo_url, completed_at, project_minis(id)')
-      .eq('status', 'completado')
-      .order('completed_at', { ascending: false })
-      .limit(10),
-    cargarSessions()
-  ])
+  await cargarSessions()
 
-  state.proyectosActivos = proyectos || []
+  state.proyectosActivos = []
 
   // Agregaciones para el dashboard
   let totalModels = 0, paintedModels = 0, totalPts = 0
@@ -134,21 +130,25 @@ export async function cargarHome() {
   const pctGlobal    = totalModels ? Math.round(paintedModels / totalModels * 100) : 0
   const pendientes   = totalModels - paintedModels
   const pctPendiente = totalModels ? Math.round(pendientes / totalModels * 100) : 0
-  const inQueue = minis
+
+  // Minis en proceso para el hero y carrusel
+  const inProgress = minis
     .filter(m => IN_PROGRESS_STATUSES.includes(m.status))
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 3)
+  const hero  = pickHero(minis)
+  const queue = inProgress.filter(m => m.id !== hero?.id).slice(0, 6)
+
+  const pinturasSinStock = (state.pinturas || []).filter(p => !p.in_stock).length
+  const minisSinImprimar = minis.filter(m => m.status === 'montada').length
 
   container.innerHTML = `
-    ${renderProjects(state.proyectosActivos, minis)}
-    ${renderRecommendations(minis, state.proyectosActivos)}
+    ${renderHero(hero, minis)}
+    ${renderCarousel(queue)}
+    ${renderPlanSemana(minisSinImprimar, pinturasSinStock)}
     ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
     ${renderByGame(byGame)}
-    ${renderQueue(inQueue)}
     ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
-    ${renderLast(minis.slice(0, 3))}
     ${renderSchemes(minis)}
-    ${renderHistorial(historial || [])}
     ${renderSessionsBlock()}
   `
 
@@ -156,140 +156,112 @@ export async function cargarHome() {
 }
 
 // ---------------------------------------------------------------------------
-// Render: recomendaciones de siguiente paso
+// Render: hero card (mini más avanzada en proceso)
 // ---------------------------------------------------------------------------
 
-const ACTION_LABELS = {
-  assemble:              'montar',
-  prime:                 'imprimar',
-  paint_accessible_parts: 'zonas accesibles',
-  continue:              'continuar',
-  finish:                'terminar',
-  review_before_gluing:  'revisar montaje',
-}
-
-const REC_BTN_LABELS = {
-  finish:               'Terminar',
-  continue:             '+ progreso',
-  assemble:             'Montar',
-  review_before_gluing: 'Ver detalle',
-}
-
-function renderRecommendations(minis, proyectos) {
-  const emptyState = getEmptyState(minis)
-
-  let bodyHtml
-  if (emptyState === 'all_painted') {
-    bodyHtml = '<div class="rec-empty">Todo está pintado 🎉</div>'
-  } else if (emptyState === 'only_wishlist') {
-    bodyHtml = '<div class="rec-empty">Tu colección activa está vacía. Mueve algo de wishlist a colección cuando lo tengas.</div>'
-  } else if (emptyState === 'empty') {
-    bodyHtml = '<div class="rec-empty">Añade alguna mini para empezar a planificar.</div>'
-  } else {
-    const recs = getRecommendations(minis, proyectos)
-    if (!recs.length) return ''
-    bodyHtml = recs.map((rec, idx) => {
-      const isPrimary    = idx === 0
-      const progressHtml = rec.progress != null
-        ? `<div class="rec-progress-bar"><div class="rec-progress-fill" style="width:${rec.progress}%"></div></div>`
-        : ''
-      const btnLabel = REC_BTN_LABELS[rec.action] || rec.action
-      return `
-        <div class="rec-card${isPrimary ? ' rec-card--primary' : ' rec-card--secondary'}">
-          ${!isPrimary ? '<span class="rec-secondary-label">alternativa</span>' : ''}
-          <div class="rec-card-header">
-            <span class="rec-card-title">${escapeHtml(rec.title)}</span>
-            <span class="rec-action-badge rec-action-${rec.action}">${ACTION_LABELS[rec.action] || rec.action}</span>
-          </div>
-          <div class="rec-card-subtitle">${escapeHtml(rec.subtitle)}</div>
-          ${progressHtml}
-          <button class="btn-rec-action" data-action="rec-action" data-rec-action="${rec.action}" data-mini-id="${rec.id}">${escapeHtml(btnLabel)}</button>
+function renderHero(hero, allMinis) {
+  if (!hero) {
+    const sinColeccion = !allMinis.length
+    return `
+      <div class="home-pick home-pick--empty">
+        <div class="home-pick-eyebrow">
+          <span class="home-pick-dot"></span>
+          colección
         </div>
-      `
-    }).join('')
+        <div class="home-pick-name">${sinColeccion ? 'Sin minis aún' : 'Nada en proceso'}</div>
+        <div class="home-pick-meta">${sinColeccion ? 'Añade tu primera mini con el botón +' : 'Selecciona una mini de tu colección para empezar'}</div>
+        <button class="home-pick-cta" data-action="goto-coleccion">
+          ${sinColeccion ? 'Añadir mini →' : 'Ver colección →'}
+        </button>
+      </div>
+    `
   }
 
+  const faction = (hero.factions || [])[0] || ''
+  const { pts } = ptsFor(hero)
+  const statusLbl = STATUS_LABEL[hero.status] || hero.status
+
   return `
-    <div class="home-block home-block--recs">
-      <div class="home-block-h">
-        <span>// siguiente paso</span>
-        <span class="rec-block-hint">sin presión diaria</span>
+    <div class="home-pick" data-action="open-mini" data-mini-id="${hero.id}">
+      ${hero.photo_url ? `<img class="home-pick-photo" src="${escapeHtml(hero.photo_url)}" alt="">` : ''}
+      <div class="home-pick-eyebrow">
+        <span class="home-pick-dot"></span>
+        sigue donde lo dejaste
       </div>
-      ${bodyHtml}
+      <div class="home-pick-name">${escapeHtml(hero.name)}</div>
+      <div class="home-pick-meta">${escapeHtml(faction)}${pts ? ' · ' + pts + ' pts' : ''} · ${escapeHtml(statusLbl)}</div>
+      <button class="home-pick-cta" data-action="open-mini" data-mini-id="${hero.id}">
+        Continuar pintando →
+      </button>
     </div>
   `
 }
 
 // ---------------------------------------------------------------------------
-// Render: proyectos (tarjetas de resumen — solo lectura)
+// Render: carrusel "también en curso"
 // ---------------------------------------------------------------------------
 
-function renderProjects(proyectos, allMinis) {
+function renderCarousel(minis) {
+  if (!minis.length) return ''
   return `
-    <div class="home-hero home-proj-section">
-      <div class="home-hero-eyebrow">
-        <span class="home-hero-pulse"></span>
-        Proyectos activos
-      </div>
-      ${proyectos.length
-        ? proyectos.map(p => renderProjectCard(p, allMinis)).join('')
-        : '<div class="home-proj-empty-msg">Sin proyectos activos — crea uno abajo</div>'
-      }
-      <div class="home-proj-new-row">
-        <input type="text" id="proj-new-name" class="home-proj-new-input"
-               placeholder="Nuevo proyecto…" maxlength="80" autocomplete="off">
-        <button data-action="create-project" class="home-proj-create-btn">Crear</button>
-      </div>
+    <div class="home-section-h">
+      <span class="home-section-title">También en curso · ${minis.length}</span>
+      <span class="home-section-link" data-action="goto-coleccion">Ver todas</span>
+    </div>
+    <div class="home-carousel">
+      ${minis.map(m => {
+        const color = PROGRESS_COLOR[m.status] || '#c8c6c0'
+        const pct   = m.paint_progress || 0
+        return `
+          <div class="home-mini-card" data-action="open-mini" data-mini-id="${m.id}">
+            <div class="home-mini-thumb ${m.photo_url ? '' : 'home-mini-thumb--empty'}">
+              ${m.photo_url ? `<img src="${escapeHtml(m.photo_url)}" alt="">` : ''}
+              <span class="home-mini-status-pill" style="color:${color}">${escapeHtml(STATUS_LABEL[m.status] || '')}</span>
+            </div>
+            <div class="home-mini-name">${escapeHtml(m.name)}</div>
+            <div class="home-mini-meta">${escapeHtml((m.factions || [])[0] || '')}</div>
+            <div class="home-mini-bar"><div class="home-mini-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          </div>
+        `
+      }).join('')}
     </div>
   `
 }
 
-function renderProjectCard(project, allMinis) {
-  const projMinis  = project.project_minis || []
-  const projPaints = project.project_paints || []
+// ---------------------------------------------------------------------------
+// Render: plan de la semana
+// ---------------------------------------------------------------------------
 
-  const progressValues = projMinis.map(pm => {
-    const mini = allMinis.find(m => m.id === Number(pm.mini_id))
-    return mini?.paint_progress || 0
-  })
-  const avgProgress = progressValues.length
-    ? Math.round(progressValues.reduce((a, b) => a + b, 0) / progressValues.length)
-    : 0
-
-  const unitsHtml = projMinis.map(pm => {
-    const mini = allMinis.find(m => m.id === Number(pm.mini_id))
-    if (!mini) return ''
-    return `<span class="proj-unit-chip">
-      <span class="proj-unit-chip-name">${escapeHtml(mini.name)}</span>
-      <span class="proj-unit-chip-pct">${mini.paint_progress || 0}%</span>
-    </span>`
-  }).join('')
-
-  const paintsHtml = projPaints.map(pp => `
-    <div class="paint-swatch ${pp.paints?.color_hex ? '' : 'paint-swatch-none'}"
-         style="${pp.paints?.color_hex ? `background:${pp.paints.color_hex}` : ''}"
-         title="${escapeHtml(pp.paints?.name || '')}"></div>
-  `).join('')
-
-  const photoHtml = project.photo_url
-    ? `<img class="home-proj-photo" src="${project.photo_url}" alt="">`
-    : ''
-
+function renderPlanSemana(minisSinImprimar, pinturasSinStock) {
   return `
-    <div class="home-proj-card" data-action="edit-project" data-project-id="${project.id}">
-      ${photoHtml}
-      <div class="home-proj-card-header">
-        <span class="home-proj-name">${escapeHtml(project.name)}</span>
-        <span class="home-proj-pct">${avgProgress}%</span>
-      </div>
-      <div class="home-proj-progress-bar">
-        <div class="home-proj-progress-fill" style="width:${avgProgress}%"></div>
-      </div>
-      ${unitsHtml
-        ? `<div class="home-proj-units">${unitsHtml}</div>`
-        : '<div class="home-proj-units-empty">Sin minis — toca para editar</div>'}
-      ${paintsHtml ? `<div class="home-proj-paints-row">${paintsHtml}</div>` : ''}
-      ${project.recipe ? `<div class="home-proj-recipe-hint">// tiene receta de pintado</div>` : ''}
+    <div class="home-section-h">
+      <span class="home-section-title">Plan de la semana</span>
+    </div>
+    <div class="home-plan">
+      <button class="home-plan-row" data-action="log-session">
+        <div class="home-plan-icon ok">▶</div>
+        <div class="home-plan-body">
+          <div class="home-plan-title">Iniciar sesión de hobby</div>
+          <div class="home-plan-desc">Cronómetro y registro de la sesión</div>
+        </div>
+        <span class="home-plan-chev">›</span>
+      </button>
+      <button class="home-plan-row" data-action="goto-coleccion">
+        <div class="home-plan-icon ${minisSinImprimar > 0 ? 'warn' : 'ok'}">!</div>
+        <div class="home-plan-body">
+          <div class="home-plan-title">${minisSinImprimar} mini${minisSinImprimar !== 1 ? 's' : ''} sin imprimar</div>
+          <div class="home-plan-desc">Estado montada, listas para imprimar</div>
+        </div>
+        <span class="home-plan-chev">›</span>
+      </button>
+      <button class="home-plan-row" data-action="goto-pinturas">
+        <div class="home-plan-icon ${pinturasSinStock > 0 ? 'info' : 'ok'}">★</div>
+        <div class="home-plan-body">
+          <div class="home-plan-title">Te quedan ${pinturasSinStock} potes sin stock</div>
+          <div class="home-plan-desc">Revisa el rack antes de pintar</div>
+        </div>
+        <span class="home-plan-chev">›</span>
+      </button>
     </div>
   `
 }
@@ -350,33 +322,6 @@ function renderByGame(byGame) {
   `
 }
 
-function renderQueue(items) {
-  return `
-    <div class="home-block">
-      <div class="home-block-h">
-        <span>// en proceso · ${items.length}</span>
-        <span class="home-block-link" data-action="goto-coleccion">ver todas →</span>
-      </div>
-      ${items.length ? `
-        <div class="home-queue">
-          ${items.map(m => `
-            <div class="home-queue-row" data-action="open-mini" data-mini-id="${m.id}">
-              ${m.photo_url
-                ? `<img class="home-queue-thumb" src="${m.photo_url}" alt="">`
-                : `<div class="home-queue-thumb home-queue-thumb--placeholder"></div>`
-              }
-              <div class="home-queue-mid">
-                <div class="home-queue-name">${escapeHtml(m.name)}</div>
-                <div class="home-queue-meta">${escapeHtml((m.factions || [])[0] || '-')} · ${modelsFor(m)} mod</div>
-              </div>
-              <span class="badge badge-status ${m.status}">${STATUS_LABEL[m.status]}</span>
-            </div>
-          `).join('')}
-        </div>
-      ` : `<div class="home-empty-inline">// nada en proceso</div>`}
-    </div>
-  `
-}
 
 function renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels }) {
   const segs = STATUSES
@@ -472,64 +417,6 @@ function renderHistorial(proyectos) {
 }
 
 // ---------------------------------------------------------------------------
-// Acciones de recomendaciones
-// ---------------------------------------------------------------------------
-
-function refreshRecsSection() {
-  const container  = document.getElementById('home-content')
-  if (!container) return
-  const recsBlock = container.querySelector('.home-block--recs')
-  if (!recsBlock) return
-  const temp = document.createElement('div')
-  temp.innerHTML = renderRecommendations(state.minisFull || [], state.proyectosActivos || []).trim()
-  const newBlock = temp.firstElementChild
-  if (newBlock) recsBlock.replaceWith(newBlock)
-  else recsBlock.remove()
-}
-
-async function handleRecAction(recAction, miniId, btn) {
-  btn.disabled = true
-  try {
-    if (recAction === 'review_before_gluing') {
-      const { abrirEdicion } = await import('./mini-modal.js')
-      abrirEdicion(miniId)
-      btn.disabled = false
-      return
-    }
-
-    const minisFull = state.minisFull || []
-    if (recAction === 'finish') {
-      const { error } = await db.from('minis').update({ status: 'pintada', paint_progress: 100 }).eq('id', miniId)
-      if (error) throw error
-      const m = minisFull.find(x => x.id === miniId)
-      if (m) { m.status = 'pintada'; m.paint_progress = 100 }
-      mostrarExito('Mini marcada como pintada ✓')
-
-    } else if (recAction === 'continue') {
-      const m     = minisFull.find(x => x.id === miniId)
-      const next  = Math.min((m?.paint_progress || 0) + 10, 100)
-      const patch = next >= 100 ? { paint_progress: 100, status: 'pintada' } : { paint_progress: next }
-      const { error } = await db.from('minis').update(patch).eq('id', miniId)
-      if (error) throw error
-      if (m) Object.assign(m, patch)
-      mostrarExito(next >= 100 ? 'Mini completada ✓' : `Progreso: ${next}%`)
-
-    } else if (recAction === 'assemble') {
-      const { error } = await db.from('minis').update({ status: 'montada' }).eq('id', miniId)
-      if (error) throw error
-      const m = minisFull.find(x => x.id === miniId)
-      if (m) m.status = 'montada'
-      mostrarExito('Estado actualizado a montada')
-    }
-
-    refreshRecsSection()
-  } catch {
-    mostrarError('Error al actualizar')
-    btn.disabled = false
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Event binding (home-content, delegación)
 // ---------------------------------------------------------------------------
 
@@ -540,27 +427,17 @@ function bindHomeEvents(container) {
   container.addEventListener('click', async e => {
     const actionEl = e.target.closest('[data-action]')
     if (!actionEl) return
-    const { action, projectId, miniId } = actionEl.dataset
+    const { action, miniId } = actionEl.dataset
 
-    if (action === 'rec-action') {
-      await handleRecAction(actionEl.dataset.recAction, Number(actionEl.dataset.miniId), actionEl)
-    } else if (action === 'create-project') {
-      await handleCreateProject()
-    } else if (action === 'edit-project') {
-      const { abrirModalProyecto } = await import('./project-modal.js')
-      await abrirModalProyecto(projectId)
-    } else if (action === 'open-mini') {
+    if (action === 'open-mini') {
       if (miniId) {
-        const id = Number(miniId)
-        if (!state.minisActuales.some(m => m.id === id)) {
-          const cached = (state.minisFull || []).find(m => m.id === id)
-          if (cached) state.minisActuales = [...state.minisActuales, cached]
-        }
-        const { abrirEdicion } = await import('./mini-modal.js')
-        abrirEdicion(id)
+        const { abrirDetalleMini } = await import('./mini-detail.js')
+        abrirDetalleMini(Number(miniId))
       }
     } else if (action === 'goto-coleccion') {
       cambiarTab('coleccion')
+    } else if (action === 'goto-pinturas') {
+      cambiarTab('pinturas')
     } else if (action === 'log-session') {
       const { abrirModalSession } = await import('./session-modal.js')
       abrirModalSession()
@@ -568,15 +445,3 @@ function bindHomeEvents(container) {
   })
 }
 
-async function handleCreateProject() {
-  const input = document.getElementById('proj-new-name')
-  const name = input?.value.trim()
-  if (!name) return
-  const { data, error } = await db.from('projects').insert({ name }).select().single()
-  if (error) { mostrarError('Error creando proyecto: ' + error.message); return }
-  if (input) input.value = ''
-  if (!state.proyectosActivos) state.proyectosActivos = []
-  state.proyectosActivos.unshift({ ...data, project_minis: [], project_paints: [] })
-  const { abrirModalProyecto } = await import('./project-modal.js')
-  await abrirModalProyecto(data.id)
-}

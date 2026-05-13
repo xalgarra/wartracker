@@ -1,0 +1,140 @@
+/* ====================================================================
+   Bottom Nav — 4 tabs + FAB central
+   Reemplaza el strip de 8 tabs horizontales
+==================================================================== */
+
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 78px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 8px 14px;
+  z-index: 15;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Para app-screen con max-width, fijamos el nav al mismo ancho */
+@media (min-width: 960px) {
+  .bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 960px;
+  }
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.12s, transform 0.1s;
+  min-height: 44px;
+}
+.bottom-nav-item:active { transform: scale(0.92); }
+.bottom-nav-item.active { color: var(--text); }
+body.dark .bottom-nav-item.active { color: var(--accent); }
+
+.bottom-nav-glyph {
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* FAB central */
+.bottom-nav-fab {
+  flex: 0 0 56px;
+  margin-top: -18px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: var(--fab-color);
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-fab, 0 4px 14px rgba(0,0,0,0.25)), var(--fab-extra-shadow, none);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.bottom-nav-fab:active { transform: scale(0.92); }
+
+/* Extra espacio en el app-screen para que el contenido no quede detrás del nav */
+#app-screen {
+  padding-bottom: 88px !important;
+}
+
+/* ── Pantalla Más ───────────────────────────────────────────── */
+.mas-container {
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.mas-topbar {
+  padding: 18px 18px 8px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+body.dark .mas-topbar { font-weight: 600; }
+
+.mas-list {
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mas-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s;
+  width: 100%;
+  text-align: left;
+}
+.mas-item:active { transform: scale(0.98); }
+body.dark .mas-item { background: var(--subtle); border-color: transparent; }
+
+.mas-item-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--subtle);
+  flex-shrink: 0;
+}
+body.dark .mas-item-icon { background: var(--surface); }
+
+.mas-item-body { flex: 1; }
+.mas-item-name  { font-size: 15px; font-weight: 600; color: var(--text); }
+.mas-item-desc  { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.mas-item-chev  { color: var(--text-4); font-size: 18px; flex-shrink: 0; }

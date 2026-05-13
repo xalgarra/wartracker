@@ -137,7 +137,7 @@ body.dark {
   --accent:  oklch(0.80 0.17 65);
   --success: oklch(0.65 0.16 145);
 
-  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 
   --logo-glyph-w:      18px;
   --logo-glyph-h:      18px;
@@ -157,7 +157,7 @@ body.dark {
   --tab-padding:      6px 14px;
 
   --card-bg:       transparent;
-  --card-radius:   0px;
+  --card-radius:   14px;
   --card-padding:  12px 18px;
   --card-hover-bg: #1a160f;
   --list-gap:      0px;
@@ -166,10 +166,10 @@ body.dark {
   --input-bg:           #1a160f;
   --input-border:       1px solid #2a251c;
   --input-focus-border: oklch(0.80 0.17 65);
-  --input-radius:       3px;
+  --input-radius:       10px;
   --input-color:        #e8e4dc;
   --modal-bg:           #1a160f;
-  --modal-radius:       4px;
+  --modal-radius:       16px;
   --modal-border-top:   1px solid oklch(0.80 0.17 65 / 0.5);
 
   --btn-primary-bg:    oklch(0.80 0.17 65);

@@ -84,11 +84,14 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarStatusPicker() })
 
 // Event delegation for dynamically rendered lists (replaces window.* globals)
-document.getElementById('lista').addEventListener('click', e => {
+document.getElementById('lista').addEventListener('click', async e => {
   const badge = e.target.closest('[data-action="status-quick"]')
   if (badge) { abrirStatusPicker(badge); return }
   const card = e.target.closest('[data-mini-id]')
-  if (card) abrirEdicion(Number(card.dataset.miniId))
+  if (card) {
+    const { abrirDetalleMini } = await import('./mini-detail.js')
+    abrirDetalleMini(Number(card.dataset.miniId))
+  }
 })
 document.getElementById('lista-wishlist').addEventListener('click', e => {
   if (e.target.closest('[data-wish-action]')) return
@@ -112,25 +115,26 @@ document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)
 document.getElementById('email')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
 document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
 
-// Tabs
-document.getElementById('tab-home')?.addEventListener('click', () => cambiarTab('home'))
-document.getElementById('tab-coleccion')?.addEventListener('click', () => cambiarTab('coleccion'))
-document.getElementById('tab-stats')?.addEventListener('click', () => cambiarTab('stats'))
-document.getElementById('tab-wishlist')?.addEventListener('click', () => cambiarTab('wishlist'))
-document.getElementById('tab-pinturas')?.addEventListener('click', () => cambiarTab('pinturas'))
-document.getElementById('tab-listas')?.addEventListener('click', () => cambiarTab('listas'))
-document.getElementById('tab-recetas')?.addEventListener('click', () => cambiarTab('recetas'))
-document.getElementById('tab-pareja')?.addEventListener('click',  () => cambiarTab('pareja'))
+// Bottom nav
+document.getElementById('bottom-nav')?.addEventListener('click', e => {
+  const btn = e.target.closest('.bottom-nav-item[data-tab]')
+  if (btn) cambiarTab(btn.dataset.tab)
+})
 
-// FAB — context-aware
-document.getElementById('btn-fab')?.addEventListener('click', () => {
-  if (state.tabActual === 'recetas') {
-    abrirModalReceta()
-  } else if (state.tabActual === 'pinturas') {
-    abrirModalPintura()
-  } else {
-    abrirModal(abrirModalPintura)
-  }
+// Tabs originales ocultos (por compatibilidad si algún código los llama)
+document.getElementById('tab-hoy')?.addEventListener('click',       () => cambiarTab('hoy'))
+document.getElementById('tab-coleccion')?.addEventListener('click', () => cambiarTab('coleccion'))
+document.getElementById('tab-stats')?.addEventListener('click',     () => cambiarTab('stats'))
+document.getElementById('tab-wishlist')?.addEventListener('click',  () => cambiarTab('wishlist'))
+document.getElementById('tab-pinturas')?.addEventListener('click',  () => cambiarTab('pinturas'))
+document.getElementById('tab-listas')?.addEventListener('click',    () => cambiarTab('listas'))
+document.getElementById('tab-recetas')?.addEventListener('click',   () => cambiarTab('recetas'))
+document.getElementById('tab-pareja')?.addEventListener('click',    () => cambiarTab('pareja'))
+
+// FAB — abre Quick Add sheet
+document.getElementById('btn-fab')?.addEventListener('click', async () => {
+  const { abrirQuickAdd } = await import('./quick-add.js')
+  abrirQuickAdd()
 })
 
 // Gallery view toggle + gallery photo upload
