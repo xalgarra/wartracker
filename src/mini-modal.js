@@ -439,6 +439,8 @@ export async function eliminarMini() {
   invalidateMinis()
 
   cerrarModal()
+  const { cerrarDetalleMini } = await import('./mini-detail.js')
+  cerrarDetalleMini()
   if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
   if (state.tabActual === 'home') cargarHome()
 }

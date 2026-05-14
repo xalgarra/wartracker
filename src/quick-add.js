@@ -3,6 +3,7 @@ import { state } from './state.js'
 import { escapeHtml } from './utils.js'
 import { mostrarError, mostrarExito } from './toast.js'
 import { cargarHome } from './home.js'
+import { cargarWishlist } from './wishlist.js'
 
 // Estado del sheet
 let qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '', wishlist: false }
@@ -295,8 +296,11 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
     const { abrirDetalleMini } = await import('./mini-detail.js')
     await abrirDetalleMini(data.id)
   } else {
-    // Recargar home si estamos en él
-    if (state.tabActual === 'hoy') cargarHome()
+    if (w) {
+      if (state.tabActual === 'wishlist') cargarWishlist()
+    } else {
+      if (state.tabActual === 'hoy') cargarHome()
+    }
   }
 }
 
