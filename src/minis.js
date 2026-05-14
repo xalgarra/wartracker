@@ -2,6 +2,7 @@ import { db } from './db.js'
 import { state, invalidateMinis, ensureMinisFull } from './state.js'
 import { STATUSES, STATUS_ORDER, UNIT_TYPES } from './constants.js'
 import { mostrarError } from './toast.js'
+import { getPlaceholderHue, getInitials } from './placeholder.js'
 
 let _viewMode = 'list'
 
@@ -53,7 +54,9 @@ export function renderCard(m) {
   const modelsStr = m.models ? ` · ${m.models * m.qty} mod.` : ''
   const unitType = getTypeForMini(m)
   const typeBadge = unitType ? `<span class="badge badge-type">${unitType}</span>` : ''
-  const thumbHTML = m.photo_url ? `<img class="card-thumb" src="${m.photo_url}" alt="">` : ''
+  const thumbHTML = m.photo_url
+    ? `<img class="card-thumb" src="${m.photo_url}" alt="" loading="lazy">`
+    : `<div class="card-thumb card-thumb--ph" style="--ph-hue:${getPlaceholderHue((m.factions||[])[0], m.name)}"><span class="card-thumb-init">${getInitials(m.name)}</span></div>`
   const progress  = m.paint_progress || 0
   const showBar   = progress > 0 || m.status === 'pintada'
   const barWidth  = m.status === 'pintada' ? 100 : progress
@@ -123,7 +126,7 @@ export function renderLista() {
         <div class="gallery-card" data-mini-id="${m.id}">
           ${m.photo_url
             ? `<img class="gallery-card-img" src="${m.photo_url}" alt="" loading="lazy">`
-            : `<div class="gallery-card-img gallery-card-img--empty"><span>${(m.name || '?')[0].toUpperCase()}</span></div>`}
+            : `<div class="gallery-card-img gallery-card-img--ph" style="--ph-hue:${getPlaceholderHue((m.factions||[])[0], m.name)}"><span class="gallery-card-init">${getInitials(m.name)}</span></div>`}
           <div class="gallery-card-info">
             <span class="gallery-card-name">${m.name}</span>
             <span class="badge badge-status ${m.status}">${STATUS_LABEL[m.status] || m.status}</span>

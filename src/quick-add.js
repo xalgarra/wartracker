@@ -289,6 +289,13 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
   mostrarExito(w ? `${u.name} añadida a wishlist ✓` : `${u.name} añadida ✓`)
   cerrarQuickAdd()
 
+  // Buscar foto automáticamente en background (sin foto manual)
+  if (data?.id) {
+    import('./photo-search.js').then(({ fetchAndSaveMiniPhoto }) =>
+      fetchAndSaveMiniPhoto(data.id, u.name, u.faction)
+    )
+  }
+
   // Invalidar caché
   state.minisFull = null
 

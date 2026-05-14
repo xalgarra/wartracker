@@ -285,6 +285,18 @@ document.addEventListener('click', e => {
   }
 })
 
+// Settings modal
+document.getElementById('modal-settings-bg')?.addEventListener('click', async e => {
+  if (e.target.id === 'modal-settings-bg') {
+    const { cerrarSettings } = await import('./settings.js')
+    cerrarSettings()
+  }
+})
+document.getElementById('btn-cerrar-settings')?.addEventListener('click', async () => {
+  const { cerrarSettings } = await import('./settings.js')
+  cerrarSettings()
+})
+
 // Session modal
 document.getElementById('modal-session-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-session-bg') cerrarModalSession() })
 document.getElementById('btn-cerrar-session')?.addEventListener('click', cerrarModalSession)

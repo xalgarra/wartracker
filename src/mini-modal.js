@@ -369,6 +369,11 @@ export async function guardarMini() {
         await db.storage.from('mini-photos').upload(path, _pendingPhotoFile, { upsert: true })
         const { data: { publicUrl } } = db.storage.from('mini-photos').getPublicUrl(path)
         await db.from('minis').update({ photo_url: publicUrl }).eq('id', savedId)
+      } else if (!state.miniEnEdicion) {
+        // Mini nueva sin foto — buscar imagen automáticamente en background
+        import('./photo-search.js').then(({ fetchAndSaveMiniPhoto }) =>
+          fetchAndSaveMiniPhoto(savedId, name, primaryFaction)
+        )
       } else if (_pendingPhotoRemove && state.miniEnEdicion?.photo_url) {
         const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
         if (path) await db.storage.from('mini-photos').remove([path])

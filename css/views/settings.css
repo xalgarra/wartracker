@@ -1,0 +1,126 @@
+/* ====================================================================
+   Settings modal
+==================================================================== */
+
+#modal-settings-bg {
+  align-items: flex-end;
+}
+
+.settings-sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 20px 40px;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.settings-close {
+  background: var(--subtle);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+}
+.settings-close:hover { background: var(--border); color: var(--text); }
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+
+.settings-section-desc {
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.settings-link {
+  color: var(--btn-primary-bg);
+  text-decoration: none;
+}
+.settings-link:hover { text-decoration: underline; }
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.settings-input {
+  padding: 11px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.settings-input:focus { border-color: var(--btn-primary-bg); }
+
+.settings-save-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.settings-save-btn:disabled { opacity: 0.5; cursor: default; }
+body.dark .settings-save-btn {
+  background: oklch(0.80 0.17 65);
+  color: #14110d;
+}
+
+.settings-loading {
+  font-size: 13px;
+  color: var(--text-4);
+  padding: 16px 0;
+  text-align: center;
+}

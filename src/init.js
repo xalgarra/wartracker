@@ -119,11 +119,24 @@ function renderMas() {
           <span class="mas-item-chev">›</span>
         </button>
       `).join('')}
+      <button class="mas-item" data-action="open-settings">
+        <span class="mas-item-icon">⚙</span>
+        <div class="mas-item-body">
+          <div class="mas-item-name">Ajustes</div>
+          <div class="mas-item-desc">Fotos automáticas y preferencias</div>
+        </div>
+        <span class="mas-item-chev">›</span>
+      </button>
     </div>
   `
 
-  container.addEventListener('click', e => {
-    const btn = e.target.closest('[data-action="goto-tab"]')
-    if (btn) cambiarTab(btn.dataset.tab)
+  container.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]')
+    if (!btn) return
+    if (btn.dataset.action === 'goto-tab') cambiarTab(btn.dataset.tab)
+    if (btn.dataset.action === 'open-settings') {
+      const { abrirSettings } = await import('./settings.js')
+      abrirSettings()
+    }
   })
 }

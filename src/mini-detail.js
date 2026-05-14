@@ -4,6 +4,7 @@ import { STATUSES } from './constants.js'
 import { escapeHtml } from './utils.js'
 import { cambiarStatusRapido } from './minis.js'
 import { mostrarError } from './toast.js'
+import { getPlaceholderHue, getInitials } from './placeholder.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const STATUS_ORDER_ARR = STATUSES.map(s => s.value)
@@ -81,8 +82,11 @@ function renderDetalle() {
       <button class="md-back" data-action="editar-mini" data-mini-id="${mini.id}">⋯</button>
     </div>
 
-    <div class="md-hero${mini.photo_url ? '' : ' md-hero--placeholder'}">
-      ${mini.photo_url ? `<img class="md-hero-img" src="${escapeHtml(mini.photo_url)}" alt="">` : ''}
+    <div class="md-hero${mini.photo_url ? '' : ' md-hero--placeholder'}"
+         ${!mini.photo_url ? `style="--ph-hue:${getPlaceholderHue(faction, mini.name)}"` : ''}>
+      ${mini.photo_url
+        ? `<img class="md-hero-img" src="${escapeHtml(mini.photo_url)}" alt="">`
+        : `<span class="md-hero-initials">${getInitials(mini.name)}</span>`}
       <div class="md-hero-overlay"></div>
       <div class="md-hero-text">
         <div class="md-hero-name">${escapeHtml(mini.name)}</div>

@@ -213,6 +213,29 @@ body.dark .card:hover { background: var(--card-hover-bg); }
 
 body:not(.dark) .card-thumb { width: 64px; height: 64px; border-radius: 8px; }
 
+/* Placeholder de mini sin foto */
+.card-thumb--ph {
+  background: hsl(var(--ph-hue) 55% 82%);
+  display: flex; align-items: center; justify-content: center;
+}
+body.dark .card-thumb--ph { background: hsl(var(--ph-hue) 30% 22%); }
+.card-thumb-init {
+  font-size: 16px; font-weight: 700;
+  color: hsl(var(--ph-hue) 55% 38%);
+}
+body.dark .card-thumb-init { color: hsl(var(--ph-hue) 50% 72%); }
+
+.gallery-card-img--ph {
+  display: flex; align-items: center; justify-content: center;
+  background: hsl(var(--ph-hue) 55% 82%);
+}
+body.dark .gallery-card-img--ph { background: hsl(var(--ph-hue) 30% 22%); }
+.gallery-card-init {
+  font-size: 28px; font-weight: 700;
+  color: hsl(var(--ph-hue) 55% 38%);
+}
+body.dark .gallery-card-init { color: hsl(var(--ph-hue) 50% 72%); }
+
 .card-body  { flex: 1; min-width: 0; }
 
 .card-header {

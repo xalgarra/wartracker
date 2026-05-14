@@ -56,7 +56,24 @@ body.dark .md-back { background: var(--subtle); }
 }
 
 .md-hero--placeholder {
-  background: linear-gradient(135deg, oklch(0.22 0.06 305) 0%, oklch(0.16 0.04 305) 100%);
+  background: hsl(var(--ph-hue, 210) 45% 30%);
+}
+body:not(.dark) .md-hero--placeholder {
+  background: hsl(var(--ph-hue, 210) 50% 72%);
+}
+
+.md-hero-initials {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: -0.02em;
+  user-select: none;
+  z-index: 0;
 }
 
 .md-hero-img {
