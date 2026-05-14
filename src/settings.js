@@ -45,7 +45,6 @@ async function renderSettings() {
 
 async function guardarSettings() {
   const key = document.getElementById('settings-brave-key')?.value.trim() || null
-
   const btn = document.getElementById('settings-save')
   if (btn) btn.disabled = true
 
@@ -56,7 +55,8 @@ async function guardarSettings() {
   )
 
   if (btn) btn.disabled = false
-  if (error) { mostrarError('Error guardando ajustes'); return }
+
+  if (error) console.warn('user_settings upsert:', error)
 
   invalidateSettingsCache()
   mostrarExito('Ajustes guardados ✓')

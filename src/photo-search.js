@@ -5,20 +5,18 @@ import { compressImage } from './utils.js'
 let _settingsCache = null
 
 // Llamar tras crear una mini sin foto — fire & forget, no bloquea la UI
-export async function fetchAndSaveMiniPhoto(miniId, unitName, faction) {
+export async function fetchAndSaveMiniPhoto(miniId, unitName, game) {
   const settings = await getSettings()
   if (!settings) return
 
   try {
-    const q = encodeURIComponent(`${unitName} ${faction} warhammer miniature painted`)
-    const resp = await fetch(
-      `https://api.search.brave.com/res/v1/images/search?q=${q}&count=1&safesearch=moderate`,
-      { headers: { 'Accept': 'application/json', 'X-Subscription-Token': settings.key } }
-    )
-    if (!resp.ok) return
-    const data = await resp.json()
-    const imageUrl = data.results?.[0]?.thumbnail?.src || data.results?.[0]?.url
-    if (!imageUrl) return
+    const query = `${unitName} ${game} warhammer`
+    const { data, error } = await db.functions.invoke('search-mini-image', {
+      body: { query, braveKey: settings.key },
+    })
+    if (error || !data?.url) return
+
+    const imageUrl = data.url
 
     // Intentar descargar, comprimir y subir a nuestro storage
     // Si hay CORS, usar la URL directamente como fallback
@@ -39,15 +37,14 @@ export async function fetchAndSaveMiniPhoto(miniId, unitName, faction) {
 
     await db.from('minis').update({ photo_url: finalUrl }).eq('id', miniId)
     state.minisFull = null
+    window.dispatchEvent(new CustomEvent('wt:photo-saved', { detail: { miniId } }))
   } catch (_) { /* quota o red — placeholder se mantiene */ }
 }
 
 async function getSettings() {
   if (_settingsCache) return _settingsCache
   const { data } = await db.from('user_settings').select('brave_api_key').maybeSingle()
-  if (data?.brave_api_key) {
-    _settingsCache = { key: data.brave_api_key }
-  }
+  if (data?.brave_api_key) _settingsCache = { key: data.brave_api_key }
   return _settingsCache || null
 }
 

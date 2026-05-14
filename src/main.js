@@ -317,6 +317,11 @@ document.getElementById('btn-cerrar-camara')?.addEventListener('click', cerrarCa
 document.getElementById('btn-reintentar-camara')?.addEventListener('click', reintentarCamara)
 document.getElementById('btn-confirmar-camara')?.addEventListener('click', confirmarPoteCamara)
 
+// Refrescar lista cuando llega foto auto-fetched
+window.addEventListener('wt:photo-saved', () => {
+  if (state.tabActual === 'coleccion') cargarMinis()
+})
+
 // PWA: registra service worker + banner offline + update prompt
 import('./pwa.js').then(m => m.initPWA()).catch(() => {})
 

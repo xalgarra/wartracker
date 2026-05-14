@@ -4,6 +4,7 @@ import { escapeHtml } from './utils.js'
 import { mostrarError, mostrarExito } from './toast.js'
 import { cargarHome } from './home.js'
 import { cargarWishlist } from './wishlist.js'
+import { cargarMinis } from './minis.js'
 
 // Estado del sheet
 let qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '', wishlist: false }
@@ -292,7 +293,7 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
   // Buscar foto automáticamente en background (sin foto manual)
   if (data?.id) {
     import('./photo-search.js').then(({ fetchAndSaveMiniPhoto }) =>
-      fetchAndSaveMiniPhoto(data.id, u.name, u.faction)
+      fetchAndSaveMiniPhoto(data.id, u.name, u.game_slug)
     )
   }
 
@@ -307,6 +308,7 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
       if (state.tabActual === 'wishlist') cargarWishlist()
     } else {
       if (state.tabActual === 'hoy') cargarHome()
+      else if (state.tabActual === 'coleccion') cargarMinis()
     }
   }
 }

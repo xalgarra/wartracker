@@ -372,7 +372,7 @@ export async function guardarMini() {
       } else if (!state.miniEnEdicion) {
         // Mini nueva sin foto — buscar imagen automáticamente en background
         import('./photo-search.js').then(({ fetchAndSaveMiniPhoto }) =>
-          fetchAndSaveMiniPhoto(savedId, name, primaryFaction)
+          fetchAndSaveMiniPhoto(savedId, name, game)
         )
       } else if (_pendingPhotoRemove && state.miniEnEdicion?.photo_url) {
         const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
