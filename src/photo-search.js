@@ -11,11 +11,13 @@ export async function fetchAndSaveMiniPhoto(miniId, unitName, faction) {
 
   try {
     const q = encodeURIComponent(`${unitName} ${faction} warhammer miniature painted`)
-    const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${settings.key}&cx=${settings.cx}&searchType=image&q=${q}&num=1&safe=active&imgType=photo`
-    const resp = await fetch(apiUrl)
+    const resp = await fetch(
+      `https://api.search.brave.com/res/v1/images/search?q=${q}&count=1&safesearch=moderate`,
+      { headers: { 'Accept': 'application/json', 'X-Subscription-Token': settings.key } }
+    )
     if (!resp.ok) return
     const data = await resp.json()
-    const imageUrl = data.items?.[0]?.link
+    const imageUrl = data.results?.[0]?.thumbnail?.src || data.results?.[0]?.url
     if (!imageUrl) return
 
     // Intentar descargar, comprimir y subir a nuestro storage
@@ -36,15 +38,15 @@ export async function fetchAndSaveMiniPhoto(miniId, unitName, faction) {
     } catch (_) { /* CORS o red — usar URL externa directamente */ }
 
     await db.from('minis').update({ photo_url: finalUrl }).eq('id', miniId)
-    state.minisFull = null  // invalidar caché
+    state.minisFull = null
   } catch (_) { /* quota o red — placeholder se mantiene */ }
 }
 
 async function getSettings() {
   if (_settingsCache) return _settingsCache
-  const { data } = await db.from('user_settings').select('google_cse_key, google_cse_cx').maybeSingle()
-  if (data?.google_cse_key && data?.google_cse_cx) {
-    _settingsCache = { key: data.google_cse_key, cx: data.google_cse_cx }
+  const { data } = await db.from('user_settings').select('brave_api_key').maybeSingle()
+  if (data?.brave_api_key) {
+    _settingsCache = { key: data.brave_api_key }
   }
   return _settingsCache || null
 }
