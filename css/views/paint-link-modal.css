@@ -1,0 +1,284 @@
+/* ====================================================================
+   Paint Link — bottom sheet para vincular pinturas a una mini
+==================================================================== */
+
+.pl-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 35;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.pl-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pl-sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 22px 22px 0 0;
+  padding: 14px 18px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 82vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.22s ease-out;
+}
+.pl-backdrop.open .pl-sheet {
+  transform: translateY(0);
+}
+
+/* Header */
+.pl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.pl-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pl-close {
+  background: var(--subtle);
+  border: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+}
+.pl-close:hover { background: var(--border); color: var(--text); }
+
+.pl-back {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-body);
+}
+.pl-back:hover { color: var(--text); }
+
+/* Tabs (segmented control) */
+.pl-tabs {
+  display: flex;
+  background: var(--subtle);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.pl-tab {
+  flex: 1;
+  padding: 7px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background 0.15s, color 0.15s;
+}
+.pl-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+/* Inventory tab */
+.pl-search-wrap {
+  margin-bottom: 10px;
+}
+.pl-search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  outline: none;
+  box-sizing: border-box;
+}
+.pl-search:focus { border-color: var(--btn-primary-bg); }
+
+.pl-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pl-paint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.pl-paint-row:hover { background: var(--subtle); }
+
+.pl-swatch {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 1px solid var(--border-2);
+  flex-shrink: 0;
+}
+.pl-swatch--none { background: repeating-linear-gradient(45deg, var(--border) 0, var(--border) 2px, transparent 2px, transparent 6px); }
+
+.pl-paint-name {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pl-paint-meta {
+  font-size: 11px;
+  color: var(--text-4);
+  white-space: nowrap;
+}
+.pl-pick-btn {
+  background: var(--subtle);
+  border: none;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 16px;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+.pl-pick-btn:hover { background: var(--border); }
+
+.pl-empty {
+  font-size: 13px;
+  color: var(--text-4);
+  padding: 16px 0;
+  text-align: center;
+}
+.pl-empty--hint { padding: 8px 0; }
+
+/* Recipe tab */
+.pl-recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pl-recipe-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.pl-recipe-row:hover { border-color: var(--text-3); background: var(--subtle); }
+.pl-recipe-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pl-recipe-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.pl-recipe-meta {
+  font-size: 11px;
+  color: var(--text-4);
+}
+.pl-recipe-swatches {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 120px;
+}
+
+/* Recipe preview */
+.pl-preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.pl-preview-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.pl-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 6px;
+  background: var(--subtle);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.pl-preview-chip--done {
+  opacity: 0.45;
+}
+.pl-preview-chip-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pl-preview-check {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.pl-apply-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: opacity 0.15s, transform 0.1s;
+}
+.pl-apply-btn:active { transform: scale(0.98); }
+.pl-apply-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+body.dark .pl-apply-btn {
+  background: oklch(0.80 0.17 65);
+  color: #14110d;
+}

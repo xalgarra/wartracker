@@ -5,10 +5,10 @@ import { mostrarError, mostrarExito } from './toast.js'
 import { cargarHome } from './home.js'
 
 // Estado del sheet
-let qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '' }
+let qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '', wishlist: false }
 
 export function abrirQuickAdd() {
-  qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '' }
+  qaState = { step: 'pick', selected: null, qty: 1, status: 'comprada', query: '', wishlist: false }
   renderSheet()
   const backdrop = document.getElementById('qa-backdrop')
   backdrop?.classList.add('open')
@@ -40,6 +40,7 @@ function bindIfNeeded() {
       cerrarQuickAdd()
 
     } else if (action === 'ir-mini-search') {
+      qaState.wishlist = e.target.closest('[data-qa-action]').dataset.wishlist === 'true'
       qaState.step = 'mini-search'
       renderSheet()
       setTimeout(() => document.getElementById('qa-search-input')?.focus(), 50)
@@ -82,6 +83,10 @@ function bindIfNeeded() {
       document.querySelectorAll('.qa-status-chip').forEach(c => {
         c.classList.toggle('active', c.dataset.status === qaState.status)
       })
+
+    } else if (action === 'qa-toggle-wishlist') {
+      qaState.wishlist = !qaState.wishlist
+      renderSheet()
 
     } else if (action === 'guardar') {
       await guardarMiniRapido()
@@ -128,6 +133,14 @@ function renderPick() {
       </div>
       <span class="qa-option-chev">›</span>
     </button>
+    <button class="qa-option" data-qa-action="ir-mini-search" data-wishlist="true">
+      <div class="qa-option-icon qa-option-icon--wish">✦</div>
+      <div class="qa-option-body">
+        <div class="qa-option-name">Mini en wishlist</div>
+        <div class="qa-option-desc">Algo que quieres pero todavía no tienes</div>
+      </div>
+      <span class="qa-option-chev">›</span>
+    </button>
     <button class="qa-option" data-qa-action="abrir-pintura">
       <div class="qa-option-icon">🎨</div>
       <div class="qa-option-body">
@@ -151,7 +164,7 @@ function renderMiniSearch() {
   const results = filtrarUnidades(qaState.query)
   return `
     <div>
-      <div class="qa-title">Añadir mini</div>
+      <div class="qa-title">${qaState.wishlist ? 'Añadir a wishlist' : 'Añadir mini'}</div>
       <div class="qa-sub">Paso 1 · Busca la unidad</div>
     </div>
     <div class="qa-search-box">
@@ -192,6 +205,7 @@ function renderResultsHtml(results) {
 function renderMiniConfirm() {
   const u = qaState.selected
   if (!u) return ''
+  const w = qaState.wishlist
   const statuses = ['comprada', 'montada', 'imprimada', 'pintando', 'pintada']
   const statusLabels = { comprada: 'Comprada', montada: 'Montada', imprimada: 'Imprimada', pintando: 'Pintando', pintada: 'Pintada' }
   return `
@@ -199,11 +213,20 @@ function renderMiniConfirm() {
       <div class="qa-title">${escapeHtml(u.name)}</div>
       <div class="qa-sub">Paso 2 · Confirma y guarda</div>
     </div>
+    <button class="qa-wishlist-toggle${w ? ' on' : ''}" data-qa-action="qa-toggle-wishlist" aria-pressed="${w}">
+      <span class="qa-wishlist-toggle-glyph">✦</span>
+      <span class="qa-wishlist-toggle-body">
+        <span class="qa-wishlist-toggle-title">Para mi wishlist</span>
+        <span class="qa-wishlist-toggle-sub">${w ? 'No la tienes aún · sin cajas ni estado' : 'Marca si todavía no la tienes'}</span>
+      </span>
+      <span class="qa-wishlist-toggle-switch"><span class="qa-wishlist-toggle-knob"></span></span>
+    </button>
     <div class="qa-confirm-card">
       <div class="qa-field">
         <span class="qa-field-label">Facción</span>
         <span class="qa-field-value">${escapeHtml(u.faction)}</span>
       </div>
+      ${!w ? `
       <div class="qa-field">
         <span class="qa-field-label">Cajas</span>
         <div class="qa-stepper">
@@ -211,12 +234,13 @@ function renderMiniConfirm() {
           <span id="qa-qty-val" class="qa-stepper-val">${qaState.qty}</span>
           <button class="qa-stepper-btn" data-qa-action="increment-qty">+</button>
         </div>
-      </div>
+      </div>` : ''}
       <div class="qa-field">
         <span class="qa-field-label">Puntos</span>
         <span class="qa-field-value">${u.points ? u.points + ' pt' : '—'}</span>
       </div>
     </div>
+    ${!w ? `
     <div>
       <div class="qa-status-label">Estado inicial</div>
       <div class="qa-status-row">
@@ -227,8 +251,10 @@ function renderMiniConfirm() {
           </button>
         `).join('')}
       </div>
-    </div>
-    <button class="qa-primary-btn" id="qa-btn-guardar" data-qa-action="guardar">Guardar</button>
+    </div>` : ''}
+    <button class="qa-primary-btn" id="qa-btn-guardar" data-qa-action="guardar">
+      ${w ? 'Añadir a wishlist' : 'Guardar'}
+    </button>
     <button class="qa-link-btn" data-qa-action="guardar-y-editar">Añadir más detalles después</button>
   `
 }
@@ -245,11 +271,12 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
   const fc = state.factions?.find(f => f.name === u.faction)
   if (!fc) { mostrarError('Facción no encontrada'); if (btn) btn.disabled = false; return }
 
+  const w = qaState.wishlist
   const { data, error } = await db.from('minis').insert({
     name:     u.name,
     factions: [u.faction],
-    status:   qaState.status,
-    qty:      qaState.qty,
+    status:   w ? 'wishlist' : qaState.status,
+    qty:      w ? 1 : qaState.qty,
   }).select('id').single()
 
   if (error) {
@@ -258,7 +285,7 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
     return
   }
 
-  mostrarExito(`${u.name} añadida ✓`)
+  mostrarExito(w ? `${u.name} añadida a wishlist ✓` : `${u.name} añadida ✓`)
   cerrarQuickAdd()
 
   // Invalidar caché

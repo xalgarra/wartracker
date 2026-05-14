@@ -21,6 +21,16 @@ export const state = {
   // Caches compartidas entre vistas. null = invalidada (se refetchea al próximo uso).
   minisFull: null,
   proyectosActivos: null,
+  miniPaints: {},  // { [miniId]: Paint[] }
+}
+
+export async function loadMiniPaints(miniId) {
+  const { data, error } = await db
+    .from('mini_paints')
+    .select('paint_id, paints(*)')
+    .eq('mini_id', miniId)
+  if (error) throw error
+  state.miniPaints[miniId] = (data || []).map(r => r.paints).filter(Boolean)
 }
 
 export function invalidateMinis() { state.minisFull = null }

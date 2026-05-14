@@ -247,6 +247,92 @@ body.dark .qa-status-chip.active {
   border-color: oklch(0.80 0.17 65);
 }
 
+/* ── Wishlist toggle ────────────────────────────────────────── */
+.qa-option-icon--wish {
+  font-size: 18px;
+  color: var(--text-3);
+}
+
+.qa-wishlist-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--subtle);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, background 0.15s;
+}
+.qa-wishlist-toggle.on {
+  background: color-mix(in srgb, var(--btn-primary-bg) 8%, var(--surface));
+  border-color: var(--btn-primary-bg);
+}
+body.dark .qa-wishlist-toggle.on {
+  background: color-mix(in srgb, oklch(0.80 0.17 65) 10%, var(--surface));
+  border-color: oklch(0.80 0.17 65);
+}
+
+.qa-wishlist-toggle-glyph {
+  font-size: 16px;
+  color: var(--text-4);
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.qa-wishlist-toggle.on .qa-wishlist-toggle-glyph {
+  color: var(--btn-primary-bg);
+}
+body.dark .qa-wishlist-toggle.on .qa-wishlist-toggle-glyph {
+  color: oklch(0.80 0.17 65);
+}
+
+.qa-wishlist-toggle-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.qa-wishlist-toggle-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.qa-wishlist-toggle-sub {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* Switch visual */
+.qa-wishlist-toggle-switch {
+  width: 40px; height: 24px;
+  background: var(--border-2);
+  border-radius: 999px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.qa-wishlist-toggle.on .qa-wishlist-toggle-switch {
+  background: var(--btn-primary-bg);
+}
+body.dark .qa-wishlist-toggle.on .qa-wishlist-toggle-switch {
+  background: oklch(0.80 0.17 65);
+}
+.qa-wishlist-toggle-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.qa-wishlist-toggle.on .qa-wishlist-toggle-knob {
+  transform: translateX(16px);
+}
+
 /* ── Botones ────────────────────────────────────────────────── */
 .qa-primary-btn {
   width: 100%;

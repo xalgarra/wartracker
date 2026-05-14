@@ -1,5 +1,5 @@
 import { db } from './db.js'
-import { state } from './state.js'
+import { state, loadMiniPaints } from './state.js'
 import { STATUSES } from './constants.js'
 import { escapeHtml } from './utils.js'
 import { cambiarStatusRapido } from './minis.js'
@@ -32,7 +32,10 @@ export async function abrirDetalleMini(id) {
   currentMini = { ...mini }
   renderDetalle()
   bindDetalleIfNeeded()
-  cargarPinturas(id)
+  loadMiniPaints(id).then(() => renderPaintsSection(id)).catch(() => {
+    const el = document.getElementById('md-paints-content')
+    if (el) el.innerHTML = '<span class="md-paints-empty">No se pudieron cargar las pinturas</span>'
+  })
 }
 
 export function cerrarDetalleMini() {
@@ -110,9 +113,12 @@ function renderDetalle() {
       <div class="md-stat"><div class="md-stat-v">${pts || '—'}</div><div class="md-stat-l">pts</div></div>
     </div>
 
-    <div class="md-section">
-      <div class="md-section-h">Pinturas en uso</div>
-      <div class="md-paints-row" id="md-paints-row">
+    <div class="md-section" id="md-paints-section">
+      <div class="md-section-header-row">
+        <div class="md-section-h">Pinturas en uso</div>
+        <button class="md-link-action" data-action="save-recipe" style="display:none">↗ Guardar como receta</button>
+      </div>
+      <div id="md-paints-content">
         <span class="md-paints-loading">Cargando…</span>
       </div>
     </div>
@@ -150,56 +156,64 @@ function bindDetalleIfNeeded() {
       if (!nuevoStatus || !currentMini || nuevoStatus === currentMini.status) return
       await cambiarStatusRapido(currentMini.id, nuevoStatus)
       currentMini = { ...currentMini, status: nuevoStatus }
-      // Sincronizar caches
       updateCache(currentMini.id, { status: nuevoStatus })
       renderDetalle()
-      cargarPinturas(currentMini.id)
+      renderPaintsSection(currentMini.id)
+
+    } else if (action === 'open-paint-link') {
+      if (!currentMini) return
+      const { abrirPaintLink } = await import('./paint-link-modal.js')
+      abrirPaintLink(currentMini.id)
+
+    } else if (action === 'remove-mini-paint') {
+      if (!currentMini) return
+      const { removeMiniPaint } = await import('./mini-paints.js')
+      removeMiniPaint(currentMini.id, el.dataset.paintId)
     }
   })
 }
 
 // ─── Pinturas asociadas ─────────────────────────────────────────
 
-async function cargarPinturas(miniId) {
-  const row = document.getElementById('md-paints-row')
-  if (!row) return
+function renderPaintsSection(miniId) {
+  const container = document.getElementById('md-paints-content')
+  if (!container) return
 
-  const { data: projMinis } = await db
-    .from('project_minis')
-    .select('project_id')
-    .eq('mini_id', miniId)
+  const saveBtn = document.querySelector('#md-paints-section .md-link-action')
+  const paints = state.miniPaints[miniId] || []
 
-  if (!projMinis?.length) {
-    row.innerHTML = '<span class="md-paints-empty">Sin pinturas registradas</span>'
+  if (!paints.length) {
+    if (saveBtn) saveBtn.style.display = 'none'
+    container.innerHTML = `
+      <button class="md-paints-empty-card" data-action="open-paint-link">
+        <span class="md-paints-empty-plus">＋</span>
+        <span class="md-paints-empty-text">
+          <span class="md-paints-empty-title">Añadir pinturas que estás usando</span>
+          <span class="md-paints-empty-sub">Desde tu inventario o aplicando una receta</span>
+        </span>
+      </button>`
     return
   }
 
-  const projectIds = projMinis.map(pm => pm.project_id)
-  const { data: projPaints } = await db
-    .from('project_paints')
-    .select('paint_id, paints(name, color_hex)')
-    .in('project_id', projectIds)
+  if (saveBtn) saveBtn.style.display = ''
 
-  // Re-check que el elemento sigue en el DOM (el usuario pudo cerrar)
-  const rowNow = document.getElementById('md-paints-row')
-  if (!rowNow) return
+  const chipsHtml = paints.map(p => `
+    <div class="md-paint-chip">
+      <span class="md-paint-chip-dot" ${p.color_hex ? `style="background:${p.color_hex}"` : ''}></span>
+      <span class="md-paint-chip-name">${escapeHtml(p.name)}</span>
+      <button class="md-paint-chip-x" data-action="remove-mini-paint" data-paint-id="${p.id}" title="Quitar">×</button>
+    </div>`).join('')
 
-  if (!projPaints?.length) {
-    rowNow.innerHTML = '<span class="md-paints-empty">Sin pinturas registradas</span>'
-    return
-  }
+  container.innerHTML = `
+    <div class="md-paint-chip-row">
+      ${chipsHtml}
+      <button class="md-paint-chip md-paint-chip--add" data-action="open-paint-link">＋ Añadir</button>
+    </div>`
+}
 
-  const seen = new Set()
-  const chipsHtml = projPaints
-    .filter(pp => pp.paints && !seen.has(pp.paint_id) && seen.add(pp.paint_id))
-    .map(pp => `
-      <div class="md-paint-chip">
-        <span class="md-paint-chip-dot" ${pp.paints.color_hex ? `style="background:${pp.paints.color_hex}"` : ''}></span>
-        ${escapeHtml(pp.paints.name)}
-      </div>
-    `).join('')
-
-  rowNow.innerHTML = chipsHtml || '<span class="md-paints-empty">Sin pinturas registradas</span>'
+export function rerenderMiniDetail(miniId) {
+  if (!currentMini || currentMini.id !== miniId) return
+  renderPaintsSection(miniId)
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
