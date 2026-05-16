@@ -1,0 +1,447 @@
+/* =====================================================================
+   ideas.css — estilos del módulo Ideas
+   ---------------------------------------------------------------------
+   Pensados para anclar bien en tu sistema actual:
+   - Usa las variables que ya tienes (--bg, --surface, --border, --fg1,
+     --fg2, --fg3, --fg4, --accent, --subtle, --card-radius). Si alguna
+     no existe en tu CSS, mapea al equivalente.
+   - Mobile-first. En desktop hay una @media al final que sitúa el
+     widget como columna derecha del Home.
+   - SIN prefijos `r-` (los del prototipo). Aquí: `idea-*` / `ideas-*`.
+   ===================================================================== */
+
+/* ── Widget en Home (columna derecha) ──────────────────────────── */
+.ideas-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, 14px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ideas-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.ideas-card-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--fg2);
+  text-transform: uppercase;
+}
+.ideas-card-action {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.ideas-card-action:hover { text-decoration: underline; }
+
+/* ── Lista de ideas ────────────────────────────────────────────── */
+.ideas-list { display: flex; flex-direction: column; }
+
+.idea-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+.idea-row:last-child { border-bottom: none; }
+.idea-row:hover { background: var(--subtle); }
+
+.idea-grip {
+  color: var(--fg4);
+  font-size: 14px;
+  letter-spacing: -3px;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+.idea-grip:active { cursor: grabbing; }
+
+.idea-body { flex: 1; min-width: 0; }
+.idea-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg1);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+.idea-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 4px;
+}
+.idea-cat, .idea-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--fg3);
+  font-weight: 500;
+}
+.idea-link {
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.idea-link:hover { text-decoration: underline; }
+.idea-link-glyph { font-size: 10px; opacity: 0.85; }
+
+.idea-cat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.idea-chev { color: var(--fg4); font-size: 16px; flex-shrink: 0; }
+
+/* ── Composer inline ───────────────────────────────────────────── */
+.idea-composer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 6px 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.12s;
+}
+.idea-composer:focus-within { border-color: var(--accent); }
+.idea-composer input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--fg1);
+  font-size: 13px;
+  padding: 8px 0;
+  outline: none;
+  font-family: inherit;
+}
+.idea-composer input::placeholder { color: var(--fg4); }
+.idea-composer-add {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.1s;
+  flex-shrink: 0;
+}
+.idea-composer-add:disabled { opacity: 0.35; cursor: not-allowed; }
+.idea-composer-add:not(:disabled):active { transform: scale(0.92); }
+
+/* ── Estado vacío ──────────────────────────────────────────────── */
+.ideas-empty {
+  padding: 18px 6px 12px;
+  text-align: center;
+}
+.ideas-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg2);
+  margin-bottom: 4px;
+}
+.ideas-empty-desc {
+  font-size: 11px;
+  color: var(--fg3);
+  line-height: 1.4;
+  max-width: 240px;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.ideas-overflow {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  font-size: 11px;
+  color: var(--fg3);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ideas-overflow:hover { background: var(--subtle); color: var(--fg1); }
+
+/* ── Pantalla completa de Ideas ────────────────────────────────── */
+.ideas-screen {
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+.ideas-screen-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px 8px;
+}
+.ideas-screen-head h2 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+.ideas-screen-composer { padding: 4px 18px; }
+
+.ideas-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 12px 18px 4px;
+  scrollbar-width: none;
+}
+.ideas-filters::-webkit-scrollbar { display: none; }
+.ideas-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--subtle);
+  color: var(--fg2);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.ideas-filter.active {
+  background: var(--bg);
+  border-color: var(--accent);
+  color: var(--fg1);
+}
+
+.ideas-screen-list { padding: 4px 22px; display: flex; flex-direction: column; gap: 6px; }
+.idea-row-drag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+}
+.idea-row-drag.dragging { opacity: 0.5; }
+.idea-row-drag.drag-over { border-color: var(--accent); }
+
+.ideas-screen-foot {
+  padding: 18px 22px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--fg4);
+}
+
+/* ── Modal de acciones sobre una idea ──────────────────────────── */
+.idea-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: idea-fade 0.16s ease-out;
+}
+@keyframes idea-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.idea-modal {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg);
+  border-radius: 16px 16px 0 0;
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+  animation: idea-slide-up 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes idea-slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.idea-modal-close {
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--subtle);
+  color: var(--fg2);
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.idea-modal-head { padding: 4px 8px 8px; }
+.idea-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg1);
+  text-wrap: pretty;
+}
+.idea-modal-sub {
+  font-size: 12px;
+  color: var(--fg3);
+  margin-top: 4px;
+}
+
+.idea-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  font: inherit;
+  color: inherit;
+}
+.idea-action:hover { background: var(--subtle); }
+.idea-action.danger { color: oklch(0.6 0.18 25); }
+.idea-action-glyph {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.idea-action-glyph.promote {
+  background: oklch(0.30 0.10 305);
+  color: oklch(0.85 0.13 305);
+}
+.idea-action.danger .idea-action-glyph {
+  background: oklch(0.30 0.12 25);
+  color: oklch(0.85 0.15 25);
+}
+.idea-action-body { flex: 1; min-width: 0; }
+.idea-action-name { display: block; font-size: 13px; font-weight: 600; }
+.idea-action-desc { display: block; font-size: 11px; color: var(--fg3); margin-top: 2px; }
+.idea-action-divider {
+  font-size: 10px; font-weight: 600; color: var(--fg4);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 8px 4px 2px;
+}
+
+/* Modo edit */
+.idea-edit-input {
+  width: 100%;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--fg1);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+.idea-edit-input:focus { border-color: var(--accent); }
+.idea-edit-label {
+  font-size: 11px; font-weight: 600; color: var(--fg3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin: 8px 0;
+}
+.idea-cat-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.idea-cat-pick {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--subtle);
+  color: var(--fg2);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.idea-cat-pick.active {
+  background: var(--bg);
+  border-color: var(--accent);
+  color: var(--fg1);
+}
+
+/* Modo link */
+.idea-link-search { padding: 0 4px; }
+.idea-link-search input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg1);
+  font-size: 14px;
+  outline: none;
+}
+.idea-link-results {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+.idea-link-result {
+  display: flex;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.idea-link-result:hover { background: var(--subtle); }
+.idea-link-result-name { font-size: 13px; font-weight: 600; color: var(--fg1); }
+.idea-link-result-meta { font-size: 11px; color: var(--fg3); margin-top: 2px; }
+.ok-tick { margin-left: 6px; color: var(--accent); font-size: 11px; }
+
+/* ── Layout responsive ─────────────────────────────────────────── */
+/* En desktop, el widget se sitúa como columna derecha de Home.
+   Asumiendo que tu Home usa un grid de 2 columnas para "main" +
+   "sidebar", aplica esto al sidebar. Si no, envuelve el widget en
+   un wrapper con la misma media query. */
+@media (min-width: 900px) {
+  .home-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .ideas-card {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+}
+
+/* En mobile, el widget se apila bajo "Acciones rápidas".
+   No hace falta CSS extra: el flujo normal lo cubre. */

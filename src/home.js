@@ -5,6 +5,7 @@ import { mostrarError, mostrarExito } from './toast.js'
 import { escapeHtml } from './utils.js'
 import { cambiarTab } from './init.js'
 import { cargarSessions, renderSessionsBlock } from './sessions.js'
+import { loadIdeas, mountIdeas } from './ideas.js'
 
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(s => [s.value, s.label]))
 const HERO_PRIORITY = ['pintando', 'imprimada', 'montada', 'comprada']
@@ -105,6 +106,7 @@ export async function cargarHome() {
   }
 
   await cargarSessions()
+  await loadIdeas()
 
   state.proyectosActivos = []
 
@@ -142,17 +144,23 @@ export async function cargarHome() {
   const minisSinImprimar = minis.filter(m => m.status === 'montada').length
 
   container.innerHTML = `
-    ${renderHero(hero, minis)}
-    ${renderCarousel(queue)}
-    ${renderPlanSemana(minisSinImprimar, pinturasSinStock)}
-    ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
-    ${renderByGame(byGame)}
-    ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
-    ${renderSchemes(minis)}
-    ${renderSessionsBlock()}
+    <div class="home-layout">
+      <div class="home-main">
+        ${renderHero(hero, minis)}
+        ${renderCarousel(queue)}
+        ${renderAccionesRapidas(minisSinImprimar, pinturasSinStock)}
+        ${renderSummary({ totalModels, paintedModels, pctGlobal, totalPts })}
+        ${renderByGame(byGame)}
+        ${renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusModels, totalModels })}
+        ${renderSchemes(minis)}
+        ${renderSessionsBlock()}
+      </div>
+      <aside id="home-ideas-sidebar"></aside>
+    </div>
   `
 
   bindHomeEvents(container)
+  mountIdeas(document.getElementById('home-ideas-sidebar'))
 }
 
 // ---------------------------------------------------------------------------
@@ -229,14 +237,11 @@ function renderCarousel(minis) {
 }
 
 // ---------------------------------------------------------------------------
-// Render: plan de la semana
+// Render: acciones rápidas
 // ---------------------------------------------------------------------------
 
-function renderPlanSemana(minisSinImprimar, pinturasSinStock) {
+function renderAccionesRapidas(minisSinImprimar, pinturasSinStock) {
   return `
-    <div class="home-section-h">
-      <span class="home-section-title">Plan de la semana</span>
-    </div>
     <div class="home-plan">
       <button class="home-plan-row" data-action="log-session">
         <div class="home-plan-icon ok">▶</div>

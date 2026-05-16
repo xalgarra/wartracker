@@ -7,20 +7,15 @@
 ==================================================================== */
 
 #vista-home { padding: 0; }
-.home-container { padding: 14px 14px 28px; display: flex; flex-direction: column; gap: 12px; }
+.home-container { padding: 14px 14px 28px; }
+.home-main { display: flex; flex-direction: column; gap: 12px; }
 
 @media (min-width: 900px) {
   .home-container {
     padding: 20px 24px 32px;
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 14px;
     max-width: 1080px;
     margin: 0 auto;
-    align-items: start;
   }
-  .home-hero,
-  .home-summary { grid-column: 1 / -1; }
 }
 
 /* ── Hero card (mini en proceso) ─────────────────────────────── */

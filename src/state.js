@@ -22,6 +22,8 @@ export const state = {
   minisFull: null,
   proyectosActivos: null,
   miniPaints: {},  // { [miniId]: Paint[] }
+  ideas: [],
+  ideasFilter: 'todas',
 }
 
 export async function loadMiniPaints(miniId) {
