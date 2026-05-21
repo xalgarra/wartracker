@@ -277,6 +277,7 @@ async function guardarMiniRapido({ abrirDetalle = false } = {}) {
   const { data, error } = await db.from('minis').insert({
     name:     u.name,
     factions: [u.faction],
+    game:     u.game_slug,
     status:   w ? 'wishlist' : qaState.status,
     qty:      w ? 1 : qaState.qty,
   }).select('id').single()
