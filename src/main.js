@@ -11,7 +11,7 @@ import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColor
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { abrirModalReceta, cerrarModalReceta, guardarReceta, eliminarReceta, onRecipePhotoSelected } from './recipe-modal.js'
 import { cerrarModalSession, guardarSession } from './session-modal.js'
-import { exportarJSON } from './export.js'
+import { exportarJSON, exportarPinturasStock } from './export.js'
 import { abrirArmyImporter, cerrarArmyImporter, onArmyGameChange, onArmyFactionChange, guardarEjercito } from './army-importer.js'
 import { toggleViewMode } from './minis.js'
 import { onGalleryPhotoSelected } from './mini-modal.js'
@@ -109,6 +109,7 @@ document.getElementById('catalog-results').addEventListener('click', e => {
 
 // Auth
 document.getElementById('btn-export')?.addEventListener('click', exportarJSON)
+document.getElementById('btn-export-paints')?.addEventListener('click', exportarPinturasStock)
 document.getElementById('btn-login')?.addEventListener('click', login)
 document.getElementById('btn-logout')?.addEventListener('click', logout)
 document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)

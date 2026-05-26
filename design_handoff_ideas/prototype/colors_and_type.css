@@ -1,0 +1,204 @@
+/* ====================================================================
+   WarTracker · colors_and_type.css
+   Master design tokens — light ("Minimal Refinado") + dark ("Oscuro
+   Atmosférico"). Both modes ship together in the live app: light is
+   the safe / refined surface, dark is a warm-amber operations-terminal.
+   Webfonts: Google Fonts → Inter, Space Grotesk, JetBrains Mono.
+   ==================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
+
+/* ── LIGHT (default) ─────────────────────────────────────────────── */
+:root {
+  /* Surface — warm off-white paper */
+  --bg:            #fafaf8;
+  --surface:       #ffffff;
+  --surface-modal: #ffffff;
+  --subtle:        #f3f2ee;
+
+  /* Foreground (semantic) */
+  --fg1:   #1a1a1c;   /* primary text */
+  --fg2:   #555550;   /* body text 2 */
+  --fg3:   #888884;   /* muted */
+  --fg4:   #aaa8a3;   /* most-muted, eyebrows */
+  --text:  var(--fg1);
+  --text-2: var(--fg2);
+  --text-3: var(--fg3);
+  --text-4: var(--fg4);
+
+  /* Borders */
+  --border:   #ececea;
+  --border-2: #d8d8d4;
+
+  /* Accent — light mode is restrained (near-black accent),
+     amber survives only in the logo dot. */
+  --accent:       #1a1a1c;
+  --accent-amber: oklch(0.55 0.14 30);   /* logo glyph */
+  --success:      oklch(0.5  0.15 145);
+  --danger:       #c0392b;
+
+  /* ─── Status palette (mini lifecycle) ─── */
+  --s-comprada-bg:    #f3f2ee;                --s-comprada-text:  #6a6a64;
+  --s-montada-bg:     oklch(0.95 0.04 60);    --s-montada-text:   oklch(0.45 0.10 60);
+  --s-imprimada-bg:   oklch(0.95 0.03 240);   --s-imprimada-text: oklch(0.45 0.10 240);
+  --s-pintando-bg:    oklch(0.94 0.04 305);   --s-pintando-text:  oklch(0.45 0.12 305);
+  --s-pintada-bg:     oklch(0.94 0.05 145);   --s-pintada-text:   oklch(0.40 0.13 145);
+  --s-wishlist-bg:    oklch(0.95 0.03 270);   --s-wishlist-text:  oklch(0.40 0.10 270);
+
+  /* ─── Game pills ─── */
+  --g-40k-bg:  oklch(0.95 0.03 30);    --g-40k-text: oklch(0.40 0.10 30);
+  --g-aos-bg:  oklch(0.95 0.03 195);   --g-aos-text: oklch(0.40 0.08 195);
+
+  /* ─── Typography stacks ─── */
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --font-display: var(--font-body);   /* light uses body font for display */
+
+  /* ─── Radii / cards / inputs ─── */
+  --card-bg:       #ffffff;
+  --card-radius:   12px;
+  --card-padding:  12px;
+  --tag-radius:    4px;
+  --input-radius:  10px;
+  --modal-radius:  18px;
+
+  /* Buttons */
+  --btn-primary-bg:    #1a1a1c;
+  --btn-primary-color: #ffffff;
+  --btn-cancel-bg:     #f3f2ee;
+  --btn-cancel-color:  #1a1a1c;
+  --btn-danger-bg:     #fee2e2;
+  --btn-danger-color:  #991b1b;
+
+  /* Spacing scale (pseudo — used implicitly in the codebase) */
+  --space-1:  4px;
+  --space-2:  6px;
+  --space-3:  8px;
+  --space-4:  12px;
+  --space-5:  16px;
+  --space-6:  20px;
+  --space-7:  24px;
+  --space-8:  32px;
+
+  /* Shadows — light is flat. The FAB is the only thing that lifts. */
+  --shadow-fab:    0 4px 14px rgba(0,0,0,0.25);
+  --shadow-modal:  0 12px 32px rgba(0,0,0,0.18);
+  --shadow-popup:  0 8px 24px rgba(0,0,0,0.18);
+}
+
+/* ── DARK ("Oscuro Atmosférico") ─────────────────────────────────── */
+body.dark, .theme-dark {
+  /* Warm near-black surfaces */
+  --bg:            #14110d;
+  --surface:       #1a160f;
+  --surface-modal: #1a160f;
+  --subtle:        #2a251c;
+
+  --fg1:   #e8e4dc;
+  --fg2:   #c8bfa8;
+  --fg3:   #a09684;
+  --fg4:   #7a7060;
+
+  --border:   #2a251c;
+  --border-2: #4a4030;
+
+  /* Amber accent + warm green success */
+  --accent:       oklch(0.80 0.17 65);   /* the ember */
+  --accent-amber: oklch(0.80 0.17 65);
+  --success:      oklch(0.65 0.16 145);
+
+  --s-comprada-bg:    #2a251c;               --s-comprada-text:  #a09684;
+  --s-montada-bg:     oklch(0.32 0.08 60);   --s-montada-text:   oklch(0.82 0.13 60);
+  --s-imprimada-bg:   oklch(0.30 0.08 240);  --s-imprimada-text: oklch(0.82 0.12 240);
+  --s-pintando-bg:    oklch(0.32 0.10 305);  --s-pintando-text:  oklch(0.84 0.13 305);
+  --s-pintada-bg:     oklch(0.42 0.15 145);  --s-pintada-text:   oklch(0.96 0.08 145);
+  --s-wishlist-bg:    oklch(0.28 0.06 270);  --s-wishlist-text:  oklch(0.82 0.10 270);
+
+  --g-40k-bg:  oklch(0.28 0.08 30);    --g-40k-text: oklch(0.82 0.14 30);
+  --g-aos-bg:  oklch(0.26 0.06 195);   --g-aos-text: oklch(0.82 0.12 195);
+
+  /* Dark swaps to Space Grotesk for body, JetBrains Mono everywhere
+     a "data" / "operational" feel is needed (eyebrows, captions, badges) */
+  --font-body:    'Space Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+
+  /* Hard-edged dark surfaces */
+  --card-bg:       transparent;
+  --card-radius:   0;
+  --tag-radius:    999px;     /* pill-shape in dark */
+  --input-radius:  3px;
+  --modal-radius:  4px;
+
+  --btn-primary-bg:    oklch(0.80 0.17 65);
+  --btn-primary-color: #14110d;
+  --btn-cancel-bg:     transparent;
+  --btn-cancel-color:  #a09684;
+  --btn-danger-bg:     #2e0f0f;
+  --btn-danger-color:  #fca5a5;
+
+  --shadow-fab:    0 0 20px oklch(0.80 0.17 65 / 0.4), 0 4px 14px rgba(0,0,0,0.25);
+  --shadow-modal:  0 12px 32px rgba(0,0,0,0.55);
+  --shadow-popup:  0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* ====================================================================
+   SEMANTIC TYPE — utility classes you can drop on any element
+   The selectors look at body class to swap between the two voices.
+   ==================================================================== */
+
+.t-display, h1.t-h1 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--fg1);
+}
+body:not(.dark) .t-display { font-weight: 700; letter-spacing: -0.02em; }
+
+.t-h1 { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--fg1); line-height: 1.15; }
+body.dark .t-h1 { font-weight: 500; letter-spacing: -0.02em; }
+
+.t-h2 { font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg1); }
+body.dark .t-h2 { font-weight: 500; letter-spacing: -0.005em; }
+
+.t-body  { font-family: var(--font-body); font-size: 13px; font-weight: 400; line-height: 1.5; color: var(--fg1); }
+.t-body-2 { font-family: var(--font-body); font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--fg2); }
+.t-caption { font-family: var(--font-body); font-size: 11px; color: var(--fg3); }
+
+.t-mono { font-family: var(--font-mono); font-size: 11px; color: var(--fg3); letter-spacing: 0; }
+
+.t-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--fg4);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.t-eyebrow--accent { color: var(--accent-amber); }
+
+.t-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--fg3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+body.dark .t-label::before { content: '// '; text-transform: none; }
+
+.t-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg3);
+}
+
+.t-pts {
+  /* Numeric value, like "210 pts" or "2.8k" */
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fg1);
+}
+body:not(.dark) .t-pts { font-family: var(--font-body); font-weight: 600; }
