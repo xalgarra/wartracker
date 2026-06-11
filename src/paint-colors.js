@@ -362,6 +362,7 @@ import { SCALE75 } from './paint-catalog-scale75.js'
 import { PROACRYL } from './paint-catalog-proacryl.js'
 import { FORMULA_P3 } from './paint-catalog-p3.js'
 import { WARGAMES_FOUNDRY } from './paint-catalog-foundry.js'
+import { GREEN_STUFF_WORLD } from './paint-catalog-gsw.js'
 
 export const BRAND_CATALOGS = {
   'Citadel': CITADEL_CATALOG,
@@ -373,6 +374,7 @@ export const BRAND_CATALOGS = {
   'Pro Acryl': PROACRYL,
   'Formula P3': FORMULA_P3,
   'Wargames Foundry': WARGAMES_FOUNDRY,
+  'Green Stuff World': GREEN_STUFF_WORLD,
 }
 
 // Lookup rápido por nombre para el modal
