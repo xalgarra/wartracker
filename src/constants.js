@@ -28,5 +28,6 @@ export const UNIT_TYPES = [
 
 export const PAINT_BRANDS = [
   'Citadel', 'Vallejo', 'Army Painter', 'Scale75',
-  'Reaper', 'AK Interactive', 'Warcolours', 'Green Stuff World',
+  'Reaper', 'AK Interactive', 'Pro Acryl', 'Formula P3',
+  'Wargames Foundry', 'Warcolours', 'Green Stuff World',
 ]
