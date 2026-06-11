@@ -203,8 +203,19 @@
         <button class="sort-btn sort-paint-btn" data-sort="color">Color</button>
         <button class="btn-link btn-export-paints" id="btn-export-paints" title="Exportar pinturas en stock">↓ Stock</button>
         <button class="btn-link" id="btn-paint-stats" title="Stats del rack">📊</button>
+        <button class="btn-link" id="btn-paint-wishlist" title="Lista de compra">🛒</button>
+        <label class="btn-link" title="Importar pinturas desde JSON" style="cursor:pointer">⬆ <input type="file" id="input-import-paints" accept=".json" style="display:none"></label>
       </div>
       <div class="paint-list" id="lista-pinturas"></div>
+
+      <!-- Panel lista de compra de pinturas -->
+      <div class="paint-stats-panel" id="paint-wishlist-panel" style="display:none">
+        <div class="paint-stats-panel-header">
+          <span class="paint-stats-panel-title">Lista de compra</span>
+          <button class="paint-stats-panel-close" id="btn-paint-wishlist-close">✕</button>
+        </div>
+        <div class="paint-stats-panel-body" id="paint-wishlist-body"></div>
+      </div>
 
       <!-- Panel stats del rack -->
       <div class="paint-stats-panel" id="paint-stats-panel" style="display:none">

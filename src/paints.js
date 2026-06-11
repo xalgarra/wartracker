@@ -158,6 +158,70 @@ export function cerrarPaintStats() {
   document.body.style.overflow = ''
 }
 
+export async function abrirPaintWishlist() {
+  document.getElementById('paint-wishlist-panel').style.display = 'flex'
+  document.body.style.overflow = 'hidden'
+  const body = document.getElementById('paint-wishlist-body')
+  body.innerHTML = '<div class="ps-loading">Cargando…</div>'
+  await renderPaintWishlist()
+}
+
+export function cerrarPaintWishlist() {
+  document.getElementById('paint-wishlist-panel').style.display = 'none'
+  document.body.style.overflow = ''
+}
+
+async function renderPaintWishlist() {
+  const body = document.getElementById('paint-wishlist-body')
+
+  // 1. Pinturas sin stock del rack
+  const sinStock = (state.pinturas || []).filter(p => !p.in_stock)
+
+  // 2. Pinturas de recetas que no tienes en absoluto
+  const { data: recipeData } = await db.from('recipes')
+    .select('name, recipe_paints(paint_id, paints(id, name, brand, type, color_hex, in_stock))')
+  const recipes = recipeData || []
+
+  const ownedIds = new Set((state.pinturas || []).map(p => p.id))
+  const needed = new Map() // paint_id → { paint, recipes[] }
+  for (const recipe of recipes) {
+    for (const rp of recipe.recipe_paints || []) {
+      const p = rp.paints
+      if (!p || ownedIds.has(p.id)) continue
+      if (!needed.has(p.id)) needed.set(p.id, { paint: p, recipes: [] })
+      needed.get(p.id).recipes.push(recipe.name)
+    }
+  }
+  const neededList = [...needed.values()]
+
+  const paintRow = (p, meta) => `
+    <div class="pw-row">
+      <div class="paint-swatch ${p.color_hex ? '' : 'paint-swatch-none'}" style="${p.color_hex ? `background:${p.color_hex}` : ''}"></div>
+      <div class="pw-info">
+        <span class="pw-name">${escapeHtml(p.name)}</span>
+        <span class="pw-brand">${escapeHtml(p.brand)} · ${escapeHtml(p.type)}</span>
+        ${meta ? `<span class="pw-meta">${meta}</span>` : ''}
+      </div>
+    </div>`
+
+  const emptyMsg = '<div class="ps-overlaps-empty">Nada aquí de momento.</div>'
+
+  body.innerHTML = `
+    <div class="ps-section">
+      <div class="ps-section-title">Reponer <span class="ps-section-sub">${sinStock.length} sin stock</span></div>
+      ${sinStock.length
+        ? sinStock.map(p => paintRow(p, '')).join('')
+        : emptyMsg}
+    </div>
+    <div class="ps-section">
+      <div class="ps-section-title">Necesitas para recetas <span class="ps-section-sub">${neededList.length} pinturas</span></div>
+      ${neededList.length
+        ? neededList.map(({ paint, recipes }) => paintRow(paint, `En: ${recipes.join(', ')}`)).join('')
+        : emptyMsg}
+    </div>
+  `
+}
+
 function renderPaintStats() {
   const body = document.getElementById('paint-stats-body')
   const paints = state.pinturas
@@ -275,6 +339,35 @@ function renderOverlapsSection(paints) {
         </div>
       `).join('')}
     </div>`
+}
+
+export async function importarPinturas(jsonText) {
+  let paints
+  try { paints = JSON.parse(jsonText) } catch { mostrarError('JSON inválido'); return }
+  if (!Array.isArray(paints) || !paints.length) { mostrarError('Lista vacía'); return }
+
+  const btn = document.getElementById('btn-import-paints')
+  if (btn) btn.disabled = true
+
+  let inserted = 0, skipped = 0, errors = 0
+  for (const p of paints) {
+    const existente = state.pinturas.find(
+      x => x.brand.toLowerCase() === p.brand.toLowerCase() &&
+           x.name.toLowerCase()  === p.name.toLowerCase()
+    )
+    if (existente) { skipped++; continue }
+    const { error } = await db.from('paints').insert({
+      brand: p.brand, name: p.name, type: p.type || 'base',
+      color_hex: p.color_hex || null, in_stock: p.in_stock !== false,
+      quantity: p.quantity || 1
+    })
+    if (error) errors++
+    else inserted++
+  }
+
+  if (btn) btn.disabled = false
+  mostrarError(`Importadas: ${inserted} · Ya existían: ${skipped}${errors ? ` · Errores: ${errors}` : ''}`)
+  await cargarPinturas()
 }
 
 export async function incrementarPintura(id) {

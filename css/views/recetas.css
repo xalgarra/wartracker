@@ -69,6 +69,29 @@
 .recipe-card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .recipe-card-meta { font-size: 11px; font-family: var(--font-mono); color: var(--text-3); margin-top: 3px; }
 .recipe-card-swatches { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.recipe-card-paints { display: flex; gap: 3px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+.recipe-card-missing { font-size: 10px; color: oklch(0.6 0.15 30); font-weight: 600; margin-left: 4px; }
+.paint-swatch--missing { opacity: 0.45; outline: 2px solid oklch(0.65 0.15 30); outline-offset: 1px; }
+
+/* Recipe modal — paint list con sustitutos */
+.proj-modal-row--missing { background: oklch(0.98 0.02 30); }
+body.dark .proj-modal-row--missing { background: oklch(0.18 0.02 30); }
+.recipe-paint-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.recipe-paint-missing-label { color: oklch(0.6 0.15 30); font-weight: 600; }
+.recipe-paint-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  padding: 3px 6px;
+  background: var(--surface);
+  border-radius: 5px;
+  border: 1px solid var(--border);
+}
+.paint-swatch--xs { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+.recipe-paint-sub-text { font-size: 11px; color: var(--text-2); }
+.recipe-paint-sub-brand { color: var(--text-3); }
+.recipe-paint-sub-pct { font-weight: 700; color: oklch(0.55 0.15 145); }
 .recipe-empty {
   font-family: var(--font-mono);
   font-size: 12px;

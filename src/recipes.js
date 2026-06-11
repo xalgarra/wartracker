@@ -21,7 +21,7 @@ export async function cargarRecetas() {
     .select(`
       id, name, pdf_url,
       recipe_photos(id, url, position),
-      recipe_paints(id, paint_id, paints(id, name, color_hex)),
+      recipe_paints(id, paint_id, paints(id, name, brand, type, color_hex, in_stock)),
       recipe_steps(id, position, technique, instruction),
       projects(id, name)
     `)
@@ -154,10 +154,11 @@ function renderRecipeCard(recipe) {
     ? `<img class="recipe-card-thumb" src="${thumb.url}" alt="" loading="lazy">`
     : `<div class="recipe-card-thumb recipe-card-thumb--empty"><span>▸</span></div>`
 
+  const missingCount = paints.filter(rp => rp.paints && !rp.paints.in_stock).length
   const paintsHtml = paints.slice(0, 10).map(rp =>
-    `<div class="paint-swatch ${rp.paints?.color_hex ? '' : 'paint-swatch-none'}"
+    `<div class="paint-swatch ${rp.paints?.color_hex ? '' : 'paint-swatch-none'} ${rp.paints && !rp.paints.in_stock ? 'paint-swatch--missing' : ''}"
           style="${rp.paints?.color_hex ? `background:${rp.paints.color_hex}` : ''}"
-          title="${escapeHtml(rp.paints?.name || '')}"></div>`
+          title="${escapeHtml(rp.paints?.name || '')}${rp.paints && !rp.paints.in_stock ? ' (sin stock)' : ''}"></div>`
   ).join('')
 
   return `
@@ -166,7 +167,7 @@ function renderRecipeCard(recipe) {
       <div class="recipe-card-body">
         <div class="recipe-card-name">${escapeHtml(recipe.name)}</div>
         <div class="recipe-card-meta">${steps.length} paso${steps.length !== 1 ? 's' : ''}</div>
-        ${paintsHtml ? `<div class="recipe-card-paints">${paintsHtml}</div>` : ''}
+        ${paintsHtml ? `<div class="recipe-card-paints">${paintsHtml}${missingCount ? `<span class="recipe-card-missing">${missingCount} sin stock</span>` : ''}</div>` : ''}
         ${projects.length ? `<div class="recipe-card-used">// ${projects.length} proyecto${projects.length !== 1 ? 's' : ''}</div>` : ''}
       </div>
     </div>

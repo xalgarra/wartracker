@@ -3,6 +3,7 @@ import { state } from './state.js'
 import { mostrarError } from './toast.js'
 import { escapeHtml, compressImage, storagePathFrom } from './utils.js'
 import { cargarRecetas, getRecipes } from './recipes.js'
+import { nearestPaints } from './color-distance.js'
 
 let _recipeId      = null
 let _photos        = []         // { id, url, position } — from DB
@@ -197,16 +198,30 @@ function _renderPaints() {
     return
   }
 
-  list.innerHTML = all.map(item => `
-    <div class="proj-modal-row">
-      <div class="paint-swatch ${item.paint?.color_hex ? '' : 'paint-swatch-none'}"
-           style="${item.paint?.color_hex ? `background:${item.paint.color_hex}` : ''}"></div>
-      <span class="proj-modal-row-name">${escapeHtml(item.paint?.name || '')}</span>
-      <span class="proj-modal-row-brand">${escapeHtml(item.paint?.brand || '')}</span>
+  list.innerHTML = all.map(item => {
+    const p = item.paint
+    const sinStock = p && !p.in_stock
+    const sub = sinStock && p.color_hex
+      ? nearestPaints(p.color_hex, state.pinturas || [], { limit: 1, onlyInStock: true, excludeId: p.id })[0]
+      : null
+    return `
+    <div class="proj-modal-row ${sinStock ? 'proj-modal-row--missing' : ''}">
+      <div class="paint-swatch ${p?.color_hex ? '' : 'paint-swatch-none'}"
+           style="${p?.color_hex ? `background:${p.color_hex}` : ''}"></div>
+      <div class="recipe-paint-info">
+        <span class="proj-modal-row-name">${escapeHtml(p?.name || '')}</span>
+        <span class="proj-modal-row-brand">${escapeHtml(p?.brand || '')}${sinStock ? ' · <span class="recipe-paint-missing-label">sin stock</span>' : ''}</span>
+        ${sub ? `
+          <div class="recipe-paint-sub">
+            <div class="paint-swatch paint-swatch--xs" style="background:${sub.paint.color_hex}"></div>
+            <span class="recipe-paint-sub-text">→ ${escapeHtml(sub.paint.name)} <span class="recipe-paint-sub-brand">${escapeHtml(sub.paint.brand)}</span> <span class="recipe-paint-sub-pct">${sub.similarity}%</span></span>
+          </div>` : ''}
+      </div>
       <button class="proj-modal-remove"
               data-action="${item.isExisting ? 'del-recipe-paint' : 'del-pending-paint'}"
               ${item.isExisting ? `data-rp-id="${item.id}"` : `data-idx="${item.idx}"`}>✕</button>
-    </div>`).join('')
+    </div>`
+  }).join('')
 }
 
 function _onPaintSearch(query) {

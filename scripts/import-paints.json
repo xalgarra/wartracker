@@ -1,0 +1,1594 @@
+[
+  {
+    "brand": "Citadel",
+    "name": "Abaddon Black",
+    "type": "base",
+    "color_hex": "#231f20",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Administratum Grey",
+    "type": "layer",
+    "color_hex": "#949b95",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Aethermatic Blue",
+    "type": "contrast",
+    "color_hex": "#73c2c6",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Agrax Earthshade",
+    "type": "shade",
+    "color_hex": "#63452a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Agrellan Earth",
+    "type": "texture",
+    "color_hex": "#b08040",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ahriman Blue",
+    "type": "layer",
+    "color_hex": "#1f8c9c",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Apothecary White",
+    "type": "contrast",
+    "color_hex": "#d3e0e6",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ardcoat",
+    "type": "technical",
+    "color_hex": "#f0f0f0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Astrogranite",
+    "type": "texture",
+    "color_hex": "#6a7070",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Athonian Camoshade",
+    "type": "shade",
+    "color_hex": "#6b6b2e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Averland Sunset",
+    "type": "base",
+    "color_hex": "#fdb825",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Baharroth Blue",
+    "type": "layer",
+    "color_hex": "#58c1cd",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Balthasar Gold",
+    "type": "base",
+    "color_hex": "#a47552",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Barak-Nar Burgundy",
+    "type": "base",
+    "color_hex": "#451636",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Blood Angels Red",
+    "type": "contrast",
+    "color_hex": "#c91b1c",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Blood for the Blood God",
+    "type": "technical",
+    "color_hex": "#6b0002",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Bugman's Glow",
+    "type": "base",
+    "color_hex": "#845045",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Caledor Sky",
+    "type": "base",
+    "color_hex": "#396e9e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Carroburg Crimson",
+    "type": "shade",
+    "color_hex": "#a8324d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Celestra Grey",
+    "type": "base",
+    "color_hex": "#90a8a8",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Coelia Greenshade",
+    "type": "shade",
+    "color_hex": "#0d7266",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Contrast Medium",
+    "type": "technical",
+    "color_hex": "#f0f0f0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Corax White",
+    "type": "base",
+    "color_hex": "#f0f0f0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Darkoath Flesh",
+    "type": "contrast",
+    "color_hex": "#c88860",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Dawnstone",
+    "type": "layer",
+    "color_hex": "#70756e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Doomfire Magenta",
+    "type": "contrast",
+    "color_hex": "#b81860",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Dorn Yellow",
+    "type": "layer",
+    "color_hex": "#fff200",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Druchii Violet",
+    "type": "shade",
+    "color_hex": "#6b395f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Emperor's Children",
+    "type": "layer",
+    "color_hex": "#b94278",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Fenrisian Grey",
+    "type": "layer",
+    "color_hex": "#719bb7",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Fire Dragon Bright",
+    "type": "layer",
+    "color_hex": "#f58652",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Frostheart",
+    "type": "contrast",
+    "color_hex": "#9bbfd0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Fuegan Orange",
+    "type": "shade",
+    "color_hex": "#c75b23",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Fulgrim Pink",
+    "type": "layer",
+    "color_hex": "#f4afcd",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Gauss Blaster Green",
+    "type": "layer",
+    "color_hex": "#7fc1a5",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Genestealer Purple",
+    "type": "layer",
+    "color_hex": "#7761ab",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Gorthor Brown",
+    "type": "layer",
+    "color_hex": "#654741",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Guilliman Flesh",
+    "type": "contrast",
+    "color_hex": "#d09078",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Hashut Copper",
+    "type": "layer",
+    "color_hex": "#b77647",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Hexwraith Flame",
+    "type": "contrast",
+    "color_hex": "#57a862",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Incubi Darkness",
+    "type": "base",
+    "color_hex": "#0b474a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ionrach Skin",
+    "type": "base",
+    "color_hex": "#97a384",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ironbreaker",
+    "type": "layer",
+    "color_hex": "#a1a6a9",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ironjawz Yellow",
+    "type": "contrast",
+    "color_hex": "#d8a820",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Iyanden Yellow",
+    "type": "contrast",
+    "color_hex": "#edba1b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Kabalite Green",
+    "type": "layer",
+    "color_hex": "#038c67",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Kantor Blue",
+    "type": "base",
+    "color_hex": "#002151",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Karak Stone",
+    "type": "layer",
+    "color_hex": "#bb9662",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Khorne Red",
+    "type": "base",
+    "color_hex": "#6a0001",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Kislev Flesh",
+    "type": "layer",
+    "color_hex": "#d6a875",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Kroxigor Scales",
+    "type": "contrast",
+    "color_hex": "#287080",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Lahmian Medium",
+    "type": "technical",
+    "color_hex": "#f0f0f0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Leadbelcher",
+    "type": "base",
+    "color_hex": "#888d8f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Liberator Gold",
+    "type": "layer",
+    "color_hex": "#d3b587",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Lugganath Orange",
+    "type": "layer",
+    "color_hex": "#f79e86",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Macragge Blue",
+    "type": "base",
+    "color_hex": "#0d407f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Magmadroth Flame",
+    "type": "contrast",
+    "color_hex": "#d84010",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Martian Ironcrust",
+    "type": "texture",
+    "color_hex": "#6a2018",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Mechanicus Standard Grey",
+    "type": "base",
+    "color_hex": "#3d4b4d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Mephiston Red",
+    "type": "base",
+    "color_hex": "#9a1115",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Mournfang Brown",
+    "type": "base",
+    "color_hex": "#640909",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Necron Compound",
+    "type": "dry",
+    "color_hex": "#a4a9ad",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Nihilakh Oxide",
+    "type": "technical",
+    "color_hex": "#6cb8a0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Nuln Oil",
+    "type": "shade",
+    "color_hex": "#2b2b2b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Pallid Wych Flesh",
+    "type": "layer",
+    "color_hex": "#cdcebe",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Pink Horror",
+    "type": "layer",
+    "color_hex": "#90305d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Rakarth Flesh",
+    "type": "base",
+    "color_hex": "#a29e91",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Reikland Fleshshade",
+    "type": "shade",
+    "color_hex": "#ca6c4d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Retributor Armour",
+    "type": "base",
+    "color_hex": "#c39e81",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Rhinox Hide",
+    "type": "base",
+    "color_hex": "#493435",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Runelord Brass",
+    "type": "layer",
+    "color_hex": "#b6a89a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ryza Rust",
+    "type": "dry",
+    "color_hex": "#e77c30",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Screamer Pink",
+    "type": "base",
+    "color_hex": "#7c1645",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Seraphim Sepia",
+    "type": "shade",
+    "color_hex": "#d7a94b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Sigvald Burgundy",
+    "type": "contrast",
+    "color_hex": "#6b1830",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Skeleton Horde",
+    "type": "contrast",
+    "color_hex": "#c4a85a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Sotek Green",
+    "type": "layer",
+    "color_hex": "#0b6974",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Soulblight Grey",
+    "type": "shade",
+    "color_hex": "#7a7a7a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Steel Legion Drab",
+    "type": "base",
+    "color_hex": "#5e5134",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Stirland Mud",
+    "type": "texture",
+    "color_hex": "#463820",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Stormfiend",
+    "type": "contrast",
+    "color_hex": "#3c5060",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Stormhost Silver",
+    "type": "layer",
+    "color_hex": "#bbc6c9",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Striking Scorpion Green",
+    "type": "contrast",
+    "color_hex": "#40a830",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Sybarite Green",
+    "type": "layer",
+    "color_hex": "#30a56c",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Sycorax Bronze",
+    "type": "layer",
+    "color_hex": "#cbb394",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Targor Rageshade",
+    "type": "shade",
+    "color_hex": "#7d3352",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Temple Guard Blue",
+    "type": "layer",
+    "color_hex": "#339a8d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Tesseract Glow",
+    "type": "technical",
+    "color_hex": "#49b04a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Thousand Sons Blue",
+    "type": "base",
+    "color_hex": "#18abcc",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ulthuan Grey",
+    "type": "layer",
+    "color_hex": "#c7e0d9",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Ultramarine Blue",
+    "type": "contrast",
+    "color_hex": "#203898",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Valhallan Blizzard",
+    "type": "texture",
+    "color_hex": "#dce8f0",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Volupus Pink",
+    "type": "contrast",
+    "color_hex": "#982858",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Waaagh! Flesh",
+    "type": "base",
+    "color_hex": "#1f5429",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Warpstone Glow",
+    "type": "layer",
+    "color_hex": "#1e7331",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Waystone Green",
+    "type": "technical",
+    "color_hex": "#018675",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "White Scar",
+    "type": "layer",
+    "color_hex": "#ffffff",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Citadel",
+    "name": "Wraith Bone",
+    "type": "base",
+    "color_hex": "#dbd1b2",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Pale Flesh",
+    "type": "base",
+    "color_hex": "#c29d7e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Rosy Flesh",
+    "type": "base",
+    "color_hex": "#e5896b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Athena Skin",
+    "type": "base",
+    "color_hex": "#c7635a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Succubus Skin",
+    "type": "base",
+    "color_hex": "#8e454f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Elfic Flesh",
+    "type": "base",
+    "color_hex": "#e4d0b1",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Skin Tone",
+    "type": "base",
+    "color_hex": "#e0a581",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Elf Skin Tone",
+    "type": "base",
+    "color_hex": "#c5885b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Barbarian Skin",
+    "type": "base",
+    "color_hex": "#8d6949",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Toxic Yellow",
+    "type": "base",
+    "color_hex": "#e2d262",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Moon Yellow",
+    "type": "base",
+    "color_hex": "#eeb61e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Sun Yellow",
+    "type": "base",
+    "color_hex": "#faa224",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Gold Yellow",
+    "type": "base",
+    "color_hex": "#d6792d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Sunset Orange",
+    "type": "base",
+    "color_hex": "#f79644",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Orange Fire",
+    "type": "base",
+    "color_hex": "#f1662c",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Burnt Orange",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Scarlet Blood",
+    "type": "base",
+    "color_hex": "#c52b31",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Squid Pink",
+    "type": "base",
+    "color_hex": "#c277a3",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Warlord Purple",
+    "type": "base",
+    "color_hex": "#842859",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Deep Magenta",
+    "type": "base",
+    "color_hex": "#622748",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Evil Red",
+    "type": "base",
+    "color_hex": "#3e1625",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Lucius Lilac",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Alien Purple",
+    "type": "base",
+    "color_hex": "#6a65ae",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Sorcerer Purple",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Night Blue",
+    "type": "base",
+    "color_hex": "#131f30",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Dawn Blue",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Magic Blue",
+    "type": "base",
+    "color_hex": "#0071aa",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Imperial Blue",
+    "type": "base",
+    "color_hex": "#202c4a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Night Blue",
+    "type": "base",
+    "color_hex": "#131f30",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Verdigris",
+    "type": "base",
+    "color_hex": "#78c9aa",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Aquamarine",
+    "type": "base",
+    "color_hex": "#12817b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Turquoise",
+    "type": "base",
+    "color_hex": "#0b6667",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Turquoise",
+    "type": "base",
+    "color_hex": "#0b6667",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Spectral Green",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Vile Green",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Jade Green",
+    "type": "base",
+    "color_hex": "#06795d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Sick Green",
+    "type": "base",
+    "color_hex": "#3f633e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Bile Green",
+    "type": "base",
+    "color_hex": "#cddc33",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Escorpena Green",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Angel Green",
+    "type": "base",
+    "color_hex": "#324f31",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Dark Green",
+    "type": "base",
+    "color_hex": "#153323",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Dead White",
+    "type": "base",
+    "color_hex": "#ffffff",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Stonewall Grey",
+    "type": "base",
+    "color_hex": "#969083",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Charcoal",
+    "type": "base",
+    "color_hex": "#303438",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Black",
+    "type": "base",
+    "color_hex": "#000000",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Gory Red",
+    "type": "base",
+    "color_hex": "#7a1e26",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Parasite Brown",
+    "type": "base",
+    "color_hex": "#9c5e29",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Gorgon Brown",
+    "type": "base",
+    "color_hex": "#552e26",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Vallejo",
+    "name": "Charred Brown",
+    "type": "base",
+    "color_hex": "#3c2726",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Emerald Metallic Green",
+    "type": "base",
+    "color_hex": "#22763a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Burnt Tin",
+    "type": "base",
+    "color_hex": "#311b12",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Pearl",
+    "type": "base",
+    "color_hex": "#f6f2d9",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Astral Beryllium",
+    "type": "base",
+    "color_hex": "#7d9f8f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Dirty Red",
+    "type": "base",
+    "color_hex": "#7f1b10",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Tenebrous Grey",
+    "type": "base",
+    "color_hex": "#2f2c21",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Fluorescent Orange",
+    "type": "base",
+    "color_hex": "#ea571f",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Dirty Yellow",
+    "type": "base",
+    "color_hex": "#eea81b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Yellow",
+    "type": "base",
+    "color_hex": "#fab719",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "mahogani",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "frost effect",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "moss deposits",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Black",
+    "type": "base",
+    "color_hex": "#12120c",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "Bronze",
+    "type": "base",
+    "color_hex": "#7d5413",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "AK Interactive",
+    "name": "axidizing agent",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Broodmother Purple",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Alien Purple",
+    "type": "base",
+    "color_hex": "#6255a1",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Coven Purple",
+    "type": "air",
+    "color_hex": "#562e74",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Encarmine Red",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Pure Red",
+    "type": "base",
+    "color_hex": "#c3161e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Archangel Red",
+    "type": "air",
+    "color_hex": "#c3161e",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Magnolia Brown",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Oak Brown",
+    "type": "base",
+    "color_hex": "#3a272b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Cypress Brown",
+    "type": "air",
+    "color_hex": "#623f3a",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Ocean Depths",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Hydra Turquoise",
+    "type": "base",
+    "color_hex": "#209599",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Fantasmal Blue",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Unforgiven Green",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Angel Green",
+    "type": "base",
+    "color_hex": "#1e3e31",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Exile Green",
+    "type": "air",
+    "color_hex": "#1e3e31",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Greedy Gold",
+    "type": "base",
+    "color_hex": "#b87d23",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Gemstone Red",
+    "type": "base",
+    "color_hex": "#75070b",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Highlord Blue",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Murder Scene",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Zealot Yellow",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Gauss Green Fluorescent",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Twilight Sky",
+    "type": "air",
+    "color_hex": "#303f78",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Plasma Coil Glow",
+    "type": "base",
+    "color_hex": "#51cdf1",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Army Painter",
+    "name": "Power Node Glow",
+    "type": "base",
+    "color_hex": "#f484b6",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Rose",
+    "type": "base",
+    "color_hex": "#f470a1",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Fluorescent turquose",
+    "type": "base",
+    "color_hex": null,
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Blue",
+    "type": "base",
+    "color_hex": "#5e88ff",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Yellow",
+    "type": "base",
+    "color_hex": "#f8fb48",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Red",
+    "type": "base",
+    "color_hex": "#f03c25",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Orange",
+    "type": "base",
+    "color_hex": "#f96e33",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Orange",
+    "type": "base",
+    "color_hex": "#f96e33",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Lime",
+    "type": "base",
+    "color_hex": "#4eff71",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "White",
+    "type": "base",
+    "color_hex": "#ffffff",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Violet",
+    "type": "base",
+    "color_hex": "#be68e3",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Celestial Azure",
+    "type": "base",
+    "color_hex": "#7cc8d6",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Toxic Purple",
+    "type": "base",
+    "color_hex": "#7a398d",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Cobalt Blue",
+    "type": "base",
+    "color_hex": "#4476d7",
+    "in_stock": true,
+    "quantity": 1
+  },
+  {
+    "brand": "Green Stuff World",
+    "name": "Storm Surge Green",
+    "type": "base",
+    "color_hex": "#61a694",
+    "in_stock": true,
+    "quantity": 1
+  }
+]
