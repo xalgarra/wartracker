@@ -164,14 +164,7 @@ export async function eliminarPintura() {
 function renderEquivalents(hex, brand) {
   const container = document.getElementById('paint-equivalents')
 
-  const userBrands = new Set(state.pinturas.map(p => p.brand))
-  userBrands.delete(brand)
-  if (!userBrands.size) { container.style.display = 'none'; return }
-
-  const filteredCatalogs = Object.fromEntries(
-    Object.entries(BRAND_CATALOGS).filter(([b]) => userBrands.has(b))
-  )
-  const results = nearestCatalogPaints(hex, filteredCatalogs, brand, 20)
+  const results = nearestCatalogPaints(hex, BRAND_CATALOGS, brand, 20)
   if (!results.length) { container.style.display = 'none'; return }
 
   const enriched = results.map(r => {
