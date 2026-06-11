@@ -12,31 +12,35 @@ const STATUS_ORDER_ARR = STATUSES.map(s => s.value)
 let currentMini = null
 
 export async function abrirDetalleMini(id) {
-  const vista = document.getElementById('vista-mini-detail')
-  if (!vista) return
+  try {
+    const vista = document.getElementById('vista-mini-detail')
+    if (!vista) return
 
-  state._detalleTabOrigen = state.tabActual
+    state._detalleTabOrigen = state.tabActual
 
-  let mini = (state.minisFull || []).find(m => m.id === id)
-    || (state.minisActuales || []).find(m => m.id === id)
+    let mini = (state.minisFull || []).find(m => m.id === id)
+      || (state.minisActuales || []).find(m => m.id === id)
 
-  if (!mini) {
-    const { data, error } = await db
-      .from('minis')
-      .select('id, name, factions, status, qty, models, photo_url, notes, paint_progress')
-      .eq('id', id)
-      .single()
-    if (error || !data) { mostrarError('Mini no encontrada'); return }
-    mini = data
+    if (!mini) {
+      const { data, error } = await db
+        .from('minis')
+        .select('id, name, factions, status, qty, models, photo_url, notes, paint_progress')
+        .eq('id', id)
+        .single()
+      if (error || !data) { mostrarError('Mini no encontrada'); return }
+      mini = data
+    }
+
+    currentMini = { ...mini }
+    renderDetalle()
+    bindDetalleIfNeeded()
+    loadMiniPaints(id).then(() => renderPaintsSection(id)).catch(() => {
+      const el = document.getElementById('md-paints-content')
+      if (el) el.innerHTML = '<span class="md-paints-empty">No se pudieron cargar las pinturas</span>'
+    })
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
   }
-
-  currentMini = { ...mini }
-  renderDetalle()
-  bindDetalleIfNeeded()
-  loadMiniPaints(id).then(() => renderPaintsSection(id)).catch(() => {
-    const el = document.getElementById('md-paints-content')
-    if (el) el.innerHTML = '<span class="md-paints-empty">No se pudieron cargar las pinturas</span>'
-  })
 }
 
 export function cerrarDetalleMini() {

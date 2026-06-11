@@ -17,6 +17,13 @@
 
   --accent:  #1a1a1c;
   --success: oklch(0.5 0.15 145);
+  --error:   #c0392b;
+
+  /* Aliases usados por vistas (pareja, recetas, sessions, lists, home) */
+  --border-1:     var(--border);
+  --surface-1:    var(--surface);
+  --surface-2:    var(--subtle);
+  --text-primary: var(--text);
 
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -136,6 +143,13 @@ body.dark {
 
   --accent:  oklch(0.80 0.17 65);
   --success: oklch(0.65 0.16 145);
+  --error:   #e07b6f;
+
+  /* Aliases — redeclarados para que resuelvan contra los tokens dark */
+  --border-1:     var(--border);
+  --surface-1:    var(--surface);
+  --surface-2:    var(--subtle);
+  --text-primary: var(--text);
 
   --font-body: 'Inter', system-ui, sans-serif;
 

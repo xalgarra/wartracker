@@ -96,7 +96,7 @@ body.dark #login-screen button {
 
 body.dark #login-screen button::before { content: '▸ '; }
 
-#error-msg { color: #c55; font-size: 12px; margin-top: 6px; display: none; }
+#error-msg { color: var(--error); font-size: 12px; margin-top: 6px; display: none; }
 
 /* ====================================================================
    APP FRAME

@@ -10,36 +10,41 @@ import { cargarLists, bindListsEvents } from './lists.js'
 import { cargarRecetas } from './recipes.js'
 import { cargarPartner } from './partner.js'
 import { escapeHtml } from './utils.js'
+import { mostrarError } from './toast.js'
 
 export async function inicializar() {
-  const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
-    db.from('games').select('*').order('name'),
-    db.from('factions').select('*').order('name'),
-    db.from('units').select('name, faction, game_slug, points, type')
-  ])
-  state.games = gamesData || []
-  state.factions = factionsData || []
-  state.units = unitsData || []
-  state.unitMap = {}
-  state.typeMap = {}
-  for (const u of state.units) {
-    const key = `${u.name}|${u.faction}|${u.game_slug}`
-    state.unitMap[key] = u.points
-    if (u.type) state.typeMap[key] = u.type
+  try {
+    const [{ data: gamesData }, { data: factionsData }, { data: unitsData }] = await Promise.all([
+      db.from('games').select('*').order('name'),
+      db.from('factions').select('*').order('name'),
+      db.from('units').select('name, faction, game_slug, points, type')
+    ])
+    state.games = gamesData || []
+    state.factions = factionsData || []
+    state.units = unitsData || []
+    state.unitMap = {}
+    state.typeMap = {}
+    for (const u of state.units) {
+      const key = `${u.name}|${u.faction}|${u.game_slug}`
+      state.unitMap[key] = u.points
+      if (u.type) state.typeMap[key] = u.type
+    }
+
+    document.getElementById('game').innerHTML = state.games.map(g =>
+      `<option value="${g.slug}">${g.name}</option>`
+    ).join('')
+
+    document.getElementById('filtro-game').innerHTML =
+      '<option value="">Todos los juegos</option>' +
+      state.games.map(g => `<option value="${g.slug}">${g.name}</option>`).join('')
+
+    actualizarFacciones()
+    await actualizarFiltroFacciones()
+    state.tabActual = 'hoy'
+    await cargarHome()
+  } catch (e) {
+    mostrarError('Error cargando la aplicación: ' + e.message)
   }
-
-  document.getElementById('game').innerHTML = state.games.map(g =>
-    `<option value="${g.slug}">${g.name}</option>`
-  ).join('')
-
-  document.getElementById('filtro-game').innerHTML =
-    '<option value="">Todos los juegos</option>' +
-    state.games.map(g => `<option value="${g.slug}">${g.name}</option>`).join('')
-
-  actualizarFacciones()
-  await actualizarFiltroFacciones()
-  state.tabActual = 'hoy'
-  await cargarHome()
 }
 
 // Qué tab del bottom nav resaltar para cada tab ID

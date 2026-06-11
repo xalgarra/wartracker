@@ -421,6 +421,8 @@ export async function guardarReceta() {
     }
 
     cerrarModalReceta()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
   } finally {
     if (btn) btn.disabled = false
   }

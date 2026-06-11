@@ -13,27 +13,31 @@ let paintBrandFilter = ''
 export function setPaintBrandFilter(brand) { paintBrandFilter = brand; filtrarYRenderPinturas() }
 
 export async function cargarPinturas() {
-  const { data, error } = await db.from('paints').select('*').order('brand').order('name')
-  if (error) { mostrarError('Error al cargar pinturas'); return }
-  state.pinturas = data || []
+  try {
+    const { data, error } = await db.from('paints').select('*').order('brand').order('name')
+    if (error) { mostrarError('Error al cargar pinturas'); return }
+    state.pinturas = data || []
 
-  const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))].sort()
-  const todasLasMarcas = [...new Set([...PAINT_BRANDS, ...marcasUsuario])]
-  document.getElementById('brands-list').innerHTML = todasLasMarcas.map(b => `<option value="${b}">`).join('')
+    const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))].sort()
+    const todasLasMarcas = [...new Set([...PAINT_BRANDS, ...marcasUsuario])]
+    document.getElementById('brands-list').innerHTML = todasLasMarcas.map(b => `<option value="${b}">`).join('')
 
-  const brandSel = document.getElementById('catalog-brand-select')
-  if (brandSel) {
-    const cur = brandSel.value || 'Citadel'
-    brandSel.innerHTML = todasLasMarcas.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
+    const brandSel = document.getElementById('catalog-brand-select')
+    if (brandSel) {
+      const cur = brandSel.value || 'Citadel'
+      brandSel.innerHTML = todasLasMarcas.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
+    }
+
+    const marcaSel = document.getElementById('filtro-paint-marca')
+    if (marcaSel) {
+      const cur = marcaSel.value
+      marcaSel.innerHTML = `<option value="">Todas</option>` + marcasUsuario.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
+    }
+
+    filtrarYRenderPinturas()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
   }
-
-  const marcaSel = document.getElementById('filtro-paint-marca')
-  if (marcaSel) {
-    const cur = marcaSel.value
-    marcaSel.innerHTML = `<option value="">Todas</option>` + marcasUsuario.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
-  }
-
-  filtrarYRenderPinturas()
 }
 
 export function filtrarYRenderPinturas() {
@@ -349,51 +353,64 @@ export async function importarPinturas(jsonText) {
   const btn = document.getElementById('btn-import-paints')
   if (btn) btn.disabled = true
 
-  let inserted = 0, skipped = 0, errors = 0
-  for (const p of paints) {
-    const existente = state.pinturas.find(
-      x => x.brand.toLowerCase() === p.brand.toLowerCase() &&
-           x.name.toLowerCase()  === p.name.toLowerCase()
-    )
-    if (existente) { skipped++; continue }
-    const { error } = await db.from('paints').insert({
-      brand: p.brand, name: p.name, type: p.type || 'base',
-      color_hex: p.color_hex || null, in_stock: p.in_stock !== false,
-      quantity: p.quantity || 1
-    })
-    if (error) errors++
-    else inserted++
-  }
+  try {
+    let inserted = 0, skipped = 0, errors = 0
+    for (const p of paints) {
+      const existente = state.pinturas.find(
+        x => x.brand.toLowerCase() === p.brand.toLowerCase() &&
+             x.name.toLowerCase()  === p.name.toLowerCase()
+      )
+      if (existente) { skipped++; continue }
+      const { error } = await db.from('paints').insert({
+        brand: p.brand, name: p.name, type: p.type || 'base',
+        color_hex: p.color_hex || null, in_stock: p.in_stock !== false,
+        quantity: p.quantity || 1
+      })
+      if (error) errors++
+      else inserted++
+    }
 
-  if (btn) btn.disabled = false
-  mostrarError(`Importadas: ${inserted} · Ya existían: ${skipped}${errors ? ` · Errores: ${errors}` : ''}`)
-  await cargarPinturas()
+    mostrarError(`Importadas: ${inserted} · Ya existían: ${skipped}${errors ? ` · Errores: ${errors}` : ''}`)
+    await cargarPinturas()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
+  } finally {
+    if (btn) btn.disabled = false
+  }
 }
 
 export async function incrementarPintura(id) {
-  const p = state.pinturas.find(x => x.id === Number(id))
-  if (!p) return
-  const { error } = await db.from('paints').update({ quantity: (p.quantity || 1) + 1 }).eq('id', p.id)
-  if (error) { mostrarError('Error: ' + error.message); return }
-  document.getElementById('catalog-search').value = ''
-  document.getElementById('catalog-results').style.display = 'none'
-  await cargarPinturas()
-  document.getElementById('catalog-search').focus()
+  try {
+    const p = state.pinturas.find(x => x.id === Number(id))
+    if (!p) return
+    const { error } = await db.from('paints').update({ quantity: (p.quantity || 1) + 1 }).eq('id', p.id)
+    if (error) { mostrarError('Error: ' + error.message); return }
+    document.getElementById('catalog-search').value = ''
+    document.getElementById('catalog-results').style.display = 'none'
+    await cargarPinturas()
+    document.getElementById('catalog-search').focus()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
+  }
 }
 
 export async function quickAddPintura(brand, name, type, hex) {
-  const existente = state.pinturas.find(p => p.brand === brand && p.name.toLowerCase() === name.toLowerCase() && p.type === type)
-  if (existente) {
-    const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
-    if (error) { mostrarError('Error: ' + error.message); return }
-  } else {
-    const payload = { brand, name, type, in_stock: true, quantity: 1 }
-    if (hex) payload.color_hex = hex
-    const { error } = await db.from('paints').insert(payload)
-    if (error) { mostrarError('Error: ' + error.message); return }
+  try {
+    const existente = state.pinturas.find(p => p.brand === brand && p.name.toLowerCase() === name.toLowerCase() && p.type === type)
+    if (existente) {
+      const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
+      if (error) { mostrarError('Error: ' + error.message); return }
+    } else {
+      const payload = { brand, name, type, in_stock: true, quantity: 1 }
+      if (hex) payload.color_hex = hex
+      const { error } = await db.from('paints').insert(payload)
+      if (error) { mostrarError('Error: ' + error.message); return }
+    }
+    document.getElementById('catalog-search').value = ''
+    document.getElementById('catalog-results').style.display = 'none'
+    await cargarPinturas()
+    document.getElementById('catalog-search').focus()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
   }
-  document.getElementById('catalog-search').value = ''
-  document.getElementById('catalog-results').style.display = 'none'
-  await cargarPinturas()
-  document.getElementById('catalog-search').focus()
 }

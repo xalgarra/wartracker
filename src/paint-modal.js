@@ -133,32 +133,40 @@ export async function guardarPintura() {
     quantity: parseInt(document.getElementById('paint-qty').value) || 1
   }
 
-  let error
-  if (state.paintEnEdicion) {
-    ;({ error } = await db.from('paints').update(payload).eq('id', state.paintEnEdicion.id))
-  } else {
-    const existente = state.pinturas.find(
-      p => p.brand.toLowerCase() === brand.toLowerCase() && p.name.toLowerCase() === name.toLowerCase() && p.type === type
-    )
-    if (existente) {
-      ;({ error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + (payload.quantity || 1) }).eq('id', existente.id))
+  try {
+    let error
+    if (state.paintEnEdicion) {
+      ;({ error } = await db.from('paints').update(payload).eq('id', state.paintEnEdicion.id))
     } else {
-      ;({ error } = await db.from('paints').insert(payload))
+      const existente = state.pinturas.find(
+        p => p.brand.toLowerCase() === brand.toLowerCase() && p.name.toLowerCase() === name.toLowerCase() && p.type === type
+      )
+      if (existente) {
+        ;({ error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + (payload.quantity || 1) }).eq('id', existente.id))
+      } else {
+        ;({ error } = await db.from('paints').insert(payload))
+      }
     }
-  }
-  if (error) { mostrarError('Error: ' + error.message); return }
+    if (error) { mostrarError('Error: ' + error.message); return }
 
-  cerrarModalPintura()
-  await cargarPinturas()
+    cerrarModalPintura()
+    await cargarPinturas()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
+  }
 }
 
 export async function eliminarPintura() {
   if (!state.paintEnEdicion) return
   if (!confirm(`¿Eliminar "${state.paintEnEdicion.name}"?`)) return
-  const { error } = await db.from('paints').delete().eq('id', state.paintEnEdicion.id)
-  if (error) { mostrarError('Error: ' + error.message); return }
-  cerrarModalPintura()
-  await cargarPinturas()
+  try {
+    const { error } = await db.from('paints').delete().eq('id', state.paintEnEdicion.id)
+    if (error) { mostrarError('Error: ' + error.message); return }
+    cerrarModalPintura()
+    await cargarPinturas()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
+  }
 }
 
 function renderEquivalents(hex, brand) {

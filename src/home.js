@@ -350,23 +350,6 @@ function renderBacklog({ pendientes, pctPendiente, byStatusEntries, byStatusMode
   `
 }
 
-function renderLast(items) {
-  if (!items.length) return ''
-  return `
-    <div class="home-block">
-      <div class="home-block-h"><span>// últimas añadidas</span></div>
-      <div class="home-last">
-        ${items.map(m => `
-          <div class="home-last-row" data-action="open-mini" data-mini-id="${m.id}">
-            <span class="home-last-name">${escapeHtml(m.name)}</span>
-            <span class="home-last-meta">${escapeHtml((m.factions || [])[0] || '-')}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `
-}
-
 function renderSchemes(minis) {
   const schemes = minis
     .filter(m => m.status === 'pintada' && m.photo_url)
@@ -387,35 +370,6 @@ function renderSchemes(minis) {
             </div>
           </div>
         `).join('')}
-      </div>
-    </div>
-  `
-}
-
-function renderHistorial(proyectos) {
-  if (!proyectos.length) return ''
-  return `
-    <div class="home-block">
-      <div class="home-block-h"><span>// proyectos completados</span></div>
-      <div class="home-historial">
-        ${proyectos.map(p => {
-          const miniCount = (p.project_minis || []).length
-          const date = p.completed_at
-            ? new Date(p.completed_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-            : ''
-          return `
-            <div class="home-historial-row">
-              ${p.photo_url
-                ? `<img class="home-historial-thumb" src="${p.photo_url}" alt="">`
-                : `<div class="home-historial-thumb home-historial-thumb--empty"></div>`}
-              <div class="home-historial-info">
-                <span class="home-historial-name">${escapeHtml(p.name)}</span>
-                <span class="home-historial-meta">${miniCount} mini${miniCount !== 1 ? 's' : ''}${date ? ' · ' + date : ''}</span>
-              </div>
-              <span class="home-historial-badge">✓</span>
-            </div>
-          `
-        }).join('')}
       </div>
     </div>
   `

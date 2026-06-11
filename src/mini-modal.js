@@ -421,6 +421,8 @@ export async function guardarMini() {
     cerrarModal()
     if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
     if (state.tabActual === 'home') cargarHome()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
   } finally {
     if (btn) btn.disabled = false
   }
@@ -430,22 +432,26 @@ export async function eliminarMini() {
   if (!state.miniEnEdicion) return
   if (!confirm(`¿Eliminar "${state.miniEnEdicion.name}"?`)) return
 
-  if (state.miniEnEdicion.photo_url) {
-    const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
-    if (path) await db.storage.from('mini-photos').remove([path])
-  }
-  const { data: galleryToDelete } = await db.from('mini_photos').select('url').eq('mini_id', state.miniEnEdicion.id)
-  for (const p of galleryToDelete || []) {
-    const storagePath = storagePathFrom(p.url, 'mini-photos')
-    if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
-  }
-  const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
-  if (error) { mostrarError('Error: ' + error.message); return }
-  invalidateMinis()
+  try {
+    if (state.miniEnEdicion.photo_url) {
+      const path = storagePathFrom(state.miniEnEdicion.photo_url, 'mini-photos')
+      if (path) await db.storage.from('mini-photos').remove([path])
+    }
+    const { data: galleryToDelete } = await db.from('mini_photos').select('url').eq('mini_id', state.miniEnEdicion.id)
+    for (const p of galleryToDelete || []) {
+      const storagePath = storagePathFrom(p.url, 'mini-photos')
+      if (storagePath) await db.storage.from('mini-photos').remove([storagePath])
+    }
+    const { error } = await db.from('minis').delete().eq('id', state.miniEnEdicion.id)
+    if (error) { mostrarError('Error: ' + error.message); return }
+    invalidateMinis()
 
-  cerrarModal()
-  const { cerrarDetalleMini } = await import('./mini-detail.js')
-  cerrarDetalleMini()
-  if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
-  if (state.tabActual === 'home') cargarHome()
+    cerrarModal()
+    const { cerrarDetalleMini } = await import('./mini-detail.js')
+    cerrarDetalleMini()
+    if (state.tabActual === 'wishlist') { await cargarWishlist() } else { await actualizarFiltroFacciones() }
+    if (state.tabActual === 'home') cargarHome()
+  } catch (e) {
+    mostrarError('Error inesperado: ' + e.message)
+  }
 }

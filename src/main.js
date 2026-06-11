@@ -69,282 +69,333 @@ function abrirStatusPicker(badge) {
 
 function cerrarStatusPicker() { statusPicker.classList.remove('open') }
 
-statusPicker.addEventListener('click', async e => {
-  const item = e.target.closest('[data-new-status]')
-  if (!item) return
-  cerrarStatusPicker()
-  await cambiarStatusRapido(Number(item.dataset.miniId), item.dataset.newStatus)
-})
-
-document.addEventListener('click', e => {
-  if (!statusPicker.classList.contains('open')) return
-  if (!e.target.closest('#status-picker') && !e.target.closest('[data-action="status-quick"]')) cerrarStatusPicker()
-})
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarStatusPicker() })
-
-// Event delegation for dynamically rendered lists (replaces window.* globals)
-document.getElementById('lista').addEventListener('click', async e => {
-  const badge = e.target.closest('[data-action="status-quick"]')
-  if (badge) { abrirStatusPicker(badge); return }
-  const card = e.target.closest('[data-mini-id]')
-  if (card) {
-    const { abrirDetalleMini } = await import('./mini-detail.js')
-    abrirDetalleMini(Number(card.dataset.miniId))
-  }
-})
-document.getElementById('lista-wishlist').addEventListener('click', e => {
-  if (e.target.closest('[data-wish-action]')) return
-  const item = e.target.closest('[data-mini-id]')
-  if (item) abrirEdicion(Number(item.dataset.miniId))
-})
-document.getElementById('lista-pinturas').addEventListener('click', e => {
-  const item = e.target.closest('[data-paint-id]')
-  if (item) abrirEdicionPintura(Number(item.dataset.paintId))
-})
-document.getElementById('catalog-results').addEventListener('click', e => {
-  const item = e.target.closest('[data-action]')
-  if (!item) return
-  if (item.dataset.action === 'quick-add-brand') quickAddPintura(item.dataset.brand, item.dataset.name, item.dataset.type, item.dataset.hex || '')
-  if (item.dataset.action === 'catalog-increment') incrementarPintura(item.dataset.id)
-  if (item.dataset.action === 'catalog-open-modal') abrirModalPinturaConMarca(item.dataset.brand, item.dataset.name)
-})
-
+// ───────────────────────────────────────────────────────────────────
 // Auth
-document.getElementById('btn-export')?.addEventListener('click', exportarJSON)
-document.getElementById('btn-export-paints')?.addEventListener('click', exportarPinturasStock)
-document.getElementById('btn-paint-stats')?.addEventListener('click', abrirPaintStats)
-document.getElementById('btn-paint-stats-close')?.addEventListener('click', cerrarPaintStats)
-document.getElementById('btn-paint-wishlist')?.addEventListener('click', abrirPaintWishlist)
-document.getElementById('btn-paint-wishlist-close')?.addEventListener('click', cerrarPaintWishlist)
-document.getElementById('input-import-paints')?.addEventListener('change', e => {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => importarPinturas(ev.target.result)
-  reader.readAsText(file)
-  e.target.value = ''
-})
-document.getElementById('btn-login')?.addEventListener('click', login)
-document.getElementById('btn-logout')?.addEventListener('click', logout)
-document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)
-document.getElementById('email')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
-document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+// ───────────────────────────────────────────────────────────────────
+function bindAuthEvents() {
+  document.getElementById('btn-login')?.addEventListener('click', login)
+  document.getElementById('btn-logout')?.addEventListener('click', logout)
+  document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)
+  document.getElementById('email')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+  document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+}
 
-// Bottom nav
-document.getElementById('bottom-nav')?.addEventListener('click', e => {
-  const btn = e.target.closest('.bottom-nav-item[data-tab]')
-  if (btn) cambiarTab(btn.dataset.tab)
-})
+// ───────────────────────────────────────────────────────────────────
+// Minis: colección, wishlist, status picker, modal de mini
+// ───────────────────────────────────────────────────────────────────
+function bindMiniEvents() {
+  statusPicker.addEventListener('click', async e => {
+    const item = e.target.closest('[data-new-status]')
+    if (!item) return
+    cerrarStatusPicker()
+    await cambiarStatusRapido(Number(item.dataset.miniId), item.dataset.newStatus)
+  })
 
-// Tabs originales ocultos (por compatibilidad si algún código los llama)
-document.getElementById('tab-hoy')?.addEventListener('click',       () => cambiarTab('hoy'))
-document.getElementById('tab-coleccion')?.addEventListener('click', () => cambiarTab('coleccion'))
-document.getElementById('tab-stats')?.addEventListener('click',     () => cambiarTab('stats'))
-document.getElementById('tab-wishlist')?.addEventListener('click',  () => cambiarTab('wishlist'))
-document.getElementById('tab-pinturas')?.addEventListener('click',  () => cambiarTab('pinturas'))
-document.getElementById('tab-listas')?.addEventListener('click',    () => cambiarTab('listas'))
-document.getElementById('tab-recetas')?.addEventListener('click',   () => cambiarTab('recetas'))
-document.getElementById('tab-pareja')?.addEventListener('click',    () => cambiarTab('pareja'))
+  // Event delegation for dynamically rendered lists (replaces window.* globals)
+  document.getElementById('lista').addEventListener('click', async e => {
+    const badge = e.target.closest('[data-action="status-quick"]')
+    if (badge) { abrirStatusPicker(badge); return }
+    const card = e.target.closest('[data-mini-id]')
+    if (card) {
+      const { abrirDetalleMini } = await import('./mini-detail.js')
+      abrirDetalleMini(Number(card.dataset.miniId))
+    }
+  })
+  document.getElementById('lista-wishlist').addEventListener('click', e => {
+    if (e.target.closest('[data-wish-action]')) return
+    const item = e.target.closest('[data-mini-id]')
+    if (item) abrirEdicion(Number(item.dataset.miniId))
+  })
 
-// FAB — abre Quick Add sheet
-document.getElementById('btn-fab')?.addEventListener('click', async () => {
-  const { abrirQuickAdd } = await import('./quick-add.js')
-  abrirQuickAdd()
-})
+  // Coleccion filters
+  document.getElementById('filtro-game')?.addEventListener('change', actualizarFiltroFacciones)
+  document.getElementById('filtro-faction')?.addEventListener('change', cargarMinis)
+  document.getElementById('filtro-status')?.addEventListener('change', cargarMinis)
+  document.getElementById('filtro-type')?.addEventListener('change', onFiltroType)
+  document.getElementById('busqueda')?.addEventListener('input', e => onBusqueda(e.target.value))
 
-// Gallery view toggle + gallery photo upload
-document.getElementById('btn-view-toggle')?.addEventListener('click', e => toggleViewMode(e.currentTarget))
-document.getElementById('gallery-photo-input')?.addEventListener('change', e => onGalleryPhotoSelected(e.target))
+  // Sort buttons
+  document.querySelectorAll('.sort-btn:not(.sort-paint-btn)').forEach(btn => {
+    btn.addEventListener('click', () => onOrdenar(btn))
+  })
 
-// List importer (BattleScribe / NewRecruit / texto pegado)
-;(function bindListImporter() {
+  // Gallery view toggle + gallery photo upload
+  document.getElementById('btn-view-toggle')?.addEventListener('click', e => toggleViewMode(e.currentTarget))
+  document.getElementById('gallery-photo-input')?.addEventListener('change', e => onGalleryPhotoSelected(e.target))
+
+  // Mini modal
+  document.getElementById('modal-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-bg') cerrarModal() })
+  document.getElementById('btn-cerrar-modal')?.addEventListener('click', cerrarModal)
+  document.getElementById('btn-guardar-mini')?.addEventListener('click', guardarMini)
+  document.getElementById('btn-eliminar')?.addEventListener('click', eliminarMini)
+  document.getElementById('game')?.addEventListener('change', actualizarFacciones)
+  document.getElementById('faction')?.addEventListener('change', actualizarUnidades)
+  document.getElementById('unit-select')?.addEventListener('change', onUnitChange)
+  document.getElementById('photo-input')?.addEventListener('change', e => onPhotoSelected(e.target))
+  document.getElementById('btn-remove-photo')?.addEventListener('click', removePhoto)
+
+  // Refrescar lista cuando llega foto auto-fetched
+  window.addEventListener('wt:photo-saved', () => {
+    if (state.tabActual === 'coleccion') cargarMinis()
+  })
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Pinturas: lista, catálogo, modal, filtros, stats, wishlist, cámara
+// ───────────────────────────────────────────────────────────────────
+function bindPaintEvents() {
+  document.getElementById('lista-pinturas').addEventListener('click', e => {
+    const item = e.target.closest('[data-paint-id]')
+    if (item) abrirEdicionPintura(Number(item.dataset.paintId))
+  })
+  document.getElementById('catalog-results').addEventListener('click', e => {
+    const item = e.target.closest('[data-action]')
+    if (!item) return
+    if (item.dataset.action === 'quick-add-brand') quickAddPintura(item.dataset.brand, item.dataset.name, item.dataset.type, item.dataset.hex || '')
+    if (item.dataset.action === 'catalog-increment') incrementarPintura(item.dataset.id)
+    if (item.dataset.action === 'catalog-open-modal') abrirModalPinturaConMarca(item.dataset.brand, item.dataset.name)
+  })
+
+  document.getElementById('btn-export-paints')?.addEventListener('click', exportarPinturasStock)
+  document.getElementById('btn-paint-stats')?.addEventListener('click', abrirPaintStats)
+  document.getElementById('btn-paint-stats-close')?.addEventListener('click', cerrarPaintStats)
+  document.getElementById('btn-paint-wishlist')?.addEventListener('click', abrirPaintWishlist)
+  document.getElementById('btn-paint-wishlist-close')?.addEventListener('click', cerrarPaintWishlist)
+  document.getElementById('input-import-paints')?.addEventListener('change', e => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => importarPinturas(ev.target.result)
+    reader.readAsText(file)
+    e.target.value = ''
+  })
+
+  // Paint modal
+  document.getElementById('modal-paint-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-paint-bg') cerrarModalPintura() })
+  document.getElementById('btn-cerrar-modal-paint')?.addEventListener('click', cerrarModalPintura)
+  document.getElementById('btn-guardar-pintura')?.addEventListener('click', guardarPintura)
+  document.getElementById('btn-eliminar-paint')?.addEventListener('click', eliminarPintura)
+  document.getElementById('paint-brand')?.addEventListener('input', onPaintBrandInput)
+  document.getElementById('paint-name')?.addEventListener('input', onPaintNameInput)
+  document.getElementById('paint-has-color')?.addEventListener('change', e => toggleColorPicker(e.target))
+  document.getElementById('btn-color-search')?.addEventListener('click', buscarColorExterno)
+  document.getElementById('btn-paint-find-similar')?.addEventListener('click', buscarSimilares)
+  document.getElementById('busqueda-paint')?.addEventListener('input', filtrarYRenderPinturas)
+  document.getElementById('filtro-paint-stock-btn')?.addEventListener('click', e => {
+    e.stopPropagation()
+    document.getElementById('filtro-paint-stock-wrap').classList.toggle('open')
+  })
+  document.getElementById('filtro-paint-stock-panel')?.addEventListener('change', e => {
+    const radio = e.target.closest('.paint-stock-radio')
+    if (!radio) return
+    const labels = { '': 'Todas', '1': 'En stock', '0': 'Sin stock' }
+    const btn = document.getElementById('filtro-paint-stock-btn')
+    btn.textContent = labels[radio.value]
+    btn.classList.toggle('active', radio.value !== '')
+    document.getElementById('filtro-paint-stock-wrap').classList.remove('open')
+    filtrarYRenderPinturas()
+  })
+
+  // Dropdown tipo pintura con checkboxes
+  document.getElementById('filtro-paint-type-btn')?.addEventListener('click', e => {
+    e.stopPropagation()
+    document.getElementById('filtro-paint-type-wrap').classList.toggle('open')
+  })
+  document.getElementById('filtro-paint-type-panel')?.addEventListener('change', () => {
+    const checked = [...document.querySelectorAll('.paint-type-cb:checked')].map(cb => cb.value)
+    const btn = document.getElementById('filtro-paint-type-btn')
+    btn.textContent = checked.length === 0 ? 'Tipo'
+      : checked.length <= 2 ? checked.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
+      : `${checked.length} tipos`
+    btn.classList.toggle('active', checked.length > 0)
+    filtrarYRenderPinturas()
+  })
+  // Paint sort
+  document.querySelectorAll('.sort-paint-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sort-paint-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      setPaintSort(btn.dataset.sort)
+    })
+  })
+
+  // Color search (pinturas tab) — buscar pintura por color
+  document.getElementById('btn-color-search-open')?.addEventListener('click', async () => {
+    const { abrirColorSearch } = await import('./paint-color-search.js')
+    abrirColorSearch()
+  })
+
+  // Catalog search (pinturas tab)
+  document.getElementById('catalog-brand-select')?.addEventListener('change', e => {
+    const brand = e.target.value
+    const input = document.getElementById('catalog-search')
+    input.placeholder = brand === 'Citadel' ? 'Añadir del catálogo Citadel…' : `Buscar en ${brand}…`
+    input.value = ''
+    document.getElementById('catalog-results').style.display = 'none'
+  })
+  document.getElementById('filtro-paint-marca')?.addEventListener('change', e => setPaintBrandFilter(e.target.value))
+  document.getElementById('catalog-search')?.addEventListener('input', e => onCatalogSearch(e.target.value))
+  document.getElementById('catalog-search')?.addEventListener('focus', e => onCatalogSearch(e.target.value))
+
+  // Camera
+  document.getElementById('btn-camera-catalog')?.addEventListener('click', () => abrirCamara('catalog'))
+  document.getElementById('btn-camera-modal')?.addEventListener('click', () => abrirCamara('modal'))
+  document.getElementById('camera-capture-btn')?.addEventListener('click', capturarPote)
+  document.getElementById('btn-cerrar-camara')?.addEventListener('click', cerrarCamara)
+  document.getElementById('btn-reintentar-camara')?.addEventListener('click', reintentarCamara)
+  document.getElementById('btn-confirmar-camara')?.addEventListener('click', confirmarPoteCamara)
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Recetas
+// ───────────────────────────────────────────────────────────────────
+function bindRecipeEvents() {
+  document.getElementById('modal-recipe-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-recipe-bg') cerrarModalReceta() })
+  document.getElementById('btn-cerrar-modal-recipe')?.addEventListener('click', cerrarModalReceta)
+  document.getElementById('btn-guardar-recipe')?.addEventListener('click', guardarReceta)
+  document.getElementById('btn-eliminar-recipe')?.addEventListener('click', eliminarReceta)
+  document.getElementById('recipe-photo-input')?.addEventListener('change', e => onRecipePhotoSelected(e.target))
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Proyectos y sesiones
+// ───────────────────────────────────────────────────────────────────
+function bindProjectEvents() {
+  document.getElementById('modal-project-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-project-bg') cerrarModalProyecto() })
+  document.getElementById('btn-cerrar-modal-project')?.addEventListener('click', cerrarModalProyecto)
+  document.getElementById('btn-guardar-project')?.addEventListener('click', guardarProyecto)
+  document.getElementById('btn-completar-project')?.addEventListener('click', completarProyecto)
+  document.getElementById('btn-eliminar-project')?.addEventListener('click', eliminarProyecto)
+  document.getElementById('proj-photo-input')?.addEventListener('change', e => onProjPhotoSelected(e.target))
+  document.getElementById('btn-remove-proj-photo')?.addEventListener('click', removeProjPhoto)
+
+  // Session modal
+  document.getElementById('modal-session-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-session-bg') cerrarModalSession() })
+  document.getElementById('btn-cerrar-session')?.addEventListener('click', cerrarModalSession)
+  document.getElementById('btn-guardar-session')?.addEventListener('click', guardarSession)
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Listas de ejército: list importer + army importer
+// ───────────────────────────────────────────────────────────────────
+function bindListEvents() {
+  // List importer (BattleScribe / NewRecruit / texto pegado)
   const bg = document.getElementById('modal-list-import-bg')
-  if (!bg) return
-  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open') })
-  document.getElementById('btn-cerrar-list-import')?.addEventListener('click', async () => {
-    const { cerrarListImporter } = await import('./list-importer.js')
-    cerrarListImporter()
-  })
-  document.getElementById('list-import-game')?.addEventListener('change', async () => {
-    const { onImportGameChange } = await import('./list-importer.js')
-    onImportGameChange()
-  })
-  document.getElementById('list-import-name')?.addEventListener('input', async () => {
-    const { updateSaveLabel } = await import('./list-importer.js')
-    updateSaveLabel()
-  })
-  document.getElementById('btn-list-import-process')?.addEventListener('click', async () => {
-    const { onImportProcess } = await import('./list-importer.js')
-    onImportProcess()
-  })
-  document.getElementById('btn-list-import-save')?.addEventListener('click', async () => {
-    const { guardarListaImportada } = await import('./list-importer.js')
-    guardarListaImportada()
-  })
-  document.getElementById('list-import-preview')?.addEventListener('click', async e => {
-    const cb = e.target.closest('[data-action="toggle-row"]')
-    if (!cb) return
-    const { onPreviewToggle } = await import('./list-importer.js')
-    onPreviewToggle(Number(cb.dataset.idx))
-  })
-})()
-
-// Army importer
-document.getElementById('btn-army-import')?.addEventListener('click', abrirArmyImporter)
-document.getElementById('modal-army-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-army-bg') cerrarArmyImporter() })
-document.getElementById('btn-cerrar-army')?.addEventListener('click', cerrarArmyImporter)
-document.getElementById('army-game')?.addEventListener('change', onArmyGameChange)
-document.getElementById('army-faction')?.addEventListener('change', onArmyFactionChange)
-document.getElementById('btn-army-guardar')?.addEventListener('click', guardarEjercito)
-
-// Coleccion filters
-document.getElementById('filtro-game')?.addEventListener('change', actualizarFiltroFacciones)
-document.getElementById('filtro-faction')?.addEventListener('change', cargarMinis)
-document.getElementById('filtro-status')?.addEventListener('change', cargarMinis)
-document.getElementById('filtro-type')?.addEventListener('change', onFiltroType)
-document.getElementById('busqueda')?.addEventListener('input', e => onBusqueda(e.target.value))
-
-// Sort buttons
-document.querySelectorAll('.sort-btn:not(.sort-paint-btn)').forEach(btn => {
-  btn.addEventListener('click', () => onOrdenar(btn))
-})
-
-// Mini modal
-document.getElementById('modal-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-bg') cerrarModal() })
-document.getElementById('btn-cerrar-modal')?.addEventListener('click', cerrarModal)
-document.getElementById('btn-guardar-mini')?.addEventListener('click', guardarMini)
-document.getElementById('btn-eliminar')?.addEventListener('click', eliminarMini)
-document.getElementById('game')?.addEventListener('change', actualizarFacciones)
-document.getElementById('faction')?.addEventListener('change', actualizarUnidades)
-document.getElementById('unit-select')?.addEventListener('change', onUnitChange)
-document.getElementById('photo-input')?.addEventListener('change', e => onPhotoSelected(e.target))
-document.getElementById('btn-remove-photo')?.addEventListener('click', removePhoto)
-
-// Project modal
-document.getElementById('modal-project-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-project-bg') cerrarModalProyecto() })
-document.getElementById('btn-cerrar-modal-project')?.addEventListener('click', cerrarModalProyecto)
-document.getElementById('btn-guardar-project')?.addEventListener('click', guardarProyecto)
-document.getElementById('btn-completar-project')?.addEventListener('click', completarProyecto)
-document.getElementById('btn-eliminar-project')?.addEventListener('click', eliminarProyecto)
-document.getElementById('proj-photo-input')?.addEventListener('change', e => onProjPhotoSelected(e.target))
-document.getElementById('btn-remove-proj-photo')?.addEventListener('click', removeProjPhoto)
-
-// Paint modal
-document.getElementById('modal-paint-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-paint-bg') cerrarModalPintura() })
-document.getElementById('btn-cerrar-modal-paint')?.addEventListener('click', cerrarModalPintura)
-document.getElementById('btn-guardar-pintura')?.addEventListener('click', guardarPintura)
-document.getElementById('btn-eliminar-paint')?.addEventListener('click', eliminarPintura)
-document.getElementById('paint-brand')?.addEventListener('input', onPaintBrandInput)
-document.getElementById('paint-name')?.addEventListener('input', onPaintNameInput)
-document.getElementById('paint-has-color')?.addEventListener('change', e => toggleColorPicker(e.target))
-document.getElementById('btn-color-search')?.addEventListener('click', buscarColorExterno)
-document.getElementById('btn-paint-find-similar')?.addEventListener('click', buscarSimilares)
-document.getElementById('busqueda-paint')?.addEventListener('input', filtrarYRenderPinturas)
-document.getElementById('filtro-paint-stock-btn')?.addEventListener('click', e => {
-  e.stopPropagation()
-  document.getElementById('filtro-paint-stock-wrap').classList.toggle('open')
-})
-document.getElementById('filtro-paint-stock-panel')?.addEventListener('change', e => {
-  const radio = e.target.closest('.paint-stock-radio')
-  if (!radio) return
-  const labels = { '': 'Todas', '1': 'En stock', '0': 'Sin stock' }
-  const btn = document.getElementById('filtro-paint-stock-btn')
-  btn.textContent = labels[radio.value]
-  btn.classList.toggle('active', radio.value !== '')
-  document.getElementById('filtro-paint-stock-wrap').classList.remove('open')
-  filtrarYRenderPinturas()
-})
-
-// Dropdown tipo pintura con checkboxes
-document.getElementById('filtro-paint-type-btn')?.addEventListener('click', e => {
-  e.stopPropagation()
-  document.getElementById('filtro-paint-type-wrap').classList.toggle('open')
-})
-document.getElementById('filtro-paint-type-panel')?.addEventListener('change', () => {
-  const checked = [...document.querySelectorAll('.paint-type-cb:checked')].map(cb => cb.value)
-  const btn = document.getElementById('filtro-paint-type-btn')
-  btn.textContent = checked.length === 0 ? 'Tipo'
-    : checked.length <= 2 ? checked.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
-    : `${checked.length} tipos`
-  btn.classList.toggle('active', checked.length > 0)
-  filtrarYRenderPinturas()
-})
-// Paint sort
-document.querySelectorAll('.sort-paint-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.sort-paint-btn').forEach(b => b.classList.remove('active'))
-    btn.classList.add('active')
-    setPaintSort(btn.dataset.sort)
-  })
-})
-
-// Color search (pinturas tab) — buscar pintura por color
-document.getElementById('btn-color-search-open')?.addEventListener('click', async () => {
-  const { abrirColorSearch } = await import('./paint-color-search.js')
-  abrirColorSearch()
-})
-
-// Catalog search (pinturas tab)
-document.getElementById('catalog-brand-select')?.addEventListener('change', e => {
-  const brand = e.target.value
-  const input = document.getElementById('catalog-search')
-  input.placeholder = brand === 'Citadel' ? 'Añadir del catálogo Citadel…' : `Buscar en ${brand}…`
-  input.value = ''
-  document.getElementById('catalog-results').style.display = 'none'
-})
-document.getElementById('filtro-paint-marca')?.addEventListener('change', e => setPaintBrandFilter(e.target.value))
-document.getElementById('catalog-search')?.addEventListener('input', e => onCatalogSearch(e.target.value))
-document.getElementById('catalog-search')?.addEventListener('focus', e => onCatalogSearch(e.target.value))
-document.addEventListener('click', e => {
-  if (!e.target.closest('.catalog-search-section')) {
-    const r = document.getElementById('catalog-results')
-    if (r) r.style.display = 'none'
+  if (bg) {
+    bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open') })
+    document.getElementById('btn-cerrar-list-import')?.addEventListener('click', async () => {
+      const { cerrarListImporter } = await import('./list-importer.js')
+      cerrarListImporter()
+    })
+    document.getElementById('list-import-game')?.addEventListener('change', async () => {
+      const { onImportGameChange } = await import('./list-importer.js')
+      onImportGameChange()
+    })
+    document.getElementById('list-import-name')?.addEventListener('input', async () => {
+      const { updateSaveLabel } = await import('./list-importer.js')
+      updateSaveLabel()
+    })
+    document.getElementById('btn-list-import-process')?.addEventListener('click', async () => {
+      const { onImportProcess } = await import('./list-importer.js')
+      onImportProcess()
+    })
+    document.getElementById('btn-list-import-save')?.addEventListener('click', async () => {
+      const { guardarListaImportada } = await import('./list-importer.js')
+      guardarListaImportada()
+    })
+    document.getElementById('list-import-preview')?.addEventListener('click', async e => {
+      const cb = e.target.closest('[data-action="toggle-row"]')
+      if (!cb) return
+      const { onPreviewToggle } = await import('./list-importer.js')
+      onPreviewToggle(Number(cb.dataset.idx))
+    })
   }
-  if (!e.target.closest('#filtro-paint-type-wrap')) {
-    document.getElementById('filtro-paint-type-wrap')?.classList.remove('open')
-  }
-  if (!e.target.closest('#filtro-paint-stock-wrap')) {
-    document.getElementById('filtro-paint-stock-wrap')?.classList.remove('open')
-  }
-})
 
-// Settings modal
-document.getElementById('modal-settings-bg')?.addEventListener('click', async e => {
-  if (e.target.id === 'modal-settings-bg') {
+  // Army importer
+  document.getElementById('btn-army-import')?.addEventListener('click', abrirArmyImporter)
+  document.getElementById('modal-army-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-army-bg') cerrarArmyImporter() })
+  document.getElementById('btn-cerrar-army')?.addEventListener('click', cerrarArmyImporter)
+  document.getElementById('army-game')?.addEventListener('change', onArmyGameChange)
+  document.getElementById('army-faction')?.addEventListener('change', onArmyFactionChange)
+  document.getElementById('btn-army-guardar')?.addEventListener('click', guardarEjercito)
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Navegación: bottom nav, tabs, FAB
+// ───────────────────────────────────────────────────────────────────
+function bindNavEvents() {
+  document.getElementById('bottom-nav')?.addEventListener('click', e => {
+    const btn = e.target.closest('.bottom-nav-item[data-tab]')
+    if (btn) cambiarTab(btn.dataset.tab)
+  })
+
+  // Tabs originales ocultos (por compatibilidad si algún código los llama)
+  document.getElementById('tab-hoy')?.addEventListener('click',       () => cambiarTab('hoy'))
+  document.getElementById('tab-coleccion')?.addEventListener('click', () => cambiarTab('coleccion'))
+  document.getElementById('tab-stats')?.addEventListener('click',     () => cambiarTab('stats'))
+  document.getElementById('tab-wishlist')?.addEventListener('click',  () => cambiarTab('wishlist'))
+  document.getElementById('tab-pinturas')?.addEventListener('click',  () => cambiarTab('pinturas'))
+  document.getElementById('tab-listas')?.addEventListener('click',    () => cambiarTab('listas'))
+  document.getElementById('tab-recetas')?.addEventListener('click',   () => cambiarTab('recetas'))
+  document.getElementById('tab-pareja')?.addEventListener('click',    () => cambiarTab('pareja'))
+
+  // FAB — abre Quick Add sheet
+  document.getElementById('btn-fab')?.addEventListener('click', async () => {
+    const { abrirQuickAdd } = await import('./quick-add.js')
+    abrirQuickAdd()
+  })
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Global: listeners a nivel de documento, settings, export
+// ───────────────────────────────────────────────────────────────────
+function bindGlobalEvents() {
+  document.addEventListener('click', e => {
+    if (!statusPicker.classList.contains('open')) return
+    if (!e.target.closest('#status-picker') && !e.target.closest('[data-action="status-quick"]')) cerrarStatusPicker()
+  })
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarStatusPicker() })
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.catalog-search-section')) {
+      const r = document.getElementById('catalog-results')
+      if (r) r.style.display = 'none'
+    }
+    if (!e.target.closest('#filtro-paint-type-wrap')) {
+      document.getElementById('filtro-paint-type-wrap')?.classList.remove('open')
+    }
+    if (!e.target.closest('#filtro-paint-stock-wrap')) {
+      document.getElementById('filtro-paint-stock-wrap')?.classList.remove('open')
+    }
+  })
+
+  document.getElementById('btn-export')?.addEventListener('click', exportarJSON)
+
+  // Settings modal
+  document.getElementById('modal-settings-bg')?.addEventListener('click', async e => {
+    if (e.target.id === 'modal-settings-bg') {
+      const { cerrarSettings } = await import('./settings.js')
+      cerrarSettings()
+    }
+  })
+  document.getElementById('btn-cerrar-settings')?.addEventListener('click', async () => {
     const { cerrarSettings } = await import('./settings.js')
     cerrarSettings()
-  }
-})
-document.getElementById('btn-cerrar-settings')?.addEventListener('click', async () => {
-  const { cerrarSettings } = await import('./settings.js')
-  cerrarSettings()
-})
+  })
+}
 
-// Session modal
-document.getElementById('modal-session-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-session-bg') cerrarModalSession() })
-document.getElementById('btn-cerrar-session')?.addEventListener('click', cerrarModalSession)
-document.getElementById('btn-guardar-session')?.addEventListener('click', guardarSession)
-
-// Recipe modal
-document.getElementById('modal-recipe-bg')?.addEventListener('click', e => { if (e.target.id === 'modal-recipe-bg') cerrarModalReceta() })
-document.getElementById('btn-cerrar-modal-recipe')?.addEventListener('click', cerrarModalReceta)
-document.getElementById('btn-guardar-recipe')?.addEventListener('click', guardarReceta)
-document.getElementById('btn-eliminar-recipe')?.addEventListener('click', eliminarReceta)
-document.getElementById('recipe-photo-input')?.addEventListener('change', e => onRecipePhotoSelected(e.target))
-
-// Camera
-document.getElementById('btn-camera-catalog')?.addEventListener('click', () => abrirCamara('catalog'))
-document.getElementById('btn-camera-modal')?.addEventListener('click', () => abrirCamara('modal'))
-document.getElementById('camera-capture-btn')?.addEventListener('click', capturarPote)
-document.getElementById('btn-cerrar-camara')?.addEventListener('click', cerrarCamara)
-document.getElementById('btn-reintentar-camara')?.addEventListener('click', reintentarCamara)
-document.getElementById('btn-confirmar-camara')?.addEventListener('click', confirmarPoteCamara)
-
-// Refrescar lista cuando llega foto auto-fetched
-window.addEventListener('wt:photo-saved', () => {
-  if (state.tabActual === 'coleccion') cargarMinis()
-})
+// ───────────────────────────────────────────────────────────────────
+// Arranque
+// ───────────────────────────────────────────────────────────────────
+bindAuthEvents()
+bindMiniEvents()
+bindPaintEvents()
+bindRecipeEvents()
+bindProjectEvents()
+bindListEvents()
+bindNavEvents()
+bindGlobalEvents()
 
 // PWA: registra service worker + banner offline + update prompt
 import('./pwa.js').then(m => m.initPWA()).catch(() => {})

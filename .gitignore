@@ -1,6 +1,9 @@
 # Vite cache
 .vite/
 
+# PDFs de reglas (copyright, demasiado pesados para el repo)
+docs/*.pdf
+
 # Claude Code IDE settings
 .claude/
 
