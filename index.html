@@ -151,6 +151,7 @@
     <div id="vista-pinturas" style="display:none">
       <div class="catalog-search-section">
         <div class="catalog-search-row">
+          <select id="catalog-brand-select"></select>
           <input type="search" id="catalog-search" placeholder="Añadir del catálogo Citadel…" autocomplete="off">
           <button class="btn-camera" id="btn-camera-catalog" title="Escanear pote con cámara">📷</button>
           <button class="btn-camera btn-color-search" id="btn-color-search-open" title="Buscar pintura por color">🎨</button>
@@ -181,6 +182,7 @@
       </div>
 
       <div class="filtros filtros-pinturas">
+        <select id="filtro-paint-marca"><option value="">Todas</option></select>
         <div class="filter-dropdown" id="filtro-paint-type-wrap">
           <button class="filter-dropdown-btn" id="filtro-paint-type-btn">Tipo</button>
           <div class="filter-dropdown-panel" id="filtro-paint-type-panel"></div>

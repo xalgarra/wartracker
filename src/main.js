@@ -6,8 +6,8 @@ import { cerrarModalProyecto, guardarProyecto, completarProyecto, eliminarProyec
 import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
-import { onCatalogSearch, quickAddPintura, filtrarYRenderPinturas, setPaintSort } from './paints.js'
-import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura, buscarSimilares } from './paint-modal.js'
+import { onCatalogSearch, quickAddPintura, incrementarPintura, filtrarYRenderPinturas, setPaintSort, setPaintBrandFilter } from './paints.js'
+import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura, buscarSimilares, abrirModalPinturaConMarca } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { abrirModalReceta, cerrarModalReceta, guardarReceta, eliminarReceta, onRecipePhotoSelected } from './recipe-modal.js'
 import { cerrarModalSession, guardarSession } from './session-modal.js'
@@ -103,8 +103,11 @@ document.getElementById('lista-pinturas').addEventListener('click', e => {
   if (item) abrirEdicionPintura(Number(item.dataset.paintId))
 })
 document.getElementById('catalog-results').addEventListener('click', e => {
-  const item = e.target.closest('[data-action="quick-add"]')
-  if (item) quickAddPintura(item.dataset.name, item.dataset.type, item.dataset.hex || '')
+  const item = e.target.closest('[data-action]')
+  if (!item) return
+  if (item.dataset.action === 'quick-add-brand') quickAddPintura(item.dataset.brand, item.dataset.name, item.dataset.type, item.dataset.hex || '')
+  if (item.dataset.action === 'catalog-increment') incrementarPintura(item.dataset.id)
+  if (item.dataset.action === 'catalog-open-modal') abrirModalPinturaConMarca(item.dataset.brand, item.dataset.name)
 })
 
 // Auth
@@ -271,6 +274,14 @@ document.getElementById('btn-color-search-open')?.addEventListener('click', asyn
 })
 
 // Catalog search (pinturas tab)
+document.getElementById('catalog-brand-select')?.addEventListener('change', e => {
+  const brand = e.target.value
+  const input = document.getElementById('catalog-search')
+  input.placeholder = brand === 'Citadel' ? 'Añadir del catálogo Citadel…' : `Buscar en ${brand}…`
+  input.value = ''
+  document.getElementById('catalog-results').style.display = 'none'
+})
+document.getElementById('filtro-paint-marca')?.addEventListener('change', e => setPaintBrandFilter(e.target.value))
 document.getElementById('catalog-search')?.addEventListener('input', e => onCatalogSearch(e.target.value))
 document.getElementById('catalog-search')?.addEventListener('focus', e => onCatalogSearch(e.target.value))
 document.addEventListener('click', e => {

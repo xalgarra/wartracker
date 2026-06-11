@@ -1,6 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { CITADEL_CATALOG } from './paint-colors.js'
+import { BRAND_CATALOGS } from './paint-colors.js'
 import { PAINT_BRANDS } from './constants.js'
 import { mostrarError } from './toast.js'
 import { comparePaintColors } from './paint-sort.js'
@@ -8,14 +8,29 @@ import { comparePaintColors } from './paint-sort.js'
 let paintSort = 'nombre'
 export function setPaintSort(sort) { paintSort = sort; filtrarYRenderPinturas() }
 
+let paintBrandFilter = ''
+export function setPaintBrandFilter(brand) { paintBrandFilter = brand; filtrarYRenderPinturas() }
+
 export async function cargarPinturas() {
   const { data, error } = await db.from('paints').select('*').order('brand').order('name')
   if (error) { mostrarError('Error al cargar pinturas'); return }
   state.pinturas = data || []
 
-  const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))]
+  const marcasUsuario = [...new Set(state.pinturas.map(p => p.brand))].sort()
   const todasLasMarcas = [...new Set([...PAINT_BRANDS, ...marcasUsuario])]
   document.getElementById('brands-list').innerHTML = todasLasMarcas.map(b => `<option value="${b}">`).join('')
+
+  const brandSel = document.getElementById('catalog-brand-select')
+  if (brandSel) {
+    const cur = brandSel.value || 'Citadel'
+    brandSel.innerHTML = todasLasMarcas.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
+  }
+
+  const marcaSel = document.getElementById('filtro-paint-marca')
+  if (marcaSel) {
+    const cur = marcaSel.value
+    marcaSel.innerHTML = `<option value="">Todas</option>` + marcasUsuario.map(b => `<option value="${b}"${b === cur ? ' selected' : ''}>${b}</option>`).join('')
+  }
 
   filtrarYRenderPinturas()
 }
@@ -26,6 +41,7 @@ export function filtrarYRenderPinturas() {
   const stock = document.querySelector('.paint-stock-radio:checked')?.value || ''
 
   let filtered = state.pinturas
+  if (paintBrandFilter) filtered = filtered.filter(p => p.brand === paintBrandFilter)
   if (busqueda) filtered = filtered.filter(p =>
     p.name.toLowerCase().includes(busqueda) || p.brand.toLowerCase().includes(busqueda)
   )
@@ -66,47 +82,87 @@ export function filtrarYRenderPinturas() {
 }
 
 export function onCatalogSearch(query) {
+  const brand = document.getElementById('catalog-brand-select')?.value || 'Citadel'
   const q = query.trim().toLowerCase()
   const results = document.getElementById('catalog-results')
   if (!q || q.length < 2) { results.style.display = 'none'; results.innerHTML = ''; return }
 
-  const matches = CITADEL_CATALOG.filter(p => p.name.toLowerCase().includes(q)).slice(0, 12)
-
-  if (!matches.length) {
-    results.innerHTML = '<div class="catalog-empty">Sin resultados</div>'
-    results.style.display = 'block'
-    return
-  }
-
-  results.innerHTML = matches.map(p => {
-    const isOwned = state.pinturas.some(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type)
-    const existente = isOwned ? state.pinturas.find(x => x.brand === 'Citadel' && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type) : null
-    const swatchClass = p.hex ? '' : ' catalog-swatch-none'
-    const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
-    const dataAttrs = `data-action="quick-add" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
-    return `
-      <div class="catalog-result${isOwned ? ' owned' : ''}" ${dataAttrs}>
-        <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
-        <div class="catalog-result-info">
-          <span class="catalog-result-name">${p.name}</span>
-          <span class="catalog-result-type">${p.type}</span>
+  const catalog = BRAND_CATALOGS[brand]
+  if (catalog) {
+    const matches = catalog.filter(p => p.name.toLowerCase().includes(q)).slice(0, 12)
+    if (!matches.length) {
+      results.innerHTML = '<div class="catalog-empty">Sin resultados</div>'
+      results.style.display = 'block'
+      return
+    }
+    results.innerHTML = matches.map(p => {
+      const isOwned = state.pinturas.some(x => x.brand === brand && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type)
+      const existente = isOwned ? state.pinturas.find(x => x.brand === brand && x.name.toLowerCase() === p.name.toLowerCase() && x.type === p.type) : null
+      const swatchClass = p.hex ? '' : ' catalog-swatch-none'
+      const swatchStyle = p.hex ? `style="background:${p.hex}"` : ''
+      const dataAttrs = `data-action="quick-add-brand" data-brand="${brand}" data-name="${p.name.replace(/"/g, '&quot;')}" data-type="${p.type}" data-hex="${p.hex || ''}"`
+      return `
+        <div class="catalog-result${isOwned ? ' owned' : ''}" ${dataAttrs}>
+          <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
+          <div class="catalog-result-info">
+            <span class="catalog-result-name">${p.name}</span>
+            <span class="catalog-result-type">${p.type}</span>
+          </div>
+          ${isOwned
+            ? `<span class="catalog-owned-mark">×${existente?.quantity || 1} +1</span>`
+            : '<span class="catalog-add-btn">+</span>'}
         </div>
-        ${isOwned
-          ? `<span class="catalog-owned-mark">×${existente?.quantity || 1} +1</span>`
-          : '<span class="catalog-add-btn">+</span>'}
+      `
+    }).join('')
+  } else {
+    const matches = state.pinturas.filter(p => p.brand === brand && p.name.toLowerCase().includes(q)).slice(0, 12)
+    const nameEsc = query.trim().replace(/"/g, '&quot;')
+    const brandEsc = brand.replace(/"/g, '&quot;')
+    results.innerHTML = matches.map(p => {
+      const swatchStyle = p.color_hex ? `style="background:${p.color_hex}"` : ''
+      const swatchClass = p.color_hex ? '' : ' catalog-swatch-none'
+      return `
+        <div class="catalog-result owned" data-action="catalog-increment" data-id="${p.id}">
+          <div class="catalog-swatch${swatchClass}" ${swatchStyle}></div>
+          <div class="catalog-result-info">
+            <span class="catalog-result-name">${p.name}</span>
+            <span class="catalog-result-type">${p.type}</span>
+          </div>
+          <span class="catalog-owned-mark">×${p.quantity || 1} +1</span>
+        </div>
+      `
+    }).join('') + `
+      <div class="catalog-result" data-action="catalog-open-modal" data-brand="${brandEsc}" data-name="${nameEsc}">
+        <div class="catalog-swatch catalog-swatch-none"></div>
+        <div class="catalog-result-info">
+          <span class="catalog-result-name">${query.trim()}</span>
+          <span class="catalog-result-type">Nueva pintura ${brand}</span>
+        </div>
+        <span class="catalog-add-btn">+</span>
       </div>
     `
-  }).join('')
+  }
   results.style.display = 'block'
 }
 
-export async function quickAddPintura(name, type, hex) {
-  const existente = state.pinturas.find(p => p.brand === 'Citadel' && p.name.toLowerCase() === name.toLowerCase() && p.type === type)
+export async function incrementarPintura(id) {
+  const p = state.pinturas.find(x => x.id === Number(id))
+  if (!p) return
+  const { error } = await db.from('paints').update({ quantity: (p.quantity || 1) + 1 }).eq('id', p.id)
+  if (error) { mostrarError('Error: ' + error.message); return }
+  document.getElementById('catalog-search').value = ''
+  document.getElementById('catalog-results').style.display = 'none'
+  await cargarPinturas()
+  document.getElementById('catalog-search').focus()
+}
+
+export async function quickAddPintura(brand, name, type, hex) {
+  const existente = state.pinturas.find(p => p.brand === brand && p.name.toLowerCase() === name.toLowerCase() && p.type === type)
   if (existente) {
     const { error } = await db.from('paints').update({ quantity: (existente.quantity || 1) + 1 }).eq('id', existente.id)
     if (error) { mostrarError('Error: ' + error.message); return }
   } else {
-    const payload = { brand: 'Citadel', name, type, in_stock: true, quantity: 1 }
+    const payload = { brand, name, type, in_stock: true, quantity: 1 }
     if (hex) payload.color_hex = hex
     const { error } = await db.from('paints').insert(payload)
     if (error) { mostrarError('Error: ' + error.message); return }

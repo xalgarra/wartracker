@@ -246,6 +246,18 @@ body.dark .paint-name { font-weight: 400; }
    ==================================================================== */
 .catalog-search-row { display: flex; gap: 8px; align-items: stretch; }
 .catalog-search-row input { flex: 1; margin: 0; }
+#catalog-brand-select {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border: var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  max-width: 120px;
+}
+body.dark #catalog-brand-select { background: var(--surface); border-color: var(--border); }
 
 .btn-camera {
   flex-shrink: 0;

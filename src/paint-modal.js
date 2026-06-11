@@ -1,6 +1,6 @@
 import { db } from './db.js'
 import { state } from './state.js'
-import { CITADEL_CATALOG, PAINT_COLORS } from './paint-colors.js'
+import { BRAND_CATALOGS, PAINT_COLORS } from './paint-colors.js'
 import { mostrarError } from './toast.js'
 import { cargarPinturas } from './paints.js'
 
@@ -59,6 +59,13 @@ export async function buscarSimilares() {
   })
 }
 
+export function abrirModalPinturaConMarca(brand, name = '') {
+  abrirModalPintura()
+  document.getElementById('paint-brand').value = brand
+  if (name) document.getElementById('paint-name').value = name
+  onPaintBrandInput()
+}
+
 export function cerrarModalPintura() {
   state.paintEnEdicion = null
   document.getElementById('modal-paint-bg').classList.remove('open')
@@ -71,12 +78,8 @@ export function toggleColorPicker(cb) {
 export function onPaintBrandInput() {
   const brand = document.getElementById('paint-brand').value.trim()
   const datalist = document.getElementById('paint-names-list')
-  if (brand === 'Citadel' || !brand) {
-    datalist.innerHTML = CITADEL_CATALOG.map(p => `<option value="${p.name}">`).join('')
-  } else {
-    const colors = PAINT_COLORS[brand]
-    datalist.innerHTML = colors ? Object.keys(colors).map(n => `<option value="${n}">`).join('') : ''
-  }
+  const catalog = BRAND_CATALOGS[brand] || (brand ? null : BRAND_CATALOGS['Citadel'])
+  datalist.innerHTML = catalog ? catalog.map(p => `<option value="${p.name}">`).join('') : ''
   onPaintNameInput()
 }
 
@@ -84,9 +87,8 @@ export function onPaintNameInput() {
   const brand = document.getElementById('paint-brand').value.trim()
   const name  = document.getElementById('paint-name').value.trim()
   if (!name) return
-  const entry = brand === 'Citadel' || !brand
-    ? CITADEL_CATALOG.find(p => p.name.toLowerCase() === name.toLowerCase())
-    : null
+  const catalog = BRAND_CATALOGS[brand] || BRAND_CATALOGS['Citadel']
+  const entry = catalog.find(p => p.name.toLowerCase() === name.toLowerCase())
   if (entry) {
     if (entry.hex) {
       document.getElementById('paint-has-color').checked = true

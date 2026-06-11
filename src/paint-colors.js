@@ -354,8 +354,18 @@ export const CITADEL_CATALOG = [
   { name: 'Blackstone Fortress Rubble', type: 'texture', hex: "#3a3c40" },
 ]
 
+import { VALLEJO_GAME_COLOR } from './paint-catalog-vallejo.js'
+
+export const BRAND_CATALOGS = {
+  'Citadel': CITADEL_CATALOG,
+  'Vallejo': VALLEJO_GAME_COLOR,
+}
+
 // Lookup rápido por nombre para el modal
-export const PAINT_COLORS = { 'Citadel': {} }
-for (const p of CITADEL_CATALOG) {
-  if (p.hex) PAINT_COLORS['Citadel'][p.name] = p.hex
+export const PAINT_COLORS = {}
+for (const [brand, catalog] of Object.entries(BRAND_CATALOGS)) {
+  PAINT_COLORS[brand] = {}
+  for (const p of catalog) {
+    if (p.hex) PAINT_COLORS[brand][p.name] = p.hex
+  }
 }
