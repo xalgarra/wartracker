@@ -163,22 +163,55 @@ export async function eliminarPintura() {
 
 function renderEquivalents(hex, brand) {
   const container = document.getElementById('paint-equivalents')
-  const results = nearestCatalogPaints(hex, BRAND_CATALOGS, brand, 5)
+
+  const userBrands = new Set(state.pinturas.map(p => p.brand))
+  userBrands.delete(brand)
+  if (!userBrands.size) { container.style.display = 'none'; return }
+
+  const filteredCatalogs = Object.fromEntries(
+    Object.entries(BRAND_CATALOGS).filter(([b]) => userBrands.has(b))
+  )
+  const results = nearestCatalogPaints(hex, filteredCatalogs, brand, 20)
   if (!results.length) { container.style.display = 'none'; return }
 
+  const enriched = results.map(r => {
+    const owned = state.pinturas.find(
+      p => p.brand === r.brand && p.name.toLowerCase() === r.name.toLowerCase()
+    )
+    return { ...r, inStock: owned?.in_stock ?? false, owned: !!owned }
+  })
+
   const matchClass = d => d < 5 ? 'great' : d < 12 ? 'good' : d < 25 ? 'ok' : 'far'
+
+  const rowHtml = r => `
+    <div class="equiv-row equiv-row--${matchClass(r.distance)}">
+      <div class="equiv-swatch" style="background:${r.hex}"></div>
+      <div class="equiv-info">
+        <span class="equiv-name">${escapeHtml(r.name)}</span>
+        <span class="equiv-brand">${escapeHtml(r.brand)} · ${escapeHtml(r.type)}</span>
+      </div>
+      <div class="equiv-right">
+        ${r.owned ? `<span class="equiv-stock ${r.inStock ? 'equiv-stock--yes' : 'equiv-stock--no'}">${r.inStock ? 'En stock' : 'Sin stock'}</span>` : ''}
+        <span class="equiv-sim equiv-sim--${matchClass(r.distance)}">${r.similarity}%</span>
+      </div>
+    </div>
+  `
+
+  const visible = enriched.slice(0, 5)
+  const hidden  = enriched.slice(5)
+
   container.style.display = 'block'
   container.innerHTML = `
     <div class="equivalents-title">Equivalentes en catálogo</div>
-    ${results.map(r => `
-      <div class="equiv-row equiv-row--${matchClass(r.distance)}">
-        <div class="equiv-swatch" style="background:${r.hex}"></div>
-        <div class="equiv-info">
-          <span class="equiv-name">${escapeHtml(r.name)}</span>
-          <span class="equiv-brand">${escapeHtml(r.brand)} · ${escapeHtml(r.type)}</span>
-        </div>
-        <span class="equiv-sim equiv-sim--${matchClass(r.distance)}">${r.similarity}%</span>
-      </div>
-    `).join('')}
+    ${visible.map(rowHtml).join('')}
+    ${hidden.length ? `
+      <div class="equiv-more-rows" style="display:none">${hidden.map(rowHtml).join('')}</div>
+      <button class="equiv-ver-mas" type="button">Ver ${hidden.length} más</button>
+    ` : ''}
   `
+
+  container.querySelector('.equiv-ver-mas')?.addEventListener('click', function () {
+    container.querySelector('.equiv-more-rows').style.display = 'block'
+    this.style.display = 'none'
+  })
 }
