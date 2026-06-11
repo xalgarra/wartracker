@@ -42,7 +42,7 @@ const VALLEJO_ES_MAP = {
   // Orange
   '72.110': 'Sunset Orange',    // Naranja Atardecer
   '72.008': 'Orange Fire',      // Naranja Fuego
-  '72.009': 'Burnt Orange',     // Naranja Tostado
+  '72.009': 'Hot Orange',       // Naranja Tostado
   '72.106': 'Scarlet Blood',    // Sangre Escarlata
   // Magenta
   '72.013': 'Squid Pink',       // Rosa Pulpo
@@ -50,28 +50,28 @@ const VALLEJO_ES_MAP = {
   '72.113': 'Deep Magenta',     // Magenta Profundo
   '72.112': 'Evil Red',         // Rojo Maligno
   // Violet
-  '72.114': 'Lucius Lilac',     // Púrpura Lujurioso
+  '72.114': 'Lustful Purple',   // Púrpura Lujurioso
   '72.076': 'Alien Purple',     // Púrpura Alienígena
-  '72.015': 'Sorcerer Purple',  // Púrpura Hechicero
-  '72.116': 'Midnight Blue',    // Púrpura Medianoche
+  '72.015': 'Royal Purple',     // Púrpura Hechicero
+  '72.116': 'Midnight Purple',  // Púrpura Medianoche
   // Blue
-  '72.118': 'Dawn Blue',        // Azul Amanecer
+  '72.118': 'Sunrise Blue',     // Azul Amanecer
   '72.021': 'Magic Blue',       // Azul Mágico
   '72.020': 'Imperial Blue',    // Azul Imperial
   '72.019': 'Night Blue',       // Azul Negro
   // Turquoise
   '72.096': 'Verdigris',        // Verdín
   '72.119': 'Aquamarine',       // Aguamarina
-  '72.024': 'Falcon Turquoise', // Halcón Milenario
-  '72.120': 'Abyss Turquoise',  // Turquesa Abisal
+  '72.024': 'Turquoise',         // Halcón Milenario
+  '72.120': 'Abyssal Turquoise', // Turquesa Abisal
   // Cold Green
-  '72.121': 'Spectral Green',   // Verde Espectral
-  '72.025': 'Vile Green',       // Verde Malicioso
+  '72.121': 'Ghost Green',      // Verde Espectral
+  '72.025': 'Foul Green',       // Verde Malicioso
   '72.026': 'Jade Green',       // Verde Jade
   '72.027': 'Sick Green',       // Verde Casposo
   // Green
   '72.122': 'Bile Green',       // Verde Bilioso
-  '72.032': 'Escorpena Green',  // Verde Escorpena
+  '72.032': 'Scorpy Green',     // Verde Escorpena
   '72.123': 'Angel Green',      // Verde Angelical
   '72.028': 'Dark Green',       // Verde Oscuro
   // Black
@@ -92,7 +92,7 @@ function lookupExact(catalog, name) {
 }
 function lookupFuzzy(catalog, name) {
   const n = name.toLowerCase()
-  return catalog.find(p => p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase()))
+  return catalog.find(p => p.name.toLowerCase().includes(n))
 }
 
 // ── Parser de la lista ────────────────────────────────────────────────────────
@@ -328,7 +328,13 @@ function parseName(brand, raw) {
     return null
   }
   if (brand === 'AK Interactive') {
-    return raw.replace(/^AK\d+\s*/i, '').trim()
+    const name = raw.replace(/^AK\d+\s*/i, '').trim()
+    const AK_FIXES = {
+      'mahogani': 'Mahogany Brown',
+      'fluor yellow': 'Fluorescent Yellow',
+      'panel liner black': 'Black',
+    }
+    return AK_FIXES[name.toLowerCase()] || name
   }
   if (brand === 'Green Stuff World') {
     return raw.replace(/^\d{4}\s*/, '').trim()
@@ -354,6 +360,7 @@ for (const line of raw.split('\n')) {
 
   // Army Painter: triadas (Nombre: A, B, C) o lista con comas
   if (currentBrand === 'Army Painter') {
+    const AP_FIXES = { 'fantasmal blue': 'Phantasmal Blue' }
     let names = []
     if (trimmed.includes(':')) {
       const parts = trimmed.split(':')
@@ -361,7 +368,8 @@ for (const line of raw.split('\n')) {
     } else {
       names = trimmed.split(',').map(s => s.trim()).filter(Boolean)
     }
-    for (const name of names) {
+    for (let name of names) {
+      name = AP_FIXES[name.toLowerCase()] || name
       const catalog = AP
       const entry = lookupExact(catalog, name) || lookupFuzzy(catalog, name)
       results.push({

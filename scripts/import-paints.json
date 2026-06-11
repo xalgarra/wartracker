@@ -897,9 +897,9 @@
   },
   {
     "brand": "Vallejo",
-    "name": "Burnt Orange",
+    "name": "Hot Orange",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#e9472e",
     "in_stock": true,
     "quantity": 1
   },
@@ -945,9 +945,9 @@
   },
   {
     "brand": "Vallejo",
-    "name": "Lucius Lilac",
+    "name": "Lustful Purple",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#ad85ba",
     "in_stock": true,
     "quantity": 1
   },
@@ -961,25 +961,25 @@
   },
   {
     "brand": "Vallejo",
-    "name": "Sorcerer Purple",
+    "name": "Royal Purple",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#261d38",
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Vallejo",
-    "name": "Night Blue",
+    "name": "Midnight Purple",
     "type": "base",
-    "color_hex": "#131f30",
+    "color_hex": "#271635",
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Vallejo",
-    "name": "Dawn Blue",
+    "name": "Sunrise Blue",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#5cc9ea",
     "in_stock": true,
     "quantity": 1
   },
@@ -1033,25 +1033,25 @@
   },
   {
     "brand": "Vallejo",
-    "name": "Turquoise",
+    "name": "Abyssal Turquoise",
     "type": "base",
-    "color_hex": "#0b6667",
+    "color_hex": "#184359",
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Vallejo",
-    "name": "Spectral Green",
+    "name": "Ghost Green",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#77c396",
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Vallejo",
-    "name": "Vile Green",
+    "name": "Foul Green",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#0cab87",
     "in_stock": true,
     "quantity": 1
   },
@@ -1081,9 +1081,9 @@
   },
   {
     "brand": "Vallejo",
-    "name": "Escorpena Green",
+    "name": "Scorpy Green",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#528743",
     "in_stock": true,
     "quantity": 1
   },
@@ -1233,17 +1233,17 @@
   },
   {
     "brand": "AK Interactive",
-    "name": "Yellow",
+    "name": "Fluorescent Yellow",
     "type": "base",
-    "color_hex": "#fab719",
+    "color_hex": "#eee429",
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "AK Interactive",
-    "name": "mahogani",
+    "name": "Mahogany Brown",
     "type": "base",
-    "color_hex": null,
+    "color_hex": "#612c10",
     "in_stock": true,
     "quantity": 1
   },
@@ -1377,9 +1377,9 @@
   },
   {
     "brand": "Army Painter",
-    "name": "Fantasmal Blue",
-    "type": "base",
-    "color_hex": null,
+    "name": "Phantasmal Blue",
+    "type": "air",
+    "color_hex": "#9abede",
     "in_stock": true,
     "quantity": 1
   },
@@ -1481,9 +1481,9 @@
   },
   {
     "brand": "Green Stuff World",
-    "name": "Rose",
+    "name": "Fluorescent rose",
     "type": "base",
-    "color_hex": "#f470a1",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
@@ -1497,65 +1497,65 @@
   },
   {
     "brand": "Green Stuff World",
-    "name": "Blue",
+    "name": "Fluorescent blue",
     "type": "base",
-    "color_hex": "#5e88ff",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Yellow",
+    "name": "Fluorescent yellow",
     "type": "base",
-    "color_hex": "#f8fb48",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Red",
+    "name": "Fluorescent red",
     "type": "base",
-    "color_hex": "#f03c25",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Orange",
+    "name": "Fluorescent orange-yellow",
     "type": "base",
-    "color_hex": "#f96e33",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Orange",
+    "name": "Fluorescent Orange",
     "type": "base",
-    "color_hex": "#f96e33",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Lime",
+    "name": "Fluorescent lime",
     "type": "base",
-    "color_hex": "#4eff71",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "White",
+    "name": "Fluorescent White",
     "type": "base",
-    "color_hex": "#ffffff",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
   {
     "brand": "Green Stuff World",
-    "name": "Violet",
+    "name": "Fluorescent violet",
     "type": "base",
-    "color_hex": "#be68e3",
+    "color_hex": null,
     "in_stock": true,
     "quantity": 1
   },
