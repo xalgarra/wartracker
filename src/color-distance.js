@@ -62,6 +62,36 @@ export function nearestCatalogPaints(targetHex, brandCatalogs, excludeBrand, lim
   return results.sort((a, b) => a.distance - b.distance).slice(0, limit)
 }
 
+// Agrupa pinturas del inventario por similitud de color (ΔE < threshold).
+// Devuelve grupos de 2+ pinturas ordenados por tamaño descendente.
+export function findOverlaps(paints, threshold = 8) {
+  const valid = paints.filter(p => p.color_hex)
+  const labs  = valid.map(p => hexToLab(p.color_hex))
+  const n     = valid.length
+
+  // Union-Find
+  const parent = valid.map((_, i) => i)
+  function find(i) { return parent[i] === i ? i : (parent[i] = find(parent[i])) }
+  function union(i, j) { parent[find(i)] = find(j) }
+
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (deltaE(labs[i], labs[j]) < threshold) union(i, j)
+    }
+  }
+
+  const groups = {}
+  for (let i = 0; i < n; i++) {
+    const root = find(i)
+    if (!groups[root]) groups[root] = []
+    groups[root].push(valid[i])
+  }
+
+  return Object.values(groups)
+    .filter(g => g.length >= 2)
+    .sort((a, b) => b.length - a.length)
+}
+
 // Devuelve [{ paint, distance, similarity }] ordenado por mayor similitud.
 // similarity ∈ [0, 100] aprox: 100 = idéntico, ~0 cuando Δ E ≥ 80.
 export function nearestPaints(targetHex, paints, opts = {}) {

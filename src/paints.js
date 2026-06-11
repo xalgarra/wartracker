@@ -4,6 +4,7 @@ import { BRAND_CATALOGS } from './paint-colors.js'
 import { PAINT_BRANDS } from './constants.js'
 import { mostrarError } from './toast.js'
 import { comparePaintColors } from './paint-sort.js'
+import { findOverlaps } from './color-distance.js'
 
 let paintSort = 'nombre'
 export function setPaintSort(sort) { paintSort = sort; filtrarYRenderPinturas() }
@@ -149,10 +150,12 @@ export function abrirPaintStats() {
   const panel = document.getElementById('paint-stats-panel')
   renderPaintStats()
   panel.style.display = 'flex'
+  document.body.style.overflow = 'hidden'
 }
 
 export function cerrarPaintStats() {
   document.getElementById('paint-stats-panel').style.display = 'none'
+  document.body.style.overflow = ''
 }
 
 function renderPaintStats() {
@@ -239,7 +242,39 @@ function renderPaintStats() {
         ${conColor.map(p => `<div class="ps-palette-swatch" style="background:${p.color_hex}" title="${p.name} (${p.brand})"></div>`).join('')}
       </div>
     </div>` : ''}
+
+    ${renderOverlapsSection(paints)}
   `
+}
+
+function renderOverlapsSection(paints) {
+  const groups = findOverlaps(paints, 8)
+  if (!groups.length) return `
+    <div class="ps-section">
+      <div class="ps-section-title">Solapamientos</div>
+      <div class="ps-overlaps-empty">No hay pinturas con colores muy similares en tu rack.</div>
+    </div>`
+
+  return `
+    <div class="ps-section">
+      <div class="ps-section-title">Solapamientos <span class="ps-section-sub">${groups.length} grupos similares</span></div>
+      <div class="ps-overlaps-hint">Pinturas con ΔE &lt; 8 — probablemente intercambiables</div>
+      ${groups.map(group => `
+        <div class="ps-overlap-group">
+          <div class="ps-overlap-swatches">
+            ${group.map(p => `<div class="ps-overlap-swatch" style="background:${p.color_hex}"></div>`).join('')}
+          </div>
+          <div class="ps-overlap-paints">
+            ${group.map(p => `
+              <div class="ps-overlap-paint">
+                <span class="ps-overlap-name">${p.name}</span>
+                <span class="ps-overlap-brand">${p.brand} · ${p.type}${p.in_stock ? '' : ' · sin stock'}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>`
 }
 
 export async function incrementarPintura(id) {
