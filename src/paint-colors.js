@@ -355,10 +355,12 @@ export const CITADEL_CATALOG = [
 ]
 
 import { VALLEJO_GAME_COLOR } from './paint-catalog-vallejo.js'
+import { ARMY_PAINTER_FANATIC } from './paint-catalog-army-painter.js'
 
 export const BRAND_CATALOGS = {
   'Citadel': CITADEL_CATALOG,
   'Vallejo': VALLEJO_GAME_COLOR,
+  'Army Painter': ARMY_PAINTER_FANATIC,
 }
 
 // Lookup rápido por nombre para el modal
