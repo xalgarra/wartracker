@@ -3,6 +3,8 @@ import { state } from './state.js'
 import { BRAND_CATALOGS, PAINT_COLORS } from './paint-colors.js'
 import { mostrarError } from './toast.js'
 import { cargarPinturas } from './paints.js'
+import { nearestCatalogPaints } from './color-distance.js'
+import { escapeHtml } from './utils.js'
 
 export function abrirModalPintura() {
   state.paintEnEdicion = null
@@ -40,8 +42,10 @@ export function abrirEdicionPintura(id) {
   if (hasColor) {
     findSimilarBtn.textContent = paint.in_stock ? '🎨 Buscar similares' : '🎨 Buscar sustituto en mi rack'
     findSimilarBtn.style.display = 'block'
+    renderEquivalents(paint.color_hex, paint.brand)
   } else {
     findSimilarBtn.style.display = 'none'
+    document.getElementById('paint-equivalents').style.display = 'none'
   }
 
   document.getElementById('modal-paint-bg').classList.add('open')
@@ -155,4 +159,26 @@ export async function eliminarPintura() {
   if (error) { mostrarError('Error: ' + error.message); return }
   cerrarModalPintura()
   await cargarPinturas()
+}
+
+function renderEquivalents(hex, brand) {
+  const container = document.getElementById('paint-equivalents')
+  const results = nearestCatalogPaints(hex, BRAND_CATALOGS, brand, 5)
+  if (!results.length) { container.style.display = 'none'; return }
+
+  const matchClass = d => d < 5 ? 'great' : d < 12 ? 'good' : d < 25 ? 'ok' : 'far'
+  container.style.display = 'block'
+  container.innerHTML = `
+    <div class="equivalents-title">Equivalentes en catálogo</div>
+    ${results.map(r => `
+      <div class="equiv-row equiv-row--${matchClass(r.distance)}">
+        <div class="equiv-swatch" style="background:${r.hex}"></div>
+        <div class="equiv-info">
+          <span class="equiv-name">${escapeHtml(r.name)}</span>
+          <span class="equiv-brand">${escapeHtml(r.brand)} · ${escapeHtml(r.type)}</span>
+        </div>
+        <span class="equiv-sim equiv-sim--${matchClass(r.distance)}">${r.similarity}%</span>
+      </div>
+    `).join('')}
+  `
 }

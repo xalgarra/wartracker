@@ -43,6 +43,25 @@ export function deltaE(lab1, lab2) {
   return Math.sqrt(dL * dL + da * da + db * db)
 }
 
+// Devuelve [{ brand, name, hex, type, distance, similarity }] del catálogo completo,
+// excluyendo la marca de referencia.
+export function nearestCatalogPaints(targetHex, brandCatalogs, excludeBrand, limit = 5) {
+  const targetLab = hexToLab(targetHex)
+  if (!targetLab) return []
+
+  const results = []
+  for (const [brand, catalog] of Object.entries(brandCatalogs)) {
+    if (brand === excludeBrand) continue
+    for (const p of catalog) {
+      if (!p.hex) continue
+      const d = deltaE(targetLab, hexToLab(p.hex))
+      results.push({ brand, name: p.name, hex: p.hex, type: p.type, distance: d,
+        similarity: Math.max(0, Math.round(100 - d * 1.25)) })
+    }
+  }
+  return results.sort((a, b) => a.distance - b.distance).slice(0, limit)
+}
+
 // Devuelve [{ paint, distance, similarity }] ordenado por mayor similitud.
 // similarity ∈ [0, 100] aprox: 100 = idéntico, ~0 cuando Δ E ≥ 80.
 export function nearestPaints(targetHex, paints, opts = {}) {
