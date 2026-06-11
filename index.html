@@ -202,8 +202,18 @@
         <button class="sort-btn sort-paint-btn active" data-sort="nombre">Nombre</button>
         <button class="sort-btn sort-paint-btn" data-sort="color">Color</button>
         <button class="btn-link btn-export-paints" id="btn-export-paints" title="Exportar pinturas en stock">↓ Stock</button>
+        <button class="btn-link" id="btn-paint-stats" title="Stats del rack">📊</button>
       </div>
       <div class="paint-list" id="lista-pinturas"></div>
+
+      <!-- Panel stats del rack -->
+      <div class="paint-stats-panel" id="paint-stats-panel" style="display:none">
+        <div class="paint-stats-panel-header">
+          <span class="paint-stats-panel-title">Stats del rack</span>
+          <button class="paint-stats-panel-close" id="btn-paint-stats-close">✕</button>
+        </div>
+        <div class="paint-stats-panel-body" id="paint-stats-body"></div>
+      </div>
     </div>
   </div>
 

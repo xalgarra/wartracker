@@ -6,7 +6,7 @@ import { cerrarModalProyecto, guardarProyecto, completarProyecto, eliminarProyec
 import { cambiarTab } from './init.js'
 import { onBusqueda, onFiltroType, onOrdenar, actualizarFiltroFacciones, cargarMinis, cambiarStatusRapido } from './minis.js'
 import { abrirModal, abrirEdicion, cerrarModal, guardarMini, eliminarMini, onPhotoSelected, removePhoto, actualizarFacciones, actualizarUnidades, onUnitChange } from './mini-modal.js'
-import { onCatalogSearch, quickAddPintura, incrementarPintura, filtrarYRenderPinturas, setPaintSort, setPaintBrandFilter } from './paints.js'
+import { onCatalogSearch, quickAddPintura, incrementarPintura, filtrarYRenderPinturas, setPaintSort, setPaintBrandFilter, abrirPaintStats, cerrarPaintStats } from './paints.js'
 import { abrirModalPintura, abrirEdicionPintura, cerrarModalPintura, toggleColorPicker, onPaintBrandInput, onPaintNameInput, buscarColorExterno, guardarPintura, eliminarPintura, buscarSimilares, abrirModalPinturaConMarca } from './paint-modal.js'
 import { abrirCamara, cerrarCamara, capturarPote, reintentarCamara, confirmarPoteCamara } from './camera.js'
 import { abrirModalReceta, cerrarModalReceta, guardarReceta, eliminarReceta, onRecipePhotoSelected } from './recipe-modal.js'
@@ -113,6 +113,8 @@ document.getElementById('catalog-results').addEventListener('click', e => {
 // Auth
 document.getElementById('btn-export')?.addEventListener('click', exportarJSON)
 document.getElementById('btn-export-paints')?.addEventListener('click', exportarPinturasStock)
+document.getElementById('btn-paint-stats')?.addEventListener('click', abrirPaintStats)
+document.getElementById('btn-paint-stats-close')?.addEventListener('click', cerrarPaintStats)
 document.getElementById('btn-login')?.addEventListener('click', login)
 document.getElementById('btn-logout')?.addEventListener('click', logout)
 document.getElementById('btn-theme')?.addEventListener('click', toggleDarkMode)
